@@ -11,29 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "motion_action/motion_action.hpp"
+#include "motion_manager/motion_handler.hpp"
 
-cyberdog::motion::MotionAction::MotionAction() {}
+cyberdog::motion::MotionHandler::MotionHandler()
+{}
 
-cyberdog::motion::MotionAction::~MotionAction() {}
-
-void cyberdog::motion::MotionAction::Execute(const MotionCmdMsg::SharedPtr msg)
-{
-  // Checkout mode global, send msg continuously
-  (void) msg;
-}
-
-bool cyberdog::motion::MotionAction::Init()
-{
-  return true;
-}
-
-bool cyberdog::motion::MotionAction::SelfCheck()
-{
-  return true;
-}
-
-void cyberdog::motion::MotionAction::RegisterFeedback(std::function<void(LcmResponse *)> feedback)
-{
-  feedback_func_ = feedback;
-}
+cyberdog::motion::MotionHandler::~MotionHandler()
+{}

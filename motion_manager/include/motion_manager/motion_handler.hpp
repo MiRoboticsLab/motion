@@ -11,45 +11,37 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef MOTION_MANAGER__MOTION_DECISION_HPP_
-#define MOTION_MANAGER__MOTION_DECISION_HPP_
-#include <thread>
-#include <string>
+#ifndef MOTION_MANAGER__MOTION_HANDLER_HPP_
+#define MOTION_MANAGER__MOTION_HANDLER_HPP_
 #include "motion_action/motion_action.hpp"
-#include "motion_manager/motion_handler.hpp"
 #include "protocol/msg/motion_cmd.hpp"
+#include "protocol/lcm/robot_control_cmd_lcmt.hpp"
+#include "protocol/lcm/robot_control_response_lcmt.hpp"
 
 namespace cyberdog
 {
 namespace motion
 {
-class MotionDecision final
+using MotionCmdMsg = protocol::msg::MotionCmd;
+using LcmResponse = robot_control_response_lcmt;
+/**
+ * @brief 接收运控板返回数据，并进行解析、管理和分发
+ * 
+ */
+class MotionHandler final
 {
 public:
-  MotionDecision(std::shared_ptr<MotionAction> action_ptr, std::shared_ptr<MotionHandler> handler_ptr);
-  ~MotionDecision();
+  MotionHandler();
+  ~MotionHandler();
 
-  void Config();
-  bool Init();
-  void Execute(const MotionCmdMsg::SharedPtr msg);
-  inline void SetMode(uint8_t mode) {
-    motion_control_mode_ = mode;
-  }
+public: /* recv api */
   
-private:
-  inline bool IsStateValid() {
-    return true;
-  }
+  void Update();
+  void Checkout(LcmResponse * response);
 
-  inline bool IsModeValid() {
-    return true;
-  }
-private:
-  std::shared_ptr<MotionAction> action_ptr_ {nullptr};
-  std::shared_ptr<MotionHandler> handler_ptr {nullptr};
-  uint8_t motion_control_mode_ {0};
-};  // class MotionDecision
+private: /* ros members */
+  std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
+};  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog
-
-#endif  // MOTION_MANAGER__MOTION_DECISION_HPP_
+#endif  // MOTION_MANAGER__MOTION_HANDLER_HPP_

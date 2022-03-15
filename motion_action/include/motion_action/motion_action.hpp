@@ -13,14 +13,22 @@
 // limitations under the License.
 #ifndef MOTION_ACTION__MOTION_ACTION_HPP_
 #define MOTION_ACTION__MOTION_ACTION_HPP_
-#include <iostream>
-#include <string>
 #include <lcm/lcm-cpp.hpp>
+#include <string>
+#include <thread>
+#include <chrono>
+#include <functional>
+#include <iostream>
+#include "protocol/msg/motion_cmd.hpp"
+#include "protocol/lcm/robot_control_response_lcmt.hpp"
 
 namespace cyberdog
 {
 namespace motion
 {
+using MotionCmdMsg = protocol::msg::MotionCmd;
+using LcmResponse = robot_control_response_lcmt;
+
 class MotionAction final
 {
 public:
@@ -28,6 +36,14 @@ public:
   ~MotionAction();
 
 public:
+  void Execute(const MotionCmdMsg::SharedPtr msg);
+  void RegisterFeedback(std::function<void(LcmResponse *)> feedback);
+  bool Init();
+  bool SelfCheck();
+
+private:
+  std::thread control_thread_;
+  std::function<void(LcmResponse *)> feedback_func_;
 };  // class MotionAction
 }  // namespace motion
 }  // namespace cyberdog
