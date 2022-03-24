@@ -11,29 +11,23 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "motion_action/motion_action.hpp"
+#include <string>
+#include <memory>
+#include "cyberdog_common/cyberdog_log.hpp"
+#include "motion_manager/motion_manager.hpp"
 
-cyberdog::motion::MotionAction::MotionAction() {}
 
-cyberdog::motion::MotionAction::~MotionAction() {}
-
-void cyberdog::motion::MotionAction::Execute(const MotionCmdMsg::SharedPtr msg)
+int main(int argc, char ** argv)
 {
-  // Checkout mode global, send msg continuously
-  (void) msg;
-}
+  rclcpp::init(argc, argv);
 
-bool cyberdog::motion::MotionAction::Init()
-{
-  return true;
-}
-
-bool cyberdog::motion::MotionAction::SelfCheck()
-{
-  return true;
-}
-
-void cyberdog::motion::MotionAction::RegisterFeedback(std::function<void(LcmResponse *)> feedback)
-{
-  feedback_func_ = feedback;
+  auto motion_manager =
+    std::make_shared<cyberdog::motion::MotionManager>(std::string("motion_manager"));
+  motion_manager->Config();
+  if (!motion_manager->Init()) {
+    ERROR("motion manager init failed!");
+    return -1;
+  }
+  motion_manager->Run();
+  return 0;
 }

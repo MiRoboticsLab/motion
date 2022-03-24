@@ -15,6 +15,10 @@
 #define MOTION_MANAGER__MOTION_DECISION_HPP_
 #include <thread>
 #include <string>
+#include <memory>
+#include "motion_action/motion_action.hpp"
+#include "motion_manager/motion_handler.hpp"
+#include "protocol/msg/motion_cmd.hpp"
 
 namespace cyberdog
 {
@@ -23,8 +27,34 @@ namespace motion
 class MotionDecision final
 {
 public:
-  MotionDecision();
+  MotionDecision(
+    std::shared_ptr<MotionAction> action_ptr,
+    std::shared_ptr<cyberdog::motion::MotionHandler> handler_ptr);
   ~MotionDecision();
+
+  void Config();
+  bool Init();
+  void Execute(const MotionCmdMsg::SharedPtr msg);
+  inline void SetMode(uint8_t mode)
+  {
+    motion_control_mode_ = mode;
+  }
+
+private:
+  inline bool IsStateValid()
+  {
+    return true;
+  }
+
+  inline bool IsModeValid()
+  {
+    return true;
+  }
+
+private:
+  std::shared_ptr<MotionAction> action_ptr_ {nullptr};
+  std::shared_ptr<MotionHandler> handler_ptr_ {nullptr};
+  uint8_t motion_control_mode_ {0};
 };  // class MotionDecision
 }  // namespace motion
 }  // namespace cyberdog

@@ -7,18 +7,36 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(manager_base REQUIRED)
+find_package(cyberdog_common REQUIRED)
+find_package(cyberdog_system REQUIRED)
+find_package(protocol REQUIRED)
+find_package(motion_action REQUIRED)
+
+include_directories(include)
+
+add_executable(${PROJECT_NAME}
+  src/motion_manager.cpp
+  src/motion_handler.cpp
+  src/motion_decision.cpp
+  src/main.cpp)
+
+ament_target_dependencies(${PROJECT_NAME}
+  rclcpp
+  protocol
+  manager_base
+  cyberdog_system
+  cyberdog_common
+  motion_action
+  protocol
+)
+
+install(TARGETS
+  ${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # uncomment the line when a copyright and license is not present in all source files
-  #set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # uncomment the line when this package is not in a git repo
-  #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 

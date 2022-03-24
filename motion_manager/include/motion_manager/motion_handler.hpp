@@ -11,40 +11,42 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef MOTION_ACTION__MOTION_ACTION_HPP_
-#define MOTION_ACTION__MOTION_ACTION_HPP_
-#include <lcm/lcm-cpp.hpp>
-#include <string>
-#include <thread>
-#include <chrono>
-#include <functional>
-#include <iostream>
+#ifndef MOTION_MANAGER__MOTION_HANDLER_HPP_
+#define MOTION_MANAGER__MOTION_HANDLER_HPP_
+#include <memory>
+#include "motion_action/motion_action.hpp"
 #include "protocol/msg/motion_cmd.hpp"
+#include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 
 namespace cyberdog
 {
 namespace motion
 {
-using MotionCmdMsg = protocol::msg::MotionCmd;
-using LcmResponse = robot_control_response_lcmt;
 
-class MotionAction final
+/**
+ * @brief 接收运控板返回数据，并进行解析、管理和分发
+ *
+ */
+class MotionHandler final
 {
-public:
-  MotionAction();
-  ~MotionAction();
+  using MotionCmdMsg = protocol::msg::MotionCmd;
+  using LcmResponse = robot_control_response_lcmt;
 
 public:
-  void Execute(const MotionCmdMsg::SharedPtr msg);
-  void RegisterFeedback(std::function<void(LcmResponse *)> feedback);
-  bool Init();
-  bool SelfCheck();
+  MotionHandler();
+  ~MotionHandler();
+
+public:
+  /* recv api */
+
+  void Update();
+  void Checkout(LcmResponse * response);
 
 private:
-  std::thread control_thread_;
-  std::function<void(LcmResponse *)> feedback_func_;
-};  // class MotionAction
+  /* ros members */
+  std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
+};  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog
-#endif  // MOTION_ACTION__MOTION_ACTION_HPP_
+#endif  // MOTION_MANAGER__MOTION_HANDLER_HPP_
