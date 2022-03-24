@@ -13,6 +13,7 @@
 // limitations under the License.
 #ifndef MOTION_MANAGER__MOTION_HANDLER_HPP_
 #define MOTION_MANAGER__MOTION_HANDLER_HPP_
+#include <memory>
 #include "motion_action/motion_action.hpp"
 #include "protocol/msg/motion_cmd.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
@@ -22,24 +23,28 @@ namespace cyberdog
 {
 namespace motion
 {
-using MotionCmdMsg = protocol::msg::MotionCmd;
-using LcmResponse = robot_control_response_lcmt;
+
 /**
  * @brief 接收运控板返回数据，并进行解析、管理和分发
- * 
+ *
  */
 class MotionHandler final
 {
+  using MotionCmdMsg = protocol::msg::MotionCmd;
+  using LcmResponse = robot_control_response_lcmt;
+
 public:
   MotionHandler();
   ~MotionHandler();
 
-public: /* recv api */
-  
+public:
+  /* recv api */
+
   void Update();
   void Checkout(LcmResponse * response);
 
-private: /* ros members */
+private:
+  /* ros members */
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
 };  // class MotionHandler
 }  // namespace motion

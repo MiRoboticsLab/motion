@@ -11,11 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef MOTION_MANAGER__MOTION_HANDLER_HPP_
-#define MOTION_MANAGER__MOTION_HANDLER_HPP_
+#ifndef MOTION_MANAGER__MOTION_MANAGER_HPP_
+#define MOTION_MANAGER__MOTION_MANAGER_HPP_
 #include <functional>
 #include <mutex>
 #include <thread>
+#include <string>
+#include <memory>
 #include "pluginlib/class_loader.hpp"
 #include "protocol/msg/motion_execute.hpp"
 #include "protocol/msg/motion_cmd.hpp"
@@ -24,8 +26,9 @@
 // #include "protocol/srv/motion_execute.hpp"
 #include "manager_base/manager_base.hpp"
 #include "motion_manager/motion_decision.hpp"
-#include "motion_manager/motion_handler.hpp"
+// #include "motion_manager/motion_handler.hpp"
 #include "motion_action/motion_action.hpp"
+#include "cyberdog_common/cyberdog_log.hpp"
 
 namespace cyberdog
 {
@@ -38,14 +41,13 @@ using MotionCmdMsg = protocol::msg::MotionCmd;
 class MotionManager final : public manager::ManagerBase
 {
 public:
-  MotionManager(const std::string & name);
+  explicit MotionManager(const std::string & name);
   ~MotionManager();
 
   void Config() override;
   bool Init() override;
   void Run() override;
   bool SelfCheck() override;
-  
 
 public:
   void OnError() override;
@@ -66,12 +68,11 @@ private:
 
 private:
   rclcpp::Subscription<MotionExecuteMsg>::SharedPtr motion_execute_sub_ {nullptr};
-  rclcpp::Subscription<MotionExecuteMsg>::SharedPtr motion_cmd_sub_ {nullptr};
+  rclcpp::Subscription<MotionCmdMsg>::SharedPtr motion_cmd_sub_ {nullptr};
   // rclcpp::Service<MotionExecuteSrv>::SharedPtr motion_cmd_srv_ {nullptr};
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
-  
 };  // class MotionManager
 }  // namespace motion
 }  // namespace cyberdog
 
-#endif  // MOTION_MANAGER__MOTION_HANDLER_HPP_
+#endif  // MOTION_MANAGER__MOTION_MANAGER_HPP_

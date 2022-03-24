@@ -21,7 +21,8 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto motion_manager = std::make_shared<cyberdog::motion::MotionManager>(std::string("motion_manager"));
+  auto motion_manager =
+    std::make_shared<cyberdog::motion::MotionManager>(std::string("motion_manager"));
   motion_manager->Config();
   if (!motion_manager->Init()) {
     ERROR("motion manager init failed!");

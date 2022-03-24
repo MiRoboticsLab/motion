@@ -11,18 +11,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#include <string>
+#include <memory>
 #include "rclcpp/rclcpp.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "motion_manager/motion_manager.hpp"
 
 cyberdog::motion::MotionManager::MotionManager(const std::string & name)
-  : manager::ManagerBase(name),
+: manager::ManagerBase(name),
   name_(name)
 {
   node_ptr_ = rclcpp::Node::make_shared(name_);
   action_ptr_ = std::make_shared<MotionAction>();
   handler_ptr_ = std::make_shared<MotionHandler>();
-  decision_ptr = std::make_shared<MotionDecision>(action_ptr_, handler_ptr_);
+  decision_ptr_ = std::make_shared<MotionDecision>(action_ptr_, handler_ptr_);
 }
 
 cyberdog::motion::MotionManager::~MotionManager()
@@ -30,15 +32,19 @@ cyberdog::motion::MotionManager::~MotionManager()
 
 void cyberdog::motion::MotionManager::Config()
 {
-  // TODO: get info from configure
+  INFO("get info from configure");
 }
 
 bool cyberdog::motion::MotionManager::Init()
 {
-  // TODO: register manager base functions
-  action_ptr->RegisterFeedback(std::bind(&MotionHandler::Checkout, this->handler_ptr_, std::placeholders::_1));
-  motion_cmd_sub_ = node_ptr_->create_subscription<MotionCmdMsg>("motion_cmd", rclcpp::SystemDefaultsQoS(),
-                    std::bind(&MotionManager::MotionCmdSubCallback, this, std::placeholders::_1));
+  // register manager base functions
+  action_ptr_->RegisterFeedback(
+    std::bind(
+      &MotionHandler::Checkout, this->handler_ptr_,
+      std::placeholders::_1));
+  motion_cmd_sub_ = node_ptr_->create_subscription<MotionCmdMsg>(
+    "motion_cmd", rclcpp::SystemDefaultsQoS(),
+    std::bind(&MotionManager::MotionCmdSubCallback, this, std::placeholders::_1));
   return true;
 }
 
@@ -50,13 +56,13 @@ void cyberdog::motion::MotionManager::Run()
 
 bool cyberdog::motion::MotionManager::SelfCheck()
 {
-  // TODO: check all motions from config
+  // check all motions from config
   return true;
 }
 
 bool cyberdog::motion::MotionManager::IsStateValid()
 {
-  // TODO: check state from behavior tree
+  // check state from behavior tree
   return true;
 }
 
@@ -87,7 +93,7 @@ void cyberdog::motion::MotionManager::OnActive()
 
 void cyberdog::motion::MotionManager::MotionCmdSubCallback(const MotionCmdMsg::SharedPtr msg)
 {
-  if(! IsStateValid()) {
+  if (!IsStateValid()) {
     INFO("motion state invalid with current state");
     return;
   }

@@ -11,10 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#include <memory>
 #include "motion_manager/motion_decision.hpp"
 
-cyberdog::motion::MotionDecision::MotionDecision(std::shared_ptr<MotionAction> action_ptr, std::shared_ptr<MotionHandler> handler_ptr)
-  : action_ptr_ (action_ptr), handler_ptr_ (handler_ptr)
+cyberdog::motion::MotionDecision::MotionDecision(
+  std::shared_ptr<MotionAction> action_ptr,
+  std::shared_ptr<MotionHandler> handler_ptr)
+: action_ptr_(action_ptr), handler_ptr_(handler_ptr)
 {
   action_ptr = std::make_shared<cyberdog::motion::MotionAction>();
 }
@@ -25,14 +28,15 @@ bool cyberdog::motion::MotionDecision::Init() {}
 // bool cyberdog::motion::MotionDecision::CheckModeValid() {
 //   return true;
 // }
-void cyberdog::motion::MotionDecision::Execute(const MotionCmdMsg::SharedPtr msg) {
-  if(! IsStateValid()) {
+void cyberdog::motion::MotionDecision::Execute(const MotionCmdMsg::SharedPtr msg)
+{
+  if (!IsStateValid()) {
     return;
   }
-  if(! IsModeValid()) {
+  if (!IsModeValid()) {
     return;
   }
 
   handler_ptr_->Update();
-  action_ptr_->Execute();
+  action_ptr_->Execute(msg);
 }

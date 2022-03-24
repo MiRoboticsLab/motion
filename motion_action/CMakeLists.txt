@@ -36,7 +36,7 @@ install(
 
 install(TARGETS
   ${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME}
+  DESTINATION lib
 )
 
 if(BUILD_TESTING)
