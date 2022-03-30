@@ -24,7 +24,10 @@ cyberdog::motion::MotionDecision::MotionDecision(
 cyberdog::motion::MotionDecision::~MotionDecision() {}
 
 void cyberdog::motion::MotionDecision::Config() {}
-bool cyberdog::motion::MotionDecision::Init() {}
+bool cyberdog::motion::MotionDecision::Init()
+{
+  return true;
+}
 // bool cyberdog::motion::MotionDecision::CheckModeValid() {
 //   return true;
 // }
