@@ -23,4 +23,6 @@ void cyberdog::motion::MotionHandler::Update()
 {}
 
 void cyberdog::motion::MotionHandler::Checkout(LcmResponse * response)
-{}
+{
+  (void)response;
+}
