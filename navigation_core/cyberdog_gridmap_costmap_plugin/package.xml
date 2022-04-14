@@ -3,15 +3,13 @@
 <package format="3">
   <name>cyberdog_gridmap_costmap_plugin</name>
   <version>1.0.0</version>
-  <description>Run-time plugin for Costmap2D gradient later</description>
+  <description>Run-time plugin for grid map to Costmap2D layer</description>
   <maintainer email="duzhonghua@xiaomi.com">Du Zhonghua</maintainer>
-  <license>TODO</license>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
-
   <depend>nav2_costmap_2d</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
