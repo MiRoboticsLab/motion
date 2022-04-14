@@ -203,4 +203,19 @@ NavigateThroughPosesNavigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr
   blackboard->set<Goals>(goals_blackboard_id_, goal->poses);
 }
 
+bool NavigateThroughPosesNavigator::onGoalUpdate(FollowPoses::SharedPtr msg)
+{
+  if (msg->poses.size() > 0) {
+    RCLCPP_INFO(
+      logger_, "onGoalUpdate  %li poses to (%.2f, %.2f)",
+      msg->poses.size(), msg->poses.back().pose.position.x, msg->poses.back().pose.position.y);
+  }
+  Goals goal_poses;
+  auto blackboard = bt_action_server_->getBlackboard();
+  blackboard->get<Goals>(goals_blackboard_id_, goal_poses);
+  goal_poses.insert(goal_poses.end(),msg->poses.begin(),msg->poses.end());
+  blackboard->set<Goals>(goals_blackboard_id_, goal_poses);
+  return true;
+}
+
 }  // namespace nav2_bt_navigator

@@ -25,6 +25,9 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "pluginlib/class_loader.hpp"
 #include "nav2_behavior_tree/bt_action_server.hpp"
+#include "protocol/msg/follow_points.hpp"
+
+using FollowPoses = protocol::msg::FollowPoints;
 
 namespace nav2_bt_navigator
 {
@@ -161,7 +164,8 @@ public:
       std::bind(&Navigator::onGoalReceived, this, std::placeholders::_1),
       std::bind(&Navigator::onLoop, this),
       std::bind(&Navigator::onPreempt, this, std::placeholders::_1),
-      std::bind(&Navigator::onCompletion, this, std::placeholders::_1));
+      std::bind(&Navigator::onCompletion, this, std::placeholders::_1),
+      std::bind(&Navigator::onGoalUpdate, this, std::placeholders::_1));
 
     bool ok = true;
     if (!bt_action_server_->on_configure()) {
@@ -263,7 +267,7 @@ protected:
    * the blackboard which depend on the received goal
    */
   virtual bool goalReceived(typename ActionT::Goal::ConstSharedPtr goal) = 0;
-
+  virtual bool onGoalUpdate(FollowPoses::SharedPtr msg) = 0;
   /**
    * @brief A callback that defines execution that happens on one iteration through the BT
    * Can be used to publish action feedback

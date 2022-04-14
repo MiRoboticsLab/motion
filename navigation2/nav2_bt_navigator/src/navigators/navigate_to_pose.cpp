@@ -89,6 +89,12 @@ NavigateToPoseNavigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
   return true;
 }
 
+bool NavigateToPoseNavigator::onGoalUpdate(FollowPoses::SharedPtr msg)
+{
+  (void)msg;
+  return true;
+}
+
 void
 NavigateToPoseNavigator::goalCompleted(typename ActionT::Result::SharedPtr /*result*/)
 {

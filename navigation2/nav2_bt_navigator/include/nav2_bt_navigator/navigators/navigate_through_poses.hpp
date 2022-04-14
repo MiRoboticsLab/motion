@@ -107,6 +107,8 @@ protected:
 
   // Odometry smoother object
   std::unique_ptr<nav2_util::OdomSmoother> odom_smoother_;
+
+  bool onGoalUpdate(FollowPoses::SharedPtr msg);
 };
 
 }  // namespace nav2_bt_navigator

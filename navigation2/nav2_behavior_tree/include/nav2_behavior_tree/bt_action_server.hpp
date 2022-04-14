@@ -24,7 +24,7 @@
 #include "nav2_behavior_tree/ros_topic_logger.hpp"
 #include "nav2_util/lifecycle_node.hpp"
 #include "nav2_util/simple_action_server.hpp"
-
+#include "protocol/msg/follow_points.hpp"
 namespace nav2_behavior_tree
 {
 /**
@@ -36,12 +36,13 @@ class BtActionServer
 {
 public:
   using ActionServer = nav2_util::SimpleActionServer<ActionT>;
+  using FollowPoses = protocol::msg::FollowPoints;
 
   typedef std::function<bool (typename ActionT::Goal::ConstSharedPtr)> OnGoalReceivedCallback;
   typedef std::function<void ()> OnLoopCallback;
   typedef std::function<void (typename ActionT::Goal::ConstSharedPtr)> OnPreemptCallback;
   typedef std::function<void (typename ActionT::Result::SharedPtr)> OnCompletionCallback;
-
+  typedef std::function<void (FollowPoses::SharedPtr)> OnGoalUpdteCallback;
   /**
    * @brief A constructor for nav2_behavior_tree::BtActionServer class
    */
@@ -53,7 +54,8 @@ public:
     OnGoalReceivedCallback on_goal_received_callback,
     OnLoopCallback on_loop_callback,
     OnPreemptCallback on_preempt_callback,
-    OnCompletionCallback on_completion_callback);
+    OnCompletionCallback on_completion_callback,
+    OnGoalUpdteCallback on_goal_update_callback);
 
   /**
    * @brief A destructor for nav2_behavior_tree::BtActionServer class
@@ -94,6 +96,8 @@ public:
    */
   bool loadBehaviorTree(const std::string & bt_xml_filename = "");
 
+
+  void newGoalsCallback(FollowPoses::SharedPtr msg);
   /**
    * @brief Getter function for BT Blackboard
    * @return BT::Blackboard::Ptr Shared pointer to current BT blackboard
@@ -241,6 +245,9 @@ protected:
   OnLoopCallback on_loop_callback_;
   OnPreemptCallback on_preempt_callback_;
   OnCompletionCallback on_completion_callback_;
+  OnGoalUpdteCallback on_goal_update_callback_;
+
+  rclcpp::Subscription<FollowPoses>::SharedPtr follow_poses_;
 };
 
 }  // namespace nav2_behavior_tree

@@ -28,7 +28,7 @@
 
 namespace nav2_behavior_tree
 {
-
+using std::placeholders::_1;
 template<class ActionT>
 BtActionServer<ActionT>::BtActionServer(
   const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
@@ -38,7 +38,8 @@ BtActionServer<ActionT>::BtActionServer(
   OnGoalReceivedCallback on_goal_received_callback,
   OnLoopCallback on_loop_callback,
   OnPreemptCallback on_preempt_callback,
-  OnCompletionCallback on_completion_callback)
+  OnCompletionCallback on_completion_callback,
+  OnGoalUpdteCallback on_goal_update_callback)
 : action_name_(action_name),
   default_bt_xml_filename_(default_bt_xml_filename),
   plugin_lib_names_(plugin_lib_names),
@@ -46,7 +47,8 @@ BtActionServer<ActionT>::BtActionServer(
   on_goal_received_callback_(on_goal_received_callback),
   on_loop_callback_(on_loop_callback),
   on_preempt_callback_(on_preempt_callback),
-  on_completion_callback_(on_completion_callback)
+  on_completion_callback_(on_completion_callback),
+  on_goal_update_callback_(on_goal_update_callback)
 {
   auto node = node_.lock();
   logger_ = node->get_logger();
@@ -102,6 +104,10 @@ bool BtActionServer<ActionT>::on_configure()
     node->get_node_waitables_interface(),
     action_name_, std::bind(&BtActionServer<ActionT>::executeCallback, this));
 
+  // add poses subscriber.
+  follow_poses_ = node->create_subscription<FollowPoses>("follow_points",
+    rclcpp::SystemDefaultsQoS(),
+    std::bind(&BtActionServer::newGoalsCallback, this, _1));
   // Get parameter for monitoring with Groot via ZMQ Publisher
   node->get_parameter("enable_groot_monitoring", enable_groot_monitoring_);
   node->get_parameter("groot_zmq_publisher_port", groot_zmq_publisher_port_);
@@ -205,6 +211,10 @@ bool BtActionServer<ActionT>::loadBehaviorTree(const std::string & bt_xml_filena
   }
 
   return true;
+}
+template<class ActionT>
+void BtActionServer<ActionT>::newGoalsCallback(FollowPoses::SharedPtr msg) {
+  on_goal_update_callback_(msg);
 }
 
 template<class ActionT>
