@@ -17,7 +17,7 @@ cyberdog::motion::MotionAction::MotionAction() {}
 
 cyberdog::motion::MotionAction::~MotionAction() {}
 
-void cyberdog::motion::MotionAction::Execute(const MotionCmdMsg::SharedPtr msg)
+void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
 {
   // Checkout mode global, send msg continuously
   (void) msg;

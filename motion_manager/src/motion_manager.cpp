@@ -22,9 +22,6 @@ cyberdog::motion::MotionManager::MotionManager(const std::string & name)
   name_(name)
 {
   node_ptr_ = rclcpp::Node::make_shared(name_);
-  action_ptr_ = std::make_shared<MotionAction>();
-  handler_ptr_ = std::make_shared<MotionHandler>();
-  decision_ptr_ = std::make_shared<MotionDecision>(action_ptr_, handler_ptr_);
 }
 
 cyberdog::motion::MotionManager::~MotionManager()
@@ -37,14 +34,31 @@ void cyberdog::motion::MotionManager::Config()
 
 bool cyberdog::motion::MotionManager::Init()
 {
+  if (node_ptr_ == nullptr) {
+    ERROR("Init failed with nullptr at ros node!");
+    return false;
+  }
   // register manager base functions
   action_ptr_->RegisterFeedback(
     std::bind(
       &MotionHandler::Checkout, this->handler_ptr_,
       std::placeholders::_1));
-  motion_cmd_sub_ = node_ptr_->create_subscription<MotionCmdMsg>(
-    "motion_cmd", rclcpp::SystemDefaultsQoS(),
-    std::bind(&MotionManager::MotionCmdSubCallback, this, std::placeholders::_1));
+  motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
+    "motion_servo_cmd", rclcpp::SystemDefaultsQoS(),
+    std::bind(&MotionManager::MotionServoCmdCallback, this, std::placeholders::_1));
+  motion_servo_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
+    "motion_servo_response",
+    10);
+  motion_result_srv_ =
+    node_ptr_->create_service<MotionResultSrv>(
+    "motion_result_cmd",
+    std::bind(
+      &MotionManager::MotionResultCmdCallback, this, std::placeholders::_1,
+      std::placeholders::_2));
+
+  action_ptr_ = std::make_shared<MotionAction>();
+  handler_ptr_ = std::make_shared<MotionHandler>(motion_servo_pub_);
+  decision_ptr_ = std::make_shared<MotionDecision>(action_ptr_, handler_ptr_);
   return true;
 }
 
@@ -91,7 +105,7 @@ void cyberdog::motion::MotionManager::OnActive()
   INFO("on active");
 }
 
-void cyberdog::motion::MotionManager::MotionCmdSubCallback(const MotionCmdMsg::SharedPtr msg)
+void cyberdog::motion::MotionManager::MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr msg)
 {
   if (!IsStateValid()) {
     INFO("motion state invalid with current state");
@@ -99,4 +113,20 @@ void cyberdog::motion::MotionManager::MotionCmdSubCallback(const MotionCmdMsg::S
   }
 
   decision_ptr_->Execute(msg);
+}
+
+void cyberdog::motion::MotionManager::MotionResultCmdCallback(
+  const MotionResultSrv::Request::SharedPtr request, MotionResultSrv::Response::SharedPtr response)
+{
+  if (!IsStateValid()) {
+    INFO("motion state invalid with current state");
+    return;
+  }
+
+  DEBUG("receive request once:");
+  DEBUG("\tmotion_id: %d", request->motion_id);
+
+  response->motion_id = request->motion_id;
+  response->result = true;
+  response->code = 0;
 }

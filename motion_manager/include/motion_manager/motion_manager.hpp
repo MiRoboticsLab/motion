@@ -19,14 +19,13 @@
 #include <string>
 #include <memory>
 #include "pluginlib/class_loader.hpp"
-#include "protocol/msg/motion_execute.hpp"
-#include "protocol/msg/motion_cmd.hpp"
+#include "protocol/msg/motion_servo_cmd.hpp"
+#include "protocol/msg/motion_servo_response.hpp"
+#include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
-// #include "protocol/srv/motion_execute.hpp"
 #include "manager_base/manager_base.hpp"
 #include "motion_manager/motion_decision.hpp"
-// #include "motion_manager/motion_handler.hpp"
 #include "motion_action/motion_action.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
 
@@ -34,9 +33,9 @@ namespace cyberdog
 {
 namespace motion
 {
-using MotionExecuteMsg = protocol::msg::MotionExecute;
-using MotionCmdMsg = protocol::msg::MotionCmd;
-// using MotionCmdSrv = protocol::srv::MotionCmd;
+using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
+using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
+using MotionResultSrv = protocol::srv::MotionResultCmd;
 
 class MotionManager final : public manager::ManagerBase
 {
@@ -58,7 +57,10 @@ public:
 
 private:
   bool IsStateValid();
-  void MotionCmdSubCallback(const MotionCmdMsg::SharedPtr msg);
+  void MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr msg);
+  void MotionResultCmdCallback(
+    const MotionResultSrv::Request::SharedPtr request,
+    MotionResultSrv::Response::SharedPtr response);
 
 private:
   std::string name_;
@@ -67,9 +69,9 @@ private:
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
 
 private:
-  rclcpp::Subscription<MotionExecuteMsg>::SharedPtr motion_execute_sub_ {nullptr};
-  rclcpp::Subscription<MotionCmdMsg>::SharedPtr motion_cmd_sub_ {nullptr};
-  // rclcpp::Service<MotionExecuteSrv>::SharedPtr motion_cmd_srv_ {nullptr};
+  rclcpp::Subscription<MotionServoCmdMsg>::SharedPtr motion_servo_sub_ {nullptr};
+  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr motion_servo_pub_ {nullptr};
+  rclcpp::Service<MotionResultSrv>::SharedPtr motion_result_srv_ {nullptr};
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
 };  // class MotionManager
 }  // namespace motion
