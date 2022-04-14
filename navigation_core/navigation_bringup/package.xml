@@ -3,26 +3,18 @@
 <package format="3">
   <name>navigation_bringup</name>
   <version>0.0.0</version>
-  <description>The cyberdog_gazebo package</description>
+  <description>The navigation bringup package</description>
+  <license>Apache-2.0</license>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="duzhonghua@xiaomi.com">Du ZHonghua</maintainer>
-
-  <!-- One license tag required, multiple allowed, one license per tag -->
-  <!-- Commonly used license strings: -->
-  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-  <license>TODO</license>
-  
-    <buildtool_depend>ament_cmake</buildtool_depend>
-    <depend>rclcpp</depend>
-    <depend>tf2</depend>
-    <depend>tf2_eigen</depend>
-    <depend>tf2_ros</depend>
-    <depend>tf2_geometry_msgs</depend>
-    <depend>nav_msgs</depend>
-    <export>
-        <build_type>ament_cmake</build_type>
-    </export>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>tf2</depend>
+  <depend>tf2_eigen</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <export>
+      <build_type>ament_cmake</build_type>
+  </export>
 </package>

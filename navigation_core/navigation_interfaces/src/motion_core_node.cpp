@@ -121,6 +121,7 @@ rclcpp_action::GoalResponse NavigationCore::handle_navigation_goal(
   std::shared_ptr<const Navigation::Goal> goal)
 {
   (void)uuid;
+  (void)goal;
   return rclcpp_action::GoalResponse::
          ACCEPT_AND_EXECUTE;
 }
@@ -133,6 +134,7 @@ rclcpp_action::CancelResponse NavigationCore::handle_navigation_cancel(
     "Received request to cancel goal");
   (void)goal_handle;
   onCancel();
+  return rclcpp_action::CancelResponse::ACCEPT;
 }
 
 void NavigationCore::handle_navigation_accepted(
@@ -210,6 +212,7 @@ void NavigationCore::onInitialize()
     NavigateToPose::Impl::
     FeedbackMessage::
     SharedPtr msg) {
+      (void)msg;
       // navigation_feedback_indicator_->setText(getNavToPoseFeedbackLabel(msg->feedback));
     });
   nav_through_poses_feedback_sub_ =
@@ -220,6 +223,7 @@ void NavigationCore::onInitialize()
     [this](const nav2_msgs::action::
     NavigateThroughPoses::Impl::
     FeedbackMessage::SharedPtr msg) {
+      (void)msg;
       // navigation_feedback_indicator_->setText(getNavThroughPosesFeedbackLabel(msg->feedback));
     });
 
@@ -230,6 +234,7 @@ void NavigationCore::onInitialize()
     rclcpp::SystemDefaultsQoS(),
     [this](const action_msgs::msg::
     GoalStatusArray::SharedPtr msg) {
+      (void)msg;
       // navigation_goal_status_indicator_->setText(
       //   getGoalStatusLabel(msg->status_list.back().status));
       if (msg->status_list.back().status !=
@@ -245,6 +250,7 @@ void NavigationCore::onInitialize()
     rclcpp::SystemDefaultsQoS(),
     [this](const action_msgs::msg::
     GoalStatusArray::SharedPtr msg) {
+      (void)msg;
       // navigation_goal_status_indicator_->setText(
       //   getGoalStatusLabel(msg->status_list.back().status));
       if (msg->status_list.back().status !=
