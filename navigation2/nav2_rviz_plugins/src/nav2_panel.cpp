@@ -776,6 +776,11 @@ Nav2Panel::startNavigation(geometry_msgs::msg::PoseStamped pose)
 
   // Send the goal pose
   navigation_goal_.pose = pose;
+      RCLCPP_ERROR(
+      client_node_->get_logger(), " %f %f %f -- %f,%f %f %f", pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, pose.pose.orientation.x,
+      pose.pose.orientation.y,
+      pose.pose.orientation.z,
+      pose.pose.orientation.w);
 
   RCLCPP_INFO(
     client_node_->get_logger(),

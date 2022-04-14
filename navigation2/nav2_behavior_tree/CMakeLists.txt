@@ -17,7 +17,7 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nav2_util REQUIRED)
-
+find_package(protocol REQUIRED)
 nav2_package()
 
 include_directories(
@@ -41,6 +41,7 @@ set(dependencies
   std_msgs
   std_srvs
   nav2_util
+  protocol
 )
 
 add_library(${library_name} SHARED

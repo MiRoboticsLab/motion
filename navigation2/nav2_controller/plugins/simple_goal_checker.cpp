@@ -79,6 +79,7 @@ void SimpleGoalChecker::initialize(
 
   node->get_parameter(plugin_name + ".xy_goal_tolerance", xy_goal_tolerance_);
   node->get_parameter(plugin_name + ".yaw_goal_tolerance", yaw_goal_tolerance_);
+  std::cout << "get yaw tol 1: " << yaw_goal_tolerance_ << "plug name: "<< plugin_name << std::endl;
   node->get_parameter(plugin_name + ".stateful", stateful_);
 
   xy_goal_tolerance_sq_ = xy_goal_tolerance_ * xy_goal_tolerance_;
@@ -106,6 +107,8 @@ bool SimpleGoalChecker::isGoalReached(
   if (check_xy_) {
     double dx = query_pose.position.x - goal_pose.position.x,
       dy = query_pose.position.y - goal_pose.position.y;
+
+    std::cout << "isGoalReached distance:" << (dx * dx + dy * dy) << ", xy_tolerance: " << xy_goal_tolerance_sq_ << std::endl;
     if (dx * dx + dy * dy > xy_goal_tolerance_sq_) {
       return false;
     }
@@ -118,6 +121,7 @@ bool SimpleGoalChecker::isGoalReached(
   double dyaw = angles::shortest_angular_distance(
     tf2::getYaw(query_pose.orientation),
     tf2::getYaw(goal_pose.orientation));
+  std::cout << "isGoalReached dyaw:" << fabs(dyaw)<< ", yaw_tolerance: " << yaw_goal_tolerance_ << std::endl;
   return fabs(dyaw) < yaw_goal_tolerance_;
 }
 
@@ -159,6 +163,7 @@ SimpleGoalChecker::on_parameter_event_callback(
         xy_goal_tolerance_sq_ = xy_goal_tolerance_ * xy_goal_tolerance_;
       } else if (name == plugin_name_ + ".yaw_goal_tolerance") {
         yaw_goal_tolerance_ = value.double_value;
+        std::cout << "get yaw tol 2: " << yaw_goal_tolerance_ << std::endl;
       }
     } else if (type == ParameterType::PARAMETER_BOOL) {
       if (name == plugin_name_ + ".stateful") {
