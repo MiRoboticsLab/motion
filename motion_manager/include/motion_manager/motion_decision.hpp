@@ -18,7 +18,10 @@
 #include <memory>
 #include "motion_action/motion_action.hpp"
 #include "motion_manager/motion_handler.hpp"
-#include "protocol/msg/motion_cmd.hpp"
+#include "protocol/msg/motion_servo_cmd.hpp"
+#include "protocol/msg/motion_servo_response.hpp"
+#include "protocol/srv/motion_result_cmd.hpp"
+
 
 namespace cyberdog
 {
@@ -34,7 +37,7 @@ public:
 
   void Config();
   bool Init();
-  void Execute(const MotionCmdMsg::SharedPtr msg);
+  void Execute(const MotionServoCmdMsg::SharedPtr msg);
   inline void SetMode(uint8_t mode)
   {
     motion_control_mode_ = mode;

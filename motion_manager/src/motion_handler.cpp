@@ -13,7 +13,9 @@
 // limitations under the License.
 #include "motion_manager/motion_handler.hpp"
 
-cyberdog::motion::MotionHandler::MotionHandler()
+cyberdog::motion::MotionHandler::MotionHandler(
+  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr publisher)
+: lcm_response_pub_(publisher)
 {}
 
 cyberdog::motion::MotionHandler::~MotionHandler()
@@ -25,4 +27,15 @@ void cyberdog::motion::MotionHandler::Update()
 void cyberdog::motion::MotionHandler::Checkout(LcmResponse * response)
 {
   (void)response;
+  MotionServoResponseMsg msg;
+  msg.motion_id = 8;
+  msg.result = true;
+  msg.code = 0;
+  msg.status = 0;
+  lcm_response_pub_->publish(msg);
 }
+
+// void cyberdog::motion::MotionHandler::ServoResponse()
+// {
+
+// }

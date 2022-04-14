@@ -19,14 +19,14 @@
 #include <chrono>
 #include <functional>
 #include <iostream>
-#include "protocol/msg/motion_cmd.hpp"
+#include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 
 namespace cyberdog
 {
 namespace motion
 {
-using MotionCmdMsg = protocol::msg::MotionCmd;
+using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
 using LcmResponse = robot_control_response_lcmt;
 
 class MotionAction final
@@ -36,7 +36,7 @@ public:
   ~MotionAction();
 
 public:
-  void Execute(const MotionCmdMsg::SharedPtr msg);
+  void Execute(const MotionServoCmdMsg::SharedPtr msg);
   void RegisterFeedback(std::function<void(LcmResponse *)> feedback);
   bool Init();
   bool SelfCheck();

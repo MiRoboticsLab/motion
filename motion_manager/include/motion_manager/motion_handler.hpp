@@ -14,8 +14,12 @@
 #ifndef MOTION_MANAGER__MOTION_HANDLER_HPP_
 #define MOTION_MANAGER__MOTION_HANDLER_HPP_
 #include <memory>
+#include <thread>
+#include "rclcpp/rclcpp.hpp"
 #include "motion_action/motion_action.hpp"
-#include "protocol/msg/motion_cmd.hpp"
+#include "protocol/msg/motion_servo_cmd.hpp"
+#include "protocol/msg/motion_servo_response.hpp"
+#include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 
@@ -30,22 +34,24 @@ namespace motion
  */
 class MotionHandler final
 {
-  using MotionCmdMsg = protocol::msg::MotionCmd;
   using LcmResponse = robot_control_response_lcmt;
+  using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 
 public:
-  MotionHandler();
+  explicit MotionHandler(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr publisher);
   ~MotionHandler();
 
 public:
   /* recv api */
-
+  // void ServoResponse();
   void Update();
   void Checkout(LcmResponse * response);
 
 private:
   /* ros members */
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
+  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr lcm_response_pub_ {nullptr};
+  std::thread servo_response_thread_;
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

@@ -31,7 +31,7 @@ bool cyberdog::motion::MotionDecision::Init()
 // bool cyberdog::motion::MotionDecision::CheckModeValid() {
 //   return true;
 // }
-void cyberdog::motion::MotionDecision::Execute(const MotionCmdMsg::SharedPtr msg)
+void cyberdog::motion::MotionDecision::Execute(const MotionServoCmdMsg::SharedPtr msg)
 {
   if (!IsStateValid()) {
     return;
