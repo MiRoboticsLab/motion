@@ -12,6 +12,7 @@
   <depend>rclcpp</depend>
   <depend>cyberdog_system</depend>
   <depend>cyberdog_common</depend>
+  <depend>cyberdog_debug</depend>
   <depend>manager_base</depend>
   <depend>motion_action</depend>
   <depend>protocol</depend>

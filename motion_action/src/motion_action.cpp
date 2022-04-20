@@ -23,6 +23,11 @@ void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr 
   (void) msg;
 }
 
+void cyberdog::motion::MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
+{
+  (void) request;
+}
+
 bool cyberdog::motion::MotionAction::Init()
 {
   return true;

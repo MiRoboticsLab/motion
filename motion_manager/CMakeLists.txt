@@ -12,6 +12,7 @@ find_package(cyberdog_common REQUIRED)
 find_package(cyberdog_system REQUIRED)
 find_package(protocol REQUIRED)
 find_package(motion_action REQUIRED)
+find_package(cyberdog_debug REQUIRED)
 
 include_directories(include)
 

@@ -27,8 +27,15 @@ namespace cyberdog
 {
 namespace motion
 {
+enum DecisionStatus
+{
+
+};
 class MotionDecision final
 {
+using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
+using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
+using MotionResultSrv = protocol::srv::MotionResultCmd;
 public:
   MotionDecision(
     std::shared_ptr<MotionAction> action_ptr,
@@ -37,7 +44,12 @@ public:
 
   void Config();
   bool Init();
-  void Execute(const MotionServoCmdMsg::SharedPtr msg);
+
+public:
+  void Servo(const MotionServoCmdMsg::SharedPtr msg);
+
+  void Execute(const MotionResultSrv::Request::SharedPtr request, MotionResultSrv::Response::SharedPtr response);
+
   inline void SetMode(uint8_t mode)
   {
     motion_control_mode_ = mode;
@@ -53,6 +65,12 @@ private:
   {
     return true;
   }
+
+private:
+  void ServoStart(){};
+  void ServoData(){};
+  void ServoEnd(){};
+  void Update(){};
 
 private:
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
