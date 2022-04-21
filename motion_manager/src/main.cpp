@@ -26,7 +26,7 @@ int main(int argc, char ** argv)
 
   auto motion_manager =
     std::make_shared<cyberdog::motion::MotionManager>(std::string("motion_manager"));
-  
+
   motion_manager->Config();
 
   if (!motion_manager->Init()) {

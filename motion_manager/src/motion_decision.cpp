@@ -44,7 +44,9 @@ void cyberdog::motion::MotionDecision::Servo(const MotionServoCmdMsg::SharedPtr 
   action_ptr_->Execute(msg);
 }
 
-void cyberdog::motion::MotionDecision::Execute(const MotionResultSrv::Request::SharedPtr request, MotionResultSrv::Response::SharedPtr response)
+void cyberdog::motion::MotionDecision::Execute(
+  const MotionResultSrv::Request::SharedPtr request,
+  MotionResultSrv::Response::SharedPtr response)
 {
   action_ptr_->Execute(request);
 }

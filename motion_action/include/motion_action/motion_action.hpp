@@ -30,9 +30,9 @@ namespace motion
 
 class MotionAction final
 {
-using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
-using LcmResponse = robot_control_response_lcmt;
-using MotionResultSrv = protocol::srv::MotionResultCmd;
+  using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
+  using LcmResponse = robot_control_response_lcmt;
+  using MotionResultSrv = protocol::srv::MotionResultCmd;
 
 public:
   MotionAction();

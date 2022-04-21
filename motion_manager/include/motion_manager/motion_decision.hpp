@@ -27,15 +27,19 @@ namespace cyberdog
 {
 namespace motion
 {
-enum DecisionStatus
-{
 
+enum class DecisionStatus : uint8_t
+{
+  kServoStart = 0,
+  KServoData = 1
 };
+
 class MotionDecision final
 {
-using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
-using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
-using MotionResultSrv = protocol::srv::MotionResultCmd;
+  using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
+  using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
+  using MotionResultSrv = protocol::srv::MotionResultCmd;
+
 public:
   MotionDecision(
     std::shared_ptr<MotionAction> action_ptr,
@@ -48,7 +52,9 @@ public:
 public:
   void Servo(const MotionServoCmdMsg::SharedPtr msg);
 
-  void Execute(const MotionResultSrv::Request::SharedPtr request, MotionResultSrv::Response::SharedPtr response);
+  void Execute(
+    const MotionResultSrv::Request::SharedPtr request,
+    MotionResultSrv::Response::SharedPtr response);
 
   inline void SetMode(uint8_t mode)
   {
@@ -67,10 +73,10 @@ private:
   }
 
 private:
-  void ServoStart(){};
-  void ServoData(){};
-  void ServoEnd(){};
-  void Update(){};
+  void ServoStart() {}
+  void ServoData() {}
+  void ServoEnd() {}
+  void Update() {}
 
 private:
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
