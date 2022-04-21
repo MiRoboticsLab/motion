@@ -14,7 +14,7 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    pkg_share = get_package_share_directory('cyberdog_gazebo')
+    pkg_share = get_package_share_directory('navigation_bringup')
     robot_localization_file_path = os.path.join(pkg_share, 'config/ekf.yaml') 
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_rviz = LaunchConfiguration('use_rviz')
