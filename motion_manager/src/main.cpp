@@ -14,18 +14,23 @@
 #include <string>
 #include <memory>
 #include "cyberdog_common/cyberdog_log.hpp"
+#include "cyberdog_debug/backtrace.hpp"
 #include "motion_manager/motion_manager.hpp"
 
 
 int main(int argc, char ** argv)
 {
+  LOGGER_MAIN_INSTANCE("MotionManager");
+  cyberdog::debug::register_signal();
   rclcpp::init(argc, argv);
 
   auto motion_manager =
     std::make_shared<cyberdog::motion::MotionManager>(std::string("motion_manager"));
+
   motion_manager->Config();
+
   if (!motion_manager->Init()) {
-    ERROR("motion manager init failed!");
+    ERROR("Init failed!");
     return -1;
   }
   motion_manager->Run();

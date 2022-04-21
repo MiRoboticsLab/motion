@@ -19,7 +19,7 @@ cyberdog::motion::MotionDecision::MotionDecision(
   std::shared_ptr<MotionHandler> handler_ptr)
 : action_ptr_(action_ptr), handler_ptr_(handler_ptr)
 {
-  action_ptr = std::make_shared<cyberdog::motion::MotionAction>();
+  // action_ptr = std::make_shared<cyberdog::motion::MotionAction>();
 }
 cyberdog::motion::MotionDecision::~MotionDecision() {}
 
@@ -31,7 +31,7 @@ bool cyberdog::motion::MotionDecision::Init()
 // bool cyberdog::motion::MotionDecision::CheckModeValid() {
 //   return true;
 // }
-void cyberdog::motion::MotionDecision::Execute(const MotionServoCmdMsg::SharedPtr msg)
+void cyberdog::motion::MotionDecision::Servo(const MotionServoCmdMsg::SharedPtr msg)
 {
   if (!IsStateValid()) {
     return;
@@ -42,4 +42,11 @@ void cyberdog::motion::MotionDecision::Execute(const MotionServoCmdMsg::SharedPt
 
   handler_ptr_->Update();
   action_ptr_->Execute(msg);
+}
+
+void cyberdog::motion::MotionDecision::Execute(
+  const MotionResultSrv::Request::SharedPtr request,
+  MotionResultSrv::Response::SharedPtr response)
+{
+  action_ptr_->Execute(request);
 }

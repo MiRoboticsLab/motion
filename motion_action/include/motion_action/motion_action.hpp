@@ -20,23 +20,27 @@
 #include <functional>
 #include <iostream>
 #include "protocol/msg/motion_servo_cmd.hpp"
+#include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 
 namespace cyberdog
 {
 namespace motion
 {
-using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
-using LcmResponse = robot_control_response_lcmt;
 
 class MotionAction final
 {
+  using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
+  using LcmResponse = robot_control_response_lcmt;
+  using MotionResultSrv = protocol::srv::MotionResultCmd;
+
 public:
   MotionAction();
   ~MotionAction();
 
 public:
   void Execute(const MotionServoCmdMsg::SharedPtr msg);
+  void Execute(const MotionResultSrv::Request::SharedPtr request);
   void RegisterFeedback(std::function<void(LcmResponse *)> feedback);
   bool Init();
   bool SelfCheck();
