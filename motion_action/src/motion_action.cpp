@@ -38,7 +38,7 @@ bool cyberdog::motion::MotionAction::SelfCheck()
   return true;
 }
 
-void cyberdog::motion::MotionAction::RegisterFeedback(std::function<void(LcmResponse *)> feedback)
+void cyberdog::motion::MotionAction::RegisterFeedback(std::function<void(MotionStatusMsg::SharedPtr)> feedback)
 {
   feedback_func_ = feedback;
 }
