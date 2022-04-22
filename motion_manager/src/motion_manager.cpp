@@ -42,7 +42,7 @@ bool cyberdog::motion::MotionManager::Init()
     ERROR("Init failed with nullptr at ros node!");
     return false;
   }
-
+  action_ptr_->Init();
   // register manager base functions
   action_ptr_->RegisterFeedback(
     std::bind(

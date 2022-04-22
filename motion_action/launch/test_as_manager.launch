@@ -1,0 +1,12 @@
+<launch>
+
+  <!-- args that can be set from the command line or a default will be used -->
+  <arg name="cmd" default="8" />
+  <arg name="sim" default="True" />
+
+  <node pkg="motion_action" exec="test_as_manager" name="test_as_manager" output="screen">
+    <param name="cmd_preset"      value="$(find-pkg-share motion_action)/preset/$(var cmd).toml"/>
+    <!-- <param name="publish_url"     value=""/> -->
+    <!-- <param name="subscribe_url"   value=""/> -->
+  </node>
+</launch>
