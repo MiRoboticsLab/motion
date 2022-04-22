@@ -19,6 +19,7 @@
 #include "motion_action/motion_action.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
+#include "protocol/msg/motion_status.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
@@ -36,6 +37,7 @@ class MotionHandler final
 {
   using LcmResponse = robot_control_response_lcmt;
   using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
+  using MotionStatusMsg = protocol::msg::MotionStatus;
 
 public:
   explicit MotionHandler(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr publisher);
@@ -44,14 +46,18 @@ public:
 public:
   /* recv api */
   // void ServoResponse();
+  void RegisterUpdate(std::function<void(MotionStatusMsg::SharedPtr)> f) {
+    motion_response_func = f;
+  }
   void Update();
-  void Checkout(LcmResponse * response);
+  void Checkout(MotionStatusMsg::SharedPtr motion_status_ptr);
+  bool CheckMotionID(int32_t motion_id);
 
 private:
   /* ros members */
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
-  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr lcm_response_pub_ {nullptr};
   std::thread servo_response_thread_;
+  std::function<void(MotionStatusMsg::SharedPtr)> motion_response_func;
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

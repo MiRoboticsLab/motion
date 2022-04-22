@@ -21,6 +21,7 @@
 #include <iostream>
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
+#include "protocol/msg/motion_status.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 
 namespace cyberdog
@@ -33,6 +34,7 @@ class MotionAction final
   using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
   using LcmResponse = robot_control_response_lcmt;
   using MotionResultSrv = protocol::srv::MotionResultCmd;
+  using MotionStatusMsg = protocol::msg::MotionStatus;
 
 public:
   MotionAction();
@@ -41,13 +43,13 @@ public:
 public:
   void Execute(const MotionServoCmdMsg::SharedPtr msg);
   void Execute(const MotionResultSrv::Request::SharedPtr request);
-  void RegisterFeedback(std::function<void(LcmResponse *)> feedback);
+  void RegisterFeedback(std::function<void(MotionStatusMsg::SharedPtr)> feedback);
   bool Init();
   bool SelfCheck();
 
 private:
   std::thread control_thread_;
-  std::function<void(LcmResponse *)> feedback_func_;
+  std::function<void(MotionStatusMsg::SharedPtr)> feedback_func_;
 };  // class MotionAction
 }  // namespace motion
 }  // namespace cyberdog
