@@ -46,7 +46,8 @@ public:
 public:
   /* recv api */
   // void ServoResponse();
-  void RegisterUpdate(std::function<void(MotionStatusMsg::SharedPtr)> f) {
+  void RegisterUpdate(std::function<void(MotionStatusMsg::SharedPtr)> f)
+  {
     motion_response_func = f;
   }
   void Update();

@@ -44,6 +44,7 @@ class MotionDecision final
   using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
   using MotionResultSrv = protocol::srv::MotionResultCmd;
   using MotionStatusMsg = protocol::msg::MotionStatus;
+
 public:
   MotionDecision(
     std::shared_ptr<MotionAction> action_ptr,
@@ -85,15 +86,17 @@ private:
 
   void StopMotion();
   void ServoResponse();
-  inline void WaitServoNeedResponse() {
+  inline void WaitServoNeedResponse()
+  {
     std::unique_lock<std::mutex> lk(servo_mutex_);
-    if(is_servo_wait_) {
+    if (is_servo_wait_) {
       servo_cv_.wait(lk);
     }
   }
-  inline void SetServoNeedResponse(bool wait_flag) {
+  inline void SetServoNeedResponse(bool wait_flag)
+  {
     std::unique_lock<std::mutex> lk(servo_mutex_);
-    if(is_servo_wait_ && ! wait_flag) {
+    if (is_servo_wait_ && !wait_flag) {
       is_servo_wait_ = wait_flag;
       servo_cv_.notify_one();
     } else {

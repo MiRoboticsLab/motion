@@ -27,9 +27,10 @@ cyberdog::motion::MotionDecision::~MotionDecision() {}
 
 void cyberdog::motion::MotionDecision::Config() {}
 
-bool cyberdog::motion::MotionDecision::Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub)
+bool cyberdog::motion::MotionDecision::Init(
+  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub)
 {
-  if(handler_ptr_ == nullptr) {
+  if (handler_ptr_ == nullptr) {
     ERROR("Decision get nullptr with handler ptr!");
     return false;
   }
@@ -51,8 +52,7 @@ void cyberdog::motion::MotionDecision::Servo(const MotionServoCmdMsg::SharedPtr 
     return;
   }
 
-  switch (msg->cmd_type)
-  {
+  switch (msg->cmd_type) {
     case MotionServoCmdMsg::SERVO_START:
       ServoStart(msg);
       break;
@@ -67,17 +67,20 @@ void cyberdog::motion::MotionDecision::Servo(const MotionServoCmdMsg::SharedPtr 
   }
 }
 
-void cyberdog::motion::MotionDecision::ServoStart(const MotionServoCmdMsg::SharedPtr msg) {
+void cyberdog::motion::MotionDecision::ServoStart(const MotionServoCmdMsg::SharedPtr msg)
+{
   INFO("Servo start with motion_id: %d", msg->motion_id);
   action_ptr_->Execute(msg);
   SetServoNeedResponse(false);
 }
 
-void cyberdog::motion::MotionDecision::ServoData(const MotionServoCmdMsg::SharedPtr msg) {
+void cyberdog::motion::MotionDecision::ServoData(const MotionServoCmdMsg::SharedPtr msg)
+{
   action_ptr_->Execute(msg);
 }
 
-void cyberdog::motion::MotionDecision::ServoEnd(const MotionServoCmdMsg::SharedPtr msg) {
+void cyberdog::motion::MotionDecision::ServoEnd(const MotionServoCmdMsg::SharedPtr msg)
+{
   INFO("Servo end with motion_id: %d", msg->motion_id);
   action_ptr_->Execute(msg);
   SetServoNeedResponse(true);
@@ -87,10 +90,9 @@ void cyberdog::motion::MotionDecision::ServoEnd(const MotionServoCmdMsg::SharedP
 void cyberdog::motion::MotionDecision::ServoResponse()
 {
   MotionServoResponseMsg msg;
-  while (true)
-  {
+  while (true) {
     WaitServoNeedResponse();
-    if(servo_response_pub_ != nullptr) {
+    if (servo_response_pub_ != nullptr) {
       msg.motion_id = motion_status_ptr_->motion_id;
       msg.order_process_bar = motion_status_ptr_->order_process_bar;
       msg.status = motion_status_ptr_->switch_status;
@@ -119,16 +121,18 @@ void cyberdog::motion::MotionDecision::Execute(
   response->motion_id = motion_status_ptr_->motion_id;
 }
 
-bool cyberdog::motion::MotionDecision::WaitExecute(int32_t motion_id, int32_t duration, int32_t & code)
+bool cyberdog::motion::MotionDecision::WaitExecute(
+  int32_t motion_id, int32_t duration,
+  int32_t & code)
 {
   bool result = false;
   std::unique_lock<std::mutex> lk(execute_mutex_);
   is_execute_wait_ = true;
   wait_id = motion_id;
   auto wait_status = execute_cv_.wait_for(lk, std::chrono::milliseconds(duration));
-  if(wait_status == std::cv_status::timeout) {
+  if (wait_status == std::cv_status::timeout) {
     code = 331;
-  } else if(motion_status_ptr_->motion_id != motion_id) {
+  } else if (motion_status_ptr_->motion_id != motion_id) {
     code = 332;
   } else {
     code = 0;
@@ -146,10 +150,13 @@ void cyberdog::motion::MotionDecision::Update(MotionStatusMsg::SharedPtr motion_
   motion_status_ptr_->switch_status = motion_status_ptr->switch_status;
   motion_status_ptr_->ori_error = motion_status_ptr->ori_error;
   motion_status_ptr_->footpos_error = motion_status_ptr->footpos_error;
-  for(size_t i = 0; i < motion_status_ptr->motor_error.size(); ++i) {
+  for (size_t i = 0; i < motion_status_ptr->motor_error.size(); ++i) {
     motion_status_ptr_->motor_error[i] = motion_status_ptr->motor_error[i];
   }
-  if(is_execute_wait_ && ((motion_status_ptr_->motion_id == wait_id) || (motion_status_ptr_->switch_status != MotionStatusMsg::NORMAL))) {
+  if (is_execute_wait_ &&
+    ((motion_status_ptr_->motion_id == wait_id) ||
+    (motion_status_ptr_->switch_status != MotionStatusMsg::NORMAL)))
+  {
     is_execute_wait_ = false;
     execute_cv_.notify_one();
   }
