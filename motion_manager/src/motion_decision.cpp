@@ -81,6 +81,7 @@ void cyberdog::motion::MotionDecision::ServoEnd(const MotionServoCmdMsg::SharedP
   INFO("Servo end with motion_id: %d", msg->motion_id);
   action_ptr_->Execute(msg);
   SetServoNeedResponse(true);
+  StopMotion();
 }
 
 void cyberdog::motion::MotionDecision::ServoResponse()
@@ -99,6 +100,13 @@ void cyberdog::motion::MotionDecision::ServoResponse()
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
+}
+
+void cyberdog::motion::MotionDecision::StopMotion()
+{
+  MotionResultSrv::Request::SharedPtr request;
+  request->motion_id = 1;
+  action_ptr_->Execute(request);
 }
 
 void cyberdog::motion::MotionDecision::Execute(

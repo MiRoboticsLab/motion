@@ -82,6 +82,8 @@ private:
   void ServoEnd(const MotionServoCmdMsg::SharedPtr msg);
   void Update(MotionStatusMsg::SharedPtr motion_status_ptr);
   bool WaitExecute(int32_t motion_id, int32_t duration, int32_t & code);
+
+  void StopMotion();
   void ServoResponse();
   inline void WaitServoNeedResponse() {
     std::unique_lock<std::mutex> lk(servo_mutex_);
