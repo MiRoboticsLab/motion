@@ -106,7 +106,7 @@ void cyberdog::motion::MotionDecision::ServoResponse()
 
 void cyberdog::motion::MotionDecision::StopMotion()
 {
-  MotionResultSrv::Request::SharedPtr request;
+  MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
   request->motion_id = 1;
   action_ptr_->Execute(request);
 }
