@@ -15,8 +15,9 @@
 
 cyberdog::motion::MotionHandler::MotionHandler(
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr publisher)
-: lcm_response_pub_(publisher)
-{}
+{
+  (void) publisher;
+}
 
 cyberdog::motion::MotionHandler::~MotionHandler()
 {}
@@ -24,15 +25,9 @@ cyberdog::motion::MotionHandler::~MotionHandler()
 void cyberdog::motion::MotionHandler::Update()
 {}
 
-void cyberdog::motion::MotionHandler::Checkout(LcmResponse * response)
+void cyberdog::motion::MotionHandler::Checkout(MotionStatusMsg::SharedPtr motion_status_ptr)
 {
-  (void)response;
-  MotionServoResponseMsg msg;
-  msg.motion_id = 8;
-  msg.result = true;
-  msg.code = 0;
-  msg.status = 0;
-  lcm_response_pub_->publish(msg);
+  motion_response_func(motion_status_ptr);
 }
 
 // void cyberdog::motion::MotionHandler::ServoResponse()

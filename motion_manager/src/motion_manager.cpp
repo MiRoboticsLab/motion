@@ -30,6 +30,9 @@ cyberdog::motion::MotionManager::~MotionManager()
 void cyberdog::motion::MotionManager::Config()
 {
   INFO("Get info from configure");
+  action_ptr_ = std::make_shared<MotionAction>();
+  handler_ptr_ = std::make_shared<MotionHandler>(motion_servo_pub_);
+  decision_ptr_ = std::make_shared<MotionDecision>(action_ptr_, handler_ptr_);
 }
 
 bool cyberdog::motion::MotionManager::Init()
@@ -39,11 +42,7 @@ bool cyberdog::motion::MotionManager::Init()
     ERROR("Init failed with nullptr at ros node!");
     return false;
   }
-
-  action_ptr_ = std::make_shared<MotionAction>();
-  handler_ptr_ = std::make_shared<MotionHandler>(motion_servo_pub_);
-  decision_ptr_ = std::make_shared<MotionDecision>(action_ptr_, handler_ptr_);
-
+  action_ptr_->Init();
   // register manager base functions
   action_ptr_->RegisterFeedback(
     std::bind(
@@ -61,6 +60,8 @@ bool cyberdog::motion::MotionManager::Init()
     std::bind(
       &MotionManager::MotionResultCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2));
+
+  decision_ptr_->Init(motion_servo_pub_);
 
   return true;
 }
@@ -130,8 +131,5 @@ void cyberdog::motion::MotionManager::MotionResultCmdCallback(
     return;
   }
 
-
-  response->motion_id = request->motion_id;
-  response->result = true;
-  response->code = 0;
+  decision_ptr_->Execute(request, response);
 }
