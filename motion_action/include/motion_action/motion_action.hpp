@@ -20,12 +20,13 @@
 #include <chrono>
 #include <functional>
 #include <iostream>
+#include <memory>
+#include <map>
+#include <vector>
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
-#include <unistd.h>
-#include <memory>
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
@@ -49,31 +50,31 @@ constexpr const char * SUBSCRIBE_URL = "udpm://239.255.76.67:7670?ttl=255";
 
 // a: src, b: des, c: size, d: description
 #define GET_VALUE(a, b, c, d) \
-          if(a.size() != c) { \
-            DEBUG("Size of %s (%ld) is invalid, all elements will set to 0", d, a.size()); \
-            for (uint8_t i = 0; i < c; ++i) { \
-              b[i] = 0; \
-            } \
-          } else { \
-            for (uint8_t i = 0; i < c; ++i) { \
-              b[i] = a[i]; \
-            } \
-          } \
+  if (a.size() != c) { \
+    DEBUG("Size of %s (%ld) is invalid, all elements will set to 0", d, a.size()); \
+    for (uint8_t i = 0; i < c; ++i) { \
+      b[i] = 0; \
+    } \
+  } else { \
+    for (uint8_t i = 0; i < c; ++i) { \
+      b[i] = a[i]; \
+    } \
+  } \
 
-inline bool CompareLcmResponse(const LcmResponse& res1, const LcmResponse& res2)
+inline bool CompareLcmResponse(const LcmResponse & res1, const LcmResponse & res2)
 {
   bool flag = true;
   for (uint8_t i = 0; i < 12; ++i) {
     flag &= (res1.motor_error[i] == res2.motor_error[i]);
   }
-  return (res1.mode == res2.mode && 
-          res1.gait_id == res2.gait_id &&
-          res1.contact == res2.contact &&
-          res1.order_process_bar == res2.order_process_bar &&
-          res1.switch_status == res2.switch_status &&
-          res1.ori_error == res2.ori_error &&
-          res1.footpos_error == res2.footpos_error &&
-          res1.motor_error && flag );
+  return res1.mode == res2.mode &&
+         res1.gait_id == res2.gait_id &&
+         res1.contact == res2.contact &&
+         res1.order_process_bar == res2.order_process_bar &&
+         res1.switch_status == res2.switch_status &&
+         res1.ori_error == res2.ori_error &&
+         res1.footpos_error == res2.footpos_error &&
+         res1.motor_error && flag;
 }
 class MotionAction final
 {
@@ -97,8 +98,9 @@ public:
 
 private:
   void WriteLcm();
-  void ReadLcm(const lcm::ReceiveBuffer *, const std::string &,
-               const robot_control_response_lcmt * msg);
+  void ReadLcm(
+    const lcm::ReceiveBuffer *, const std::string &,
+    const robot_control_response_lcmt * msg);
   bool ParseMotionId();
 
 private:

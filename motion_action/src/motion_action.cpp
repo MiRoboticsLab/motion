@@ -14,6 +14,8 @@
 #include "motion_action/motion_action.hpp"
 #include <string>
 #include <memory>
+#include <map>
+#include <vector>
 
 cyberdog::motion::MotionAction::MotionAction()
 : lcm_publish_channel_("robot_control_cmd"),
@@ -22,17 +24,18 @@ cyberdog::motion::MotionAction::MotionAction()
   ins_init_(false)
 {}
 
-cyberdog::motion::MotionAction::~MotionAction(){}
+cyberdog::motion::MotionAction::~MotionAction() {}
 
 void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
 {
   // Checkout mode global, send msg continuously
-  if(!ins_init_){
+  if (!ins_init_) {
     ERROR("MotionAction has not been initialized when execute ServoCmd");
     return;
   }
-  if (motion_id_map_.empty())
+  if (motion_id_map_.empty()) {
     return;
+  }
   lcm_cmd_.mode = motion_id_map_.at(msg->motion_id).front();
   lcm_cmd_.gait_id = motion_id_map_.at(msg->motion_id).back();
   lcm_cmd_.contact = 0;
@@ -51,7 +54,7 @@ void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr 
 
 void cyberdog::motion::MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
 {
-  if(!ins_init_){
+  if (!ins_init_) {
     ERROR("MotionAction has not been initialized when execute ResultSrv");
     return;
   }
@@ -60,18 +63,18 @@ void cyberdog::motion::MotionAction::Execute(const MotionResultSrv::Request::Sha
 
 bool cyberdog::motion::MotionAction::ParseMotionId()
 {
-  std::string motion_id_map_config = ament_index_cpp::get_package_share_directory("motion_action")
-                                     + "/preset/" + "motion_id_map.toml";
+  std::string motion_id_map_config = ament_index_cpp::get_package_share_directory("motion_action") +
+    "/preset/" + "motion_id_map.toml";
   toml::value value;
   if (!cyberdog::common::CyberdogToml::ParseFile(motion_id_map_config, value)) {
     FATAL("Cannot parse %s", motion_id_map_config.c_str());
     return false;
   }
-  for(auto p : value.as_table())
-  {
-    motion_id_map_.emplace(int32_t(std::stoi(p.first)), 
-                           std::vector<int8_t>{int8_t(p.second.as_array().front().as_integer()), 
-                                               int8_t(p.second.as_array().back().as_integer())});
+  for (auto p : value.as_table()) {
+    motion_id_map_.emplace(
+      int32_t(std::stoi(p.first)),
+      std::vector<int8_t>{int8_t(p.second.as_array().front().as_integer()),
+        int8_t(p.second.as_array().back().as_integer())});
   }
   return true;
 }
@@ -98,7 +101,8 @@ bool cyberdog::motion::MotionAction::SelfCheck()
   return true;
 }
 
-void cyberdog::motion::MotionAction::RegisterFeedback(std::function<void(MotionStatusMsg::SharedPtr)> feedback)
+void cyberdog::motion::MotionAction::RegisterFeedback(
+  std::function<void(MotionStatusMsg::SharedPtr)> feedback)
 {
   feedback_func_ = feedback;
 }
@@ -107,13 +111,13 @@ void cyberdog::motion::MotionAction::ReadLcm(
   const lcm::ReceiveBuffer *, const std::string &,
   const robot_control_response_lcmt * msg)
 {
-  if(msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
-    for(auto m = motion_id_map_.begin(); ; m++) {
-      if(m == motion_id_map_.end()) {
+  if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
+    for (auto m = motion_id_map_.begin(); ; m++) {
+      if (m == motion_id_map_.end()) {
         FATAL("Get unkown response about motion_id!");
         return;
       }
-      if(m->second.front() == msg->mode && m->second.back() == msg->gait_id) {
+      if (m->second.front() == msg->mode && m->second.back() == msg->gait_id) {
         lcm_res_->motion_id = m->first;
         break;
       }
@@ -135,7 +139,7 @@ void cyberdog::motion::MotionAction::ReadLcm(
 void cyberdog::motion::MotionAction::WriteLcm()
 {
   while (lcm_publish_instance_->good()) {
-    if(lcm_cmd_init_) {
+    if (lcm_cmd_init_) {
       lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(lcm_publish_duration_));
