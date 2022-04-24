@@ -43,6 +43,7 @@ public:
     }
     msg_t_.reset(new protocol::msg::MotionServoCmd);
     last_msg_.reset(new protocol::msg::MotionServoCmd);
+    srv_req_.reset(new protocol::srv::MotionResultCmd::Request);
     executor_.reset(new rclcpp::executors::SingleThreadedExecutor);
     executor_->add_node(node_ptr_);
     ma_.Init(publish_url_, subscribe_url);
@@ -53,10 +54,49 @@ public:
     motion_cmd_sub_ = node_ptr_->create_subscription<protocol::msg::MotionServoCmd>(
       "motion_servo_cmd",
       rclcpp::SystemDefaultsQoS(),
-      std::bind(&SimMotionManager::HandleTestCmd, this, std::placeholders::_1));
+      std::bind(&SimMotionManager::HandleTestServoCmd, this, std::placeholders::_1));
+    motion_result_srv_ =
+      node_ptr_->create_service<protocol::srv::MotionResultCmd>(
+      "motion_result_cmd",
+      std::bind(
+        &SimMotionManager::HandleTestResultCmd, this, std::placeholders::_1,
+        std::placeholders::_2));
   }
 
-  void HandleTestCmd(const protocol::msg::MotionServoCmd::SharedPtr msg)
+  void HandleTestResultCmd(const protocol::srv::MotionResultCmd_Request::SharedPtr req,
+                          const protocol::srv::MotionResultCmd_Response::SharedPtr)
+  {
+    // if(*last_msg_ == *msg)
+      // return;
+    srv_req_->motion_id = req->motion_id;
+    srv_req_->step_height.resize(2);
+    GET_VALUE(req->step_height, srv_req_->step_height, 2, "step_height");
+    srv_req_->vel_des.resize(3);
+    GET_VALUE(req->vel_des, srv_req_->vel_des, 3, "vel_des");
+    srv_req_->rpy_des.resize(3);
+    GET_VALUE(req->rpy_des, srv_req_->rpy_des, 3, "rpy_des");
+    srv_req_->pos_des.resize(3);
+    GET_VALUE(req->pos_des, srv_req_->pos_des, 3, "pos_des");
+    srv_req_->ctrl_point.resize(3);
+    GET_VALUE(req->ctrl_point, srv_req_->ctrl_point, 3, "ctrl_point");
+    srv_req_->acc_des.resize(6);
+    GET_VALUE(req->acc_des, srv_req_->acc_des, 6, "acc_des");
+    srv_req_->foot_pose.resize(6);
+    GET_VALUE(req->foot_pose, srv_req_->foot_pose, 6, "foot_pose");
+
+    ma_.Execute((srv_req_));
+    INFO(
+      "MotionManager send ResultCmd:\n motion_id: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", srv_req_->motion_id,
+      srv_req_->vel_des[0], srv_req_->vel_des[1], srv_req_->vel_des[2], srv_req_->rpy_des[0], srv_req_->rpy_des[1],
+      srv_req_->rpy_des[2], srv_req_->pos_des[0], srv_req_->pos_des[1], srv_req_->pos_des[2], srv_req_->acc_des[0],
+      srv_req_->acc_des[1], srv_req_->acc_des[2], srv_req_->acc_des[3], srv_req_->acc_des[4], srv_req_->acc_des[5],
+      srv_req_->ctrl_point[0], srv_req_->ctrl_point[1], srv_req_->ctrl_point[2], srv_req_->foot_pose[0],
+      srv_req_->foot_pose[1], srv_req_->foot_pose[2], srv_req_->foot_pose[3], srv_req_->foot_pose[4],
+      srv_req_->foot_pose[5], srv_req_->step_height[0], srv_req_->step_height[1]);
+  }
+
+
+  void HandleTestServoCmd(const protocol::msg::MotionServoCmd::SharedPtr msg)
   {
     // if(*last_msg_ == *msg)
       // return;
@@ -80,7 +120,7 @@ public:
 
     ma_.Execute((msg_t_));
     INFO(
-      "MotionManager send cmd:\n motion_id: %d\n cmd_type: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", msg_t_->motion_id, msg_t_->cmd_type,
+      "MotionManager send ServoCmd:\n motion_id: %d\n cmd_type: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", msg_t_->motion_id, msg_t_->cmd_type,
       msg_t_->vel_des[0], msg_t_->vel_des[1], msg_t_->vel_des[2], msg_t_->rpy_des[0], msg_t_->rpy_des[1],
       msg_t_->rpy_des[2], msg_t_->pos_des[0], msg_t_->pos_des[1], msg_t_->pos_des[2], msg_t_->acc_des[0],
       msg_t_->acc_des[1], msg_t_->acc_des[2], msg_t_->acc_des[3], msg_t_->acc_des[4], msg_t_->acc_des[5],
@@ -106,7 +146,7 @@ public:
     GET_TOML_VALUE(value, "ctrl_point", msg->ctrl_point);
     GET_TOML_VALUE(value, "foot_pose", msg->foot_pose);
     GET_TOML_VALUE(value, "step_height", msg->step_height);
-    HandleTestCmd(msg);
+    HandleTestServoCmd(msg);
   }
 
   void Spin()
@@ -147,7 +187,10 @@ private:
   rclcpp::Node::SharedPtr node_ptr_;
   rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::Subscription<protocol::msg::MotionServoCmd>::SharedPtr motion_cmd_sub_{nullptr};
+  rclcpp::Service<protocol::srv::MotionResultCmd>::SharedPtr motion_result_srv_{nullptr};
   protocol::msg::MotionServoCmd::SharedPtr msg_t_{nullptr}, last_msg_{nullptr};
+  protocol::srv::MotionResultCmd::Request::SharedPtr srv_req_{nullptr};
+  protocol::srv::MotionResultCmd::Response::SharedPtr srv_res_{nullptr};
   protocol::msg::MotionStatus::SharedPtr res_t_;
   std::string publish_url_, subscribe_url, cmd_preset_;
   LOGGER_MINOR_INSTANCE("SimMotionManager");

@@ -55,7 +55,7 @@ public:
     // HandleTestCmd(msg);
     motion_cmd_pub_->publish(*msg);
     INFO(
-      "MotionManager send cmd:\n motion_id: %d\n cmd_type: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", msg->motion_id, msg->cmd_type,
+      "MotionPublisher publish cmd:\n motion_id: %d\n cmd_type: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", msg->motion_id, msg->cmd_type,
       msg->vel_des[0], msg->vel_des[1], msg->vel_des[2], msg->rpy_des[0], msg->rpy_des[1],
       msg->rpy_des[2], msg->pos_des[0], msg->pos_des[1], msg->pos_des[2], msg->acc_des[0],
       msg->acc_des[1], msg->acc_des[2], msg->acc_des[3], msg->acc_des[4], msg->acc_des[5],

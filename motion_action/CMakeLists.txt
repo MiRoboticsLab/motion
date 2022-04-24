@@ -45,6 +45,10 @@ add_executable(test_as_publisher test/test_as_publisher.cpp)
 target_link_libraries(test_as_publisher ${PROJECT_NAME} lcm)
 ament_target_dependencies(test_as_publisher lcm cyberdog_common)
 
+add_executable(test_as_client test/test_as_client.cpp)
+target_link_libraries(test_as_client ${PROJECT_NAME} lcm)
+ament_target_dependencies(test_as_client lcm cyberdog_common)
+
 install(
   DIRECTORY include/
   DESTINATION include
@@ -58,7 +62,7 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 install(TARGETS
-  ${PROJECT_NAME} test_as_manager test_as_controller test_as_publisher
+  ${PROJECT_NAME} test_as_manager test_as_controller test_as_publisher test_as_client
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )

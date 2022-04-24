@@ -58,7 +58,23 @@ void cyberdog::motion::MotionAction::Execute(const MotionResultSrv::Request::Sha
     ERROR("MotionAction has not been initialized when execute ResultSrv");
     return;
   }
-  (void) request;
+  if (motion_id_map_.empty()) {
+    return;
+  }
+  lcm_cmd_.mode = motion_id_map_.at(request->motion_id).front();
+  lcm_cmd_.gait_id = motion_id_map_.at(request->motion_id).back();
+  lcm_cmd_.contact = 0;
+  lcm_cmd_.life_count++;
+  lcm_cmd_.value = 0;
+  lcm_cmd_.duration = 0;
+  GET_VALUE(request->step_height, lcm_cmd_.step_height, 2, "step_height");
+  GET_VALUE(request->vel_des, lcm_cmd_.vel_des, 3, "vel_des");
+  GET_VALUE(request->rpy_des, lcm_cmd_.rpy_des, 3, "rpy_des");
+  GET_VALUE(request->pos_des, lcm_cmd_.pos_des, 3, "pos_des");
+  GET_VALUE(request->ctrl_point, lcm_cmd_.ctrl_point, 3, "ctrl_point");
+  GET_VALUE(request->acc_des, lcm_cmd_.acc_des, 6, "acc_des");
+  GET_VALUE(request->foot_pose, lcm_cmd_.foot_pose, 6, "foot_pose");
+  lcm_cmd_init_ = true;
 }
 
 bool cyberdog::motion::MotionAction::ParseMotionId()
