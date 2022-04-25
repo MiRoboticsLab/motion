@@ -42,6 +42,8 @@ public:
       exit(-1);
     }
     msg_t_.reset(new protocol::msg::MotionServoCmd);
+    res_t_.reset(new protocol::msg::MotionStatus);
+    res_t_->motor_error.resize(12);
     last_msg_.reset(new protocol::msg::MotionServoCmd);
     srv_req_.reset(new protocol::srv::MotionResultCmd::Request);
     executor_.reset(new rclcpp::executors::SingleThreadedExecutor);

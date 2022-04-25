@@ -127,6 +127,7 @@ void cyberdog::motion::MotionAction::ReadLcm(
   const lcm::ReceiveBuffer *, const std::string &,
   const robot_control_response_lcmt * msg)
 {
+  protocol::msg::MotionStatus::SharedPtr lcm_res(new protocol::msg::MotionStatus);
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
     for (auto m = motion_id_map_.begin(); ; m++) {
       if (m == motion_id_map_.end()) {
@@ -134,21 +135,22 @@ void cyberdog::motion::MotionAction::ReadLcm(
         return;
       }
       if (m->second.front() == msg->mode && m->second.back() == msg->gait_id) {
-        lcm_res_->motion_id = m->first;
+        lcm_res->motion_id = m->first;
         break;
       }
     }
   }
-  lcm_res_->contact = msg->contact;
-  lcm_res_->order_process_bar = msg->order_process_bar;
-  lcm_res_->switch_status = msg->switch_status;
-  lcm_res_->ori_error = msg->ori_error;
-  lcm_res_->footpos_error = msg->footpos_error;
+  lcm_res->contact = msg->contact;
+  lcm_res->order_process_bar = msg->order_process_bar;
+  lcm_res->switch_status = msg->switch_status;
+  lcm_res->ori_error = msg->ori_error;
+  lcm_res->footpos_error = msg->footpos_error;
+  lcm_res->motor_error.resize(12);
   for (uint8_t i = 0; i < 12; ++i) {
-    lcm_res_->motor_error[i] = msg->motor_error[i];
+    lcm_res->motor_error[i] = msg->motor_error[i];
   }
   if (feedback_func_) {
-    feedback_func_(lcm_res_);
+    feedback_func_(lcm_res);
   }
 }
 
