@@ -35,6 +35,8 @@ bool cyberdog::motion::MotionDecision::Init(
     return false;
   }
 
+  handler_ptr_->RegisterUpdate(std::bind(&MotionDecision::Update, this, std::placeholders::_1));
+
   servo_response_pub_ = servo_response_pub;
   servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponse, this));
 
