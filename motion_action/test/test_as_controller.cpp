@@ -32,7 +32,11 @@ public:
     while (true) {
       // lcm_sub_->handle();
       lcm_pub_->publish("robot_control_response", &res_);
-      INFO("MotionController send res mode: %d, gait_id: %d", res_.mode, res_.gait_id);
+      INFO(
+          "MotionController send res:\n mode: %d\n gait_id: %d\n contact: %d\n order_process_bar: %d\n switch_status: %d\n ori_error: %d\n footpos_error: %d\n motor_error: [%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d]\n", res_.mode, res_.gait_id, res_.contact, res_.order_process_bar, res_.switch_status, res_.ori_error, res_.footpos_error,
+          res_.motor_error[0], res_.motor_error[1], res_.motor_error[2], res_.motor_error[3],
+          res_.motor_error[4], res_.motor_error[5], res_.motor_error[6], res_.motor_error[7],
+          res_.motor_error[8], res_.motor_error[9], res_.motor_error[10], res_.motor_error[11]);
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
   }
@@ -46,6 +50,12 @@ private:
     INFO("MotionController get cmd mode %d, gait_id %d, life_count %d", msg->mode, msg->gait_id, msg->life_count);
     res_.mode = msg->mode;
     res_.gait_id = msg->gait_id;
+    res_.contact = msg->contact;
+    res_.order_process_bar = 100;
+    res_.switch_status = 0;
+    res_.ori_error = 0;
+    res_.footpos_error = 0;
+    memset(res_.motor_error, 0, sizeof(res_.motor_error));
   }
   LOGGER_MINOR_INSTANCE("SimMotionController")
 };
