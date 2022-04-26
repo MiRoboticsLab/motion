@@ -48,8 +48,9 @@ public:
     srv_req_.reset(new protocol::srv::MotionResultCmd::Request);
     executor_.reset(new rclcpp::executors::SingleThreadedExecutor);
     executor_->add_node(node_ptr_);
-    ma_.Init(publish_url_, subscribe_url);
-    ma_.RegisterFeedback(
+    ma_.reset(new cyberdog::motion::MotionAction);
+    ma_->Init(publish_url_, subscribe_url);
+    ma_->RegisterFeedback(
       std::bind(
         &SimMotionManager::FeedbackCallback, this,
         std::placeholders::_1));
@@ -86,7 +87,7 @@ public:
     srv_req_->foot_pose.resize(6);
     GET_VALUE(req->foot_pose, srv_req_->foot_pose, 6, "foot_pose");
 
-    ma_.Execute((srv_req_));
+    ma_->Execute((srv_req_));
     INFO(
       "MotionManager send ResultCmd:\n motion_id: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", srv_req_->motion_id,
       srv_req_->vel_des[0], srv_req_->vel_des[1], srv_req_->vel_des[2], srv_req_->rpy_des[0], srv_req_->rpy_des[1],
@@ -120,7 +121,7 @@ public:
     msg_t_->foot_pose.resize(6);
     GET_VALUE(msg->foot_pose, msg_t_->foot_pose, 6, "foot_pose");
 
-    ma_.Execute((msg_t_));
+    ma_->Execute((msg_t_));
     INFO(
       "MotionManager send ServoCmd:\n motion_id: %d\n cmd_type: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", msg_t_->motion_id, msg_t_->cmd_type,
       msg_t_->vel_des[0], msg_t_->vel_des[1], msg_t_->vel_des[2], msg_t_->rpy_des[0], msg_t_->rpy_des[1],
@@ -185,7 +186,7 @@ private:
             msg->motor_error[8], msg->motor_error[9], msg->motor_error[10], msg->motor_error[11]);
 
   }
-  cyberdog::motion::MotionAction ma_;
+  std::shared_ptr<cyberdog::motion::MotionAction> ma_;
   rclcpp::Node::SharedPtr node_ptr_;
   rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::Subscription<protocol::msg::MotionServoCmd>::SharedPtr motion_cmd_sub_{nullptr};
