@@ -106,7 +106,14 @@ bool cyberdog::motion::MotionAction::Init(
   control_thread_ = std::thread(&MotionAction::WriteLcm, this);
   control_thread_.detach();
   response_thread_ =
-    std::thread([this]() {while (0 == this->lcm_subscribe_instance_->handle()) {}});
+    std::thread(
+    [this]() {
+      while (rclcpp::ok()) {
+        while (0 == this->lcm_subscribe_instance_->handleTimeout(1000)) {
+          ERROR("Cannot read LCM from MR813");
+        }
+      }
+    });
   response_thread_.detach();
   ins_init_ = true;
   return true;
