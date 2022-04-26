@@ -141,7 +141,7 @@ void cyberdog::motion::MotionAction::ReadLcm(
         FATAL_EXPRESSION(
           lcm_cmd_init_,
           "Get unkown response about motion_id, mode: %d, gait_id: %d!",
-          int(msg->mode), int(msg->gait_id));
+          static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));
         return;
       }
       if (m->second.front() == msg->mode && m->second.back() == msg->gait_id) {
