@@ -20,6 +20,7 @@
 #include <condition_variable>
 #include "motion_action/motion_action.hpp"
 #include "motion_manager/motion_handler.hpp"
+#include "cyberdog_common/cyberdog_msg_queue.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
@@ -33,8 +34,8 @@ namespace motion
 
 enum class DecisionStatus : uint8_t
 {
-  kServoStart = 0,
-  KServoData = 1,
+  kIdle = 0,
+  kServoStart = 1,
   kExecuting = 2
 };
 
@@ -63,7 +64,7 @@ public:
 
   inline void SetMode(uint8_t mode)
   {
-    motion_control_mode_ = mode;
+    motion_work_mode_ = (DecisionStatus)mode;
   }
 
 private:
@@ -83,41 +84,104 @@ private:
   void ServoEnd(const MotionServoCmdMsg::SharedPtr msg);
   void Update(MotionStatusMsg::SharedPtr motion_status_ptr);
   bool WaitExecute(int32_t motion_id, int32_t duration, int32_t & code);
-
+  void ServoDataCheck();
   void StopMotion();
   void ServoResponse();
-  inline void WaitServoNeedResponse()
+
+  inline void SetWorkStatus(DecisionStatus status_code)
   {
-    std::unique_lock<std::mutex> lk(servo_mutex_);
-    if (is_servo_wait_) {
-      servo_cv_.wait(lk);
+    std::unique_lock<std::mutex> lk(status_mutex_);
+    motion_work_mode_ = status_code;
+  }
+
+  inline DecisionStatus GetWorkStatus()
+  {
+    std::unique_lock<std::mutex> lk(status_mutex_);
+    return motion_work_mode_;
+  }
+
+  inline bool NeedServoResponse()
+  {
+    int unused_counter;
+    return servo_response_queue_.DeQueue(unused_counter);
+  }
+
+  inline void SetServoResponse()
+  {
+    servo_response_queue_.EnQueue(1);
+  }
+
+  inline void StopServoResponse()
+  {
+    servo_response_queue_.Reset();
+  }
+
+  inline void SetServoNeedCheck(bool check_flag)
+  {
+    std::unique_lock<std::mutex> lk(servo_check_mutex_);
+    if (check_flag && (!is_servo_need_check_)) {
+      server_check_error_counter_ = 0;
+      is_servo_need_check_ = check_flag;
+      servo_check_cv_.notify_one();
+    } else {
+      is_servo_need_check_ = check_flag;
     }
   }
-  inline void SetServoNeedResponse(bool wait_flag)
+
+  inline void WaitServoNeedCheck()
   {
-    std::unique_lock<std::mutex> lk(servo_mutex_);
-    if (is_servo_wait_ && !wait_flag) {
-      is_servo_wait_ = wait_flag;
-      servo_cv_.notify_one();
-    } else {
-      is_servo_wait_ = wait_flag;
+    std::unique_lock<std::mutex> lk(servo_check_mutex_);
+    if (!is_servo_need_check_) {
+      servo_check_cv_.wait(lk);
     }
+  }
+
+  inline void SetServoCheck()
+  {
+    servo_check_queue_.EnQueueOne(1);
+  }
+
+  inline bool GetServoCheck()
+  {
+    int unused_counter;
+    if (servo_check_queue_.IsEmpty()) {
+      return false;
+    } else {
+      servo_check_queue_.DeQueue(unused_counter);
+      return true;
+    }
+  }
+
+  inline void ResetServoResponseMsg()
+  {
+    servo_response_msg_.result = true;
+    servo_response_msg_.code = 300;
   }
 
 private:
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
   std::shared_ptr<MotionHandler> handler_ptr_ {nullptr};
-  uint8_t motion_control_mode_ {0};
+  DecisionStatus motion_work_mode_ {DecisionStatus::kIdle};
+  std::mutex status_mutex_;
+
+  /* Execute cmd members */
   std::mutex execute_mutex_;
   std::condition_variable execute_cv_;
   bool is_execute_wait_ {false};
   int32_t wait_id;
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
+
+  /* Servo cmd members */
   std::thread servo_response_thread_;
-  std::mutex servo_mutex_;
-  std::condition_variable servo_cv_;
-  bool is_servo_wait_ {true};
+  std::thread servo_data_check_thread_;
+  common::MsgQueue<int> servo_response_queue_;
+  common::MsgQueue<int> servo_check_queue_;
+  std::mutex servo_check_mutex_;
+  std::condition_variable servo_check_cv_;
+  bool is_servo_need_check_ {false};
+  int8_t server_check_error_counter_ {0};
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub_;
+  MotionServoResponseMsg servo_response_msg_;
 };  // class MotionDecision
 }  // namespace motion
 }  // namespace cyberdog
