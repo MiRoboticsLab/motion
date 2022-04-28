@@ -23,6 +23,7 @@ cyberdog::motion::MotionDecision::MotionDecision(
   // action_ptr = std::make_shared<cyberdog::motion::MotionAction>();
   motion_status_ptr_ = std::make_shared<MotionStatusMsg>();
   motion_status_ptr_->motor_error.resize(12);
+  ResetServoResponseMsg();
 }
 cyberdog::motion::MotionDecision::~MotionDecision() {}
 
@@ -74,35 +75,69 @@ void cyberdog::motion::MotionDecision::ServoStart(const MotionServoCmdMsg::Share
 {
   INFO("Servo start with motion_id: %d", msg->motion_id);
   action_ptr_->Execute(msg);
-  SetServoNeedResponse(false);
+  ResetServoResponseMsg();
+  SetWorkStatus(DecisionStatus::kServoStart);
+  SetServoResponse();
+  SetServoNeedCheck(true);
 }
 
 void cyberdog::motion::MotionDecision::ServoData(const MotionServoCmdMsg::SharedPtr msg)
 {
+  if (DecisionStatus::kServoStart != GetWorkStatus()) {
+    servo_response_msg_.result = false;
+    servo_response_msg_.code = 333;
+  }
   action_ptr_->Execute(msg);
+  SetServoResponse();
 }
 
 void cyberdog::motion::MotionDecision::ServoEnd(const MotionServoCmdMsg::SharedPtr msg)
 {
   INFO("Servo end with motion_id: %d", msg->motion_id);
   action_ptr_->Execute(msg);
-  SetServoNeedResponse(true);
+  StopServoResponse();
   StopMotion();
+  SetServoNeedCheck(false);
+  SetWorkStatus(DecisionStatus::kIdle);
 }
 
 void cyberdog::motion::MotionDecision::ServoResponse()
 {
-  MotionServoResponseMsg msg;
   while (true) {
-    WaitServoNeedResponse();
-    if (servo_response_pub_ != nullptr) {
-      msg.motion_id = motion_status_ptr_->motion_id;
-      msg.order_process_bar = motion_status_ptr_->order_process_bar;
-      msg.status = motion_status_ptr_->switch_status;
-      msg.result = true;
-      msg.code = 0;
-      servo_response_pub_->publish(msg);
+    if (!NeedServoResponse()) {
+      continue;
     }
+    if (servo_response_pub_ != nullptr) {
+      servo_response_msg_.motion_id = motion_status_ptr_->motion_id;
+      servo_response_msg_.order_process_bar = motion_status_ptr_->order_process_bar;
+      servo_response_msg_.status = motion_status_ptr_->switch_status;
+      // servo_response_msg.result = true;
+      // servo_response_msg.code = 0;
+      servo_response_pub_->publish(servo_response_msg_);
+    }
+  }
+}
+
+/**
+ * @brief Detect servo data working latency.
+ *        Will call MotionStop when timeout count gt 5.
+ *
+ */
+void cyberdog::motion::MotionDecision::ServoDataCheck()
+{
+  while (true) {
+    WaitServoNeedCheck();
+    if (!GetServoCheck()) {
+      server_check_error_counter_++;
+    }
+    if (server_check_error_counter_ >= 4) {
+      WARN("Servo data lost time with 4 times");
+      StopServoResponse();
+      StopMotion();
+      SetServoNeedCheck(false);
+      SetWorkStatus(DecisionStatus::kIdle);
+    }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 }
@@ -144,6 +179,11 @@ bool cyberdog::motion::MotionDecision::WaitExecute(
   return result;
 }
 
+/**
+ * @brief unelegant code
+ *
+ * @param motion_status_ptr
+ */
 void cyberdog::motion::MotionDecision::Update(MotionStatusMsg::SharedPtr motion_status_ptr)
 {
   std::unique_lock<std::mutex> lk(execute_mutex_);
