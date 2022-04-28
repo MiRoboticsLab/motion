@@ -52,6 +52,7 @@ public:
     GET_TOML_VALUE(value, "ctrl_point", req->ctrl_point);
     GET_TOML_VALUE(value, "foot_pose", req->foot_pose);
     GET_TOML_VALUE(value, "step_height", req->step_height);
+    GET_TOML_VALUE(value, "duration", req->duration);
     // HandleTestCmd(msg);
     motion_result_client_->async_send_request(req);
     INFO(
