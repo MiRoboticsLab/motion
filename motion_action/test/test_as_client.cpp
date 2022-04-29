@@ -37,6 +37,10 @@ public:
 
   void Run(char ** argv)
   {
+    if (!motion_result_client_->wait_for_service()) {
+      FATAL("Service not avalible");
+      return;
+    }
     protocol::srv::MotionResultCmd::Request::SharedPtr req(new protocol::srv::MotionResultCmd::Request);
     std::string cmd_preset = ament_index_cpp::get_package_share_directory("motion_action") + "/preset/" + argv[1] + ".toml";
     toml::value value;
@@ -54,7 +58,8 @@ public:
     GET_TOML_VALUE(value, "step_height", req->step_height);
     GET_TOML_VALUE(value, "duration", req->duration);
     // HandleTestCmd(msg);
-    motion_result_client_->async_send_request(req);
+    // std::shared_future<protocol::srv::MotionResultCmd::Response::SharedPtr> future_result = motion_result_client_->async_send_request(req);
+    auto future_result = motion_result_client_->async_send_request(req);
     INFO(
       "MotionClient call with cmd:\n motion_id: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", req->motion_id,
       req->vel_des[0], req->vel_des[1], req->vel_des[2], req->rpy_des[0], req->rpy_des[1],
@@ -63,6 +68,13 @@ public:
       req->ctrl_point[0], req->ctrl_point[1], req->ctrl_point[2], req->foot_pose[0],
       req->foot_pose[1], req->foot_pose[2], req->foot_pose[3], req->foot_pose[4],
       req->foot_pose[5], req->step_height[0], req->step_height[1]);
+    
+    if(rclcpp::spin_until_future_complete(node_ptr_, future_result, std::chrono::seconds(5)) != rclcpp::FutureReturnCode::SUCCESS)
+    {
+      FATAL("Service failed");
+      return;
+    }
+    INFO("MotionClient get res:\n motion_id: %d result: %d code: %d", future_result.get()->motion_id, future_result.get()->result, future_result.get()->code);
   }
 
   void Spin()

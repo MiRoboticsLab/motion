@@ -144,7 +144,7 @@ void cyberdog::motion::MotionAction::ReadLcm(
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
     for (auto m = motion_id_map_.begin(); ; m++) {
       if (m == motion_id_map_.end()) {
-        FATAL_EXPRESSION(
+        DEBUG_EXPRESSION(
           lcm_cmd_init_,
           "Get unkown response about motion_id, mode: %d, gait_id: %d!",
           static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));

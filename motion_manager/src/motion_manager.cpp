@@ -43,6 +43,9 @@ bool cyberdog::motion::MotionManager::Init()
     return false;
   }
 
+  motion_servo_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
+    "motion_servo_response",
+    10);
   decision_ptr_->Init(motion_servo_pub_);
   action_ptr_->Init();
 
@@ -53,9 +56,7 @@ bool cyberdog::motion::MotionManager::Init()
   motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
     "motion_servo_cmd", rclcpp::SystemDefaultsQoS(),
     std::bind(&MotionManager::MotionServoCmdCallback, this, std::placeholders::_1));
-  motion_servo_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
-    "motion_servo_response",
-    10);
+
   motion_result_srv_ =
     node_ptr_->create_service<MotionResultSrv>(
     "motion_result_cmd",

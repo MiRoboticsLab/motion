@@ -1,3 +1,4 @@
+# 恢复站立
 motion_id = 8
 cmd_type = 0 
 vel_des = [0.0, 0.0, 0.0]
