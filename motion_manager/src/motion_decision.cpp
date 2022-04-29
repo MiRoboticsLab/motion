@@ -86,6 +86,7 @@ void cyberdog::motion::MotionDecision::ServoData(const MotionServoCmdMsg::Shared
   if (DecisionStatus::kServoStart != GetWorkStatus()) {
     servo_response_msg_.result = false;
     servo_response_msg_.code = 333;
+    return;
   }
   action_ptr_->Execute(msg);
   SetServoResponse();
@@ -169,7 +170,9 @@ bool cyberdog::motion::MotionDecision::WaitExecute(
   wait_id = motion_id;
   auto wait_status = execute_cv_.wait_for(lk, std::chrono::milliseconds(duration));
   if (wait_status == std::cv_status::timeout) {
-    code = 331;
+    if (motion_status_ptr_->motion_id != motion_id) {
+      code = 331;
+    }
   } else if (motion_status_ptr_->motion_id != motion_id) {
     code = 332;
   } else {
