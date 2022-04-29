@@ -1,3 +1,4 @@
+# OFF状态，即停状态
 motion_id = 0
 cmd_type = 0 
 vel_des = [0.0, 0.0, 0.0]

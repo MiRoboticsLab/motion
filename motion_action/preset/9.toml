@@ -1,3 +1,4 @@
+# 向左打滚一圈
 motion_id = 9
 cmd_type = 0 
 vel_des = [0.1, 0.0, 0.0]

@@ -1,3 +1,4 @@
+# 力控姿态
 motion_id = 1
 cmd_type = 0 
 vel_des = [0.0, 0.0, 0.0]

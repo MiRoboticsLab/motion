@@ -1,3 +1,4 @@
+# 高阻尼趴下
 motion_id = 2
 cmd_type = 0 
 vel_des = [0.0, 0.0, 0.0]
