@@ -41,7 +41,7 @@ bool cyberdog::motion::MotionDecision::Init(
 
   servo_response_pub_ = servo_response_pub;
   servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponse, this));
-
+  servo_data_check_thread_ = std::thread(std::bind(&MotionDecision::ServoDataCheck, this));
   return true;
 }
 // bool cyberdog::motion::MotionDecision::CheckModeValid() {
