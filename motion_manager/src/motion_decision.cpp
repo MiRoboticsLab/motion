@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include <memory>
+#include <vector>
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "motion_manager/motion_decision.hpp"
 
