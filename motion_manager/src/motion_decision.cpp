@@ -134,6 +134,8 @@ void cyberdog::motion::MotionDecision::ServoDataCheck()
     WaitServoNeedCheck();
     if (!GetServoCheck()) {
       server_check_error_counter_++;
+    } else {
+      server_check_error_counter_ = 0;
     }
     if (server_check_error_counter_ >= 4) {
       WARN("Servo data lost time with 4 times");
