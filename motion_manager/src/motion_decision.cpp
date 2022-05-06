@@ -147,6 +147,7 @@ void cyberdog::motion::MotionDecision::StopMotion()
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
   request->motion_id = 1;
+  request->pos_des = std::vector<float>{0.0, 0.0, 0.3};
   action_ptr_->Execute(request);
 }
 
