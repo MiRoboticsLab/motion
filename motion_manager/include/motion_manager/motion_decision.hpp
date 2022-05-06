@@ -39,6 +39,26 @@ enum class DecisionStatus : uint8_t
   kExecuting = 2
 };
 
+struct ServoClick
+{
+  void Push()
+  {
+    data_ = true;
+  }
+
+  bool Pop()
+  {
+    if (data_ == false) {
+      return false;
+    } else {
+      data_ = false;
+    }
+    return true;
+  }
+
+  std::atomic_bool data_ {false};
+};  // struct HeartQueue
+
 class MotionDecision final
 {
   using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
@@ -138,18 +158,12 @@ private:
 
   inline void SetServoCheck()
   {
-    servo_check_queue_.EnQueueOne(1);
+    servo_check_click_->Push();
   }
 
   inline bool GetServoCheck()
   {
-    int unused_counter;
-    if (servo_check_queue_.IsEmpty()) {
-      return false;
-    } else {
-      servo_check_queue_.DeQueue(unused_counter);
-      return true;
-    }
+    return servo_check_click_->Pop();
   }
 
   inline void ResetServoResponseMsg()
@@ -175,7 +189,7 @@ private:
   std::thread servo_response_thread_;
   std::thread servo_data_check_thread_;
   common::MsgQueue<int> servo_response_queue_;
-  common::MsgQueue<int> servo_check_queue_;
+  std::shared_ptr<ServoClick> servo_check_click_;
   std::mutex servo_check_mutex_;
   std::condition_variable servo_check_cv_;
   bool is_servo_need_check_ {false};
