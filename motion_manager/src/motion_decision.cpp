@@ -86,13 +86,15 @@ void cyberdog::motion::MotionDecision::ServoStart(const MotionServoCmdMsg::Share
 
 void cyberdog::motion::MotionDecision::ServoData(const MotionServoCmdMsg::SharedPtr msg)
 {
+  INFO("Servo Data");
   if (DecisionStatus::kServoStart != GetWorkStatus()) {
     servo_response_msg_.result = false;
     servo_response_msg_.code = 333;
-    return;
+  } else {
+    INFO("Servo Data Execute");
+    action_ptr_->Execute(msg);
+    SetServoCheck();
   }
-  action_ptr_->Execute(msg);
-  SetServoCheck();
   SetServoResponse();
 }
 
@@ -133,6 +135,7 @@ void cyberdog::motion::MotionDecision::ServoDataCheck()
   while (true) {
     WaitServoNeedCheck();
     if (!GetServoCheck()) {
+      INFO("******************counter: %d", server_check_error_counter_);
       server_check_error_counter_++;
     } else {
       server_check_error_counter_ = 0;
@@ -175,11 +178,10 @@ bool cyberdog::motion::MotionDecision::WaitExecute(
   std::unique_lock<std::mutex> lk(execute_mutex_);
   is_execute_wait_ = true;
   wait_id = motion_id;
-  auto wait_status = execute_cv_.wait_for(lk, std::chrono::milliseconds(duration));
+  auto wait_timeout = duration ? duration : 1000;
+  auto wait_status = execute_cv_.wait_for(lk, std::chrono::milliseconds(wait_timeout));
   if (wait_status == std::cv_status::timeout) {
-    if (motion_status_ptr_->motion_id != motion_id) {
-      code = 331;
-    }
+    code = 331;
   } else if (motion_status_ptr_->motion_id != motion_id) {
     code = 332;
   } else {
