@@ -71,6 +71,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/motion_teleop.py
+  scripts/statistics.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
