@@ -45,11 +45,18 @@ bool cyberdog::motion::MotionDecision::Init(
 
   return true;
 }
-// bool cyberdog::motion::MotionDecision::CheckModeValid() {
-//   return true;
-// }
+
+/**
+ * @brief 伺服指令接收入口
+ *        重构思路： 
+ *          1. servo数据装入buffer， 进行平滑缓冲
+ *          2. 产生类似ur机械臂的servo控制接口
+ * 
+ * @param msg 
+ */
 void cyberdog::motion::MotionDecision::Servo(const MotionServoCmdMsg::SharedPtr msg)
 {
+  // 后续应该只检测运动状态，不检测mode
   if (!IsStateValid()) {
     return;
   }
@@ -86,7 +93,7 @@ void cyberdog::motion::MotionDecision::ServoData(const MotionServoCmdMsg::Shared
 {
   if (DecisionStatus::kServoStart != GetWorkStatus()) {
     servo_response_msg_.result = false;
-    servo_response_msg_.code = 333;
+    servo_response_msg_.code = (int32_t)MotionCode::kCheckError;
     return;
   }
   action_ptr_->Execute(msg);
@@ -103,6 +110,11 @@ void cyberdog::motion::MotionDecision::ServoEnd(const MotionServoCmdMsg::SharedP
   SetWorkStatus(DecisionStatus::kIdle);
 }
 
+/**
+ * @brief 私服指令反馈线程，运行在死循环线程中
+ *        通过NeedServerResponse来挂起 / 唤醒线程
+ * 
+ */
 void cyberdog::motion::MotionDecision::ServoResponse()
 {
   while (true) {
@@ -121,8 +133,8 @@ void cyberdog::motion::MotionDecision::ServoResponse()
 }
 
 /**
- * @brief Detect servo data working latency.
- *        Will call MotionStop when timeout count gt 5.
+ * @brief 检测私服指令的下发间隔是否符合要求
+ *        1. 运行在死循环线程中，通过waitServoNeedCheck进行线程挂起与唤醒操作
  *
  */
 void cyberdog::motion::MotionDecision::ServoDataCheck()
@@ -139,11 +151,15 @@ void cyberdog::motion::MotionDecision::ServoDataCheck()
       SetServoNeedCheck(false);
       SetWorkStatus(DecisionStatus::kIdle);
     }
-
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 }
 
+/**
+ * @brief 停止运动，让机器人回归站立姿态
+ *        后续计划改成调用当前动作的状态机结束动作，而不是写死
+ * 
+ */
 void cyberdog::motion::MotionDecision::StopMotion()
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
@@ -151,6 +167,12 @@ void cyberdog::motion::MotionDecision::StopMotion()
   action_ptr_->Execute(request);
 }
 
+/**
+ * @brief 执行结果指令
+ * 
+ * @param request 
+ * @param response 
+ */
 void cyberdog::motion::MotionDecision::Execute(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
@@ -161,6 +183,15 @@ void cyberdog::motion::MotionDecision::Execute(
   response->motion_id = motion_status_ptr_->motion_id;
 }
 
+/**
+ * @brief 结果指令的执行等待函数
+ * 
+ * @param motion_id 目标id
+ * @param duration 等待期限
+ * @param code 结果编码，引用形式返回
+ * @return true 
+ * @return false 
+ */
 bool cyberdog::motion::MotionDecision::WaitExecute(
   int32_t motion_id, int32_t duration,
   int32_t & code)
@@ -172,19 +203,19 @@ bool cyberdog::motion::MotionDecision::WaitExecute(
   auto wait_status = execute_cv_.wait_for(lk, std::chrono::milliseconds(duration));
   if (wait_status == std::cv_status::timeout) {
     if (motion_status_ptr_->motion_id != motion_id) {
-      code = 331;
+      code = (int32_t)MotionCode::kTimeout;
     }
   } else if (motion_status_ptr_->motion_id != motion_id) {
-    code = 332;
+    code = (int32_t)MotionCode::kCheckError;
   } else {
-    code = 0;
+    code = (int32_t)MotionCode::kOK;
     result = true;
   }
   return result;
 }
 
 /**
- * @brief unelegant code
+ * @brief Inelegant code
  *
  * @param motion_status_ptr
  */

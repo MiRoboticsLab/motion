@@ -20,6 +20,7 @@
 #include <condition_variable>
 #include "motion_action/motion_action.hpp"
 #include "motion_manager/motion_handler.hpp"
+#include "motion_manager/motion_macros.hpp"
 #include "cyberdog_common/cyberdog_msg_queue.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
@@ -31,33 +32,6 @@ namespace cyberdog
 {
 namespace motion
 {
-
-enum class DecisionStatus : uint8_t
-{
-  kIdle = 0,
-  kServoStart = 1,
-  kExecuting = 2
-};
-
-struct ServoClick
-{
-  void Push()
-  {
-    data_ = true;
-  }
-
-  bool Pop()
-  {
-    if (data_ == false) {
-      return false;
-    } else {
-      data_ = false;
-    }
-    return true;
-  }
-
-  std::atomic_bool data_ {false};
-};  // struct HeartQueue
 
 class MotionDecision final
 {
@@ -108,38 +82,69 @@ private:
   void StopMotion();
   void ServoResponse();
 
+  /**
+   * @brief 设置工作状态
+   *        后续考虑改成Handler持有的status，并且放在macros里面
+   * 
+   * @param status_code 
+   */
   inline void SetWorkStatus(DecisionStatus status_code)
   {
     std::unique_lock<std::mutex> lk(status_mutex_);
     motion_work_mode_ = status_code;
   }
 
+  /**
+   * @brief Get the Work Status object
+   * 
+   * @return DecisionStatus 
+   */
   inline DecisionStatus GetWorkStatus()
   {
     std::unique_lock<std::mutex> lk(status_mutex_);
     return motion_work_mode_;
   }
 
+  /**
+   * @brief 消费一条私服反馈计数
+   * 
+   * @return true 消费正常
+   * @return false 消费异常，此时消息队列析构或reset，需要注意后续代码安全
+   */
   inline bool NeedServoResponse()
   {
     int unused_counter;
     return servo_response_queue_.DeQueue(unused_counter);
   }
 
+  /**
+   * @brief 生产一条私服反馈计数
+   * 
+   */
   inline void SetServoResponse()
   {
     servo_response_queue_.EnQueue(1);
   }
 
+  /**
+   * @brief 重置私服反馈计数队列
+   *        该行为会导致技术消费函数退出且返回false
+   * 
+   */
   inline void StopServoResponse()
   {
     servo_response_queue_.Reset();
   }
 
+  /**
+   * @brief 私服指令检测功能开关
+   * 
+   * @param check_flag true: 打开检测功能; false: 关闭
+   */
   inline void SetServoNeedCheck(bool check_flag)
   {
     std::unique_lock<std::mutex> lk(servo_check_mutex_);
-    if (check_flag && (!is_servo_need_check_)) {
+    if (check_flag && (!is_servo_need_check_)) {  // 从关闭状态打开时，重置检测数据， 并唤醒线程
       server_check_error_counter_ = 0;
       is_servo_need_check_ = check_flag;
       servo_check_cv_.notify_one();
@@ -148,6 +153,12 @@ private:
     }
   }
 
+  /**
+   * @brief 等待私服检测开关打开
+   *        1. 如果已经打开，则忽略；
+   *        2. 如果已经关闭，则挂起当前线程；
+   * 
+   */
   inline void WaitServoNeedCheck()
   {
     std::unique_lock<std::mutex> lk(servo_check_mutex_);
@@ -156,20 +167,32 @@ private:
     }
   }
 
+  /**
+   * @brief 入队一条伺服检测信号
+   * 
+   */
   inline void SetServoCheck()
   {
-    servo_check_click_->Push();
+    servo_check_click_->Tick();
   }
 
+  /**
+   * @brief 出队一条伺服检测信号
+   * 
+   */
   inline bool GetServoCheck()
   {
-    servo_check_click_->Pop();
+    return servo_check_click_->Tock();
   }
 
+  /**
+   * @brief 重置伺服反馈消息
+   * 
+   */
   inline void ResetServoResponseMsg()
   {
     servo_response_msg_.result = true;
-    servo_response_msg_.code = 300;
+    servo_response_msg_.code = （int32_t）MotionCode::kOK;
   }
 
 private:
