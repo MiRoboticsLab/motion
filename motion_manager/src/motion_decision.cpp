@@ -23,6 +23,7 @@ cyberdog::motion::MotionDecision::MotionDecision(
   // action_ptr = std::make_shared<cyberdog::motion::MotionAction>();
   motion_status_ptr_ = std::make_shared<MotionStatusMsg>();
   motion_status_ptr_->motor_error.resize(12);
+  servo_check_click_ = std::make_shared<ServoClick>();
   ResetServoResponseMsg();
 }
 cyberdog::motion::MotionDecision::~MotionDecision() {}
