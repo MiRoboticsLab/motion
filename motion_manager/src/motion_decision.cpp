@@ -86,12 +86,10 @@ void cyberdog::motion::MotionDecision::ServoStart(const MotionServoCmdMsg::Share
 
 void cyberdog::motion::MotionDecision::ServoData(const MotionServoCmdMsg::SharedPtr msg)
 {
-  INFO("Servo Data");
   if (DecisionStatus::kServoStart != GetWorkStatus()) {
     servo_response_msg_.result = false;
     servo_response_msg_.code = 333;
   } else {
-    INFO("Servo Data Execute");
     action_ptr_->Execute(msg);
     SetServoCheck();
   }
@@ -135,7 +133,6 @@ void cyberdog::motion::MotionDecision::ServoDataCheck()
   while (true) {
     WaitServoNeedCheck();
     if (!GetServoCheck()) {
-      INFO("******************counter: %d", server_check_error_counter_);
       server_check_error_counter_++;
     } else {
       server_check_error_counter_ = 0;
