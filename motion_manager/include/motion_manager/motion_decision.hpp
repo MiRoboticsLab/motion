@@ -85,8 +85,8 @@ private:
   /**
    * @brief 设置工作状态
    *        后续考虑改成Handler持有的status，并且放在macros里面
-   * 
-   * @param status_code 
+   *
+   * @param status_code
    */
   inline void SetWorkStatus(DecisionStatus status_code)
   {
@@ -96,8 +96,8 @@ private:
 
   /**
    * @brief Get the Work Status object
-   * 
-   * @return DecisionStatus 
+   *
+   * @return DecisionStatus
    */
   inline DecisionStatus GetWorkStatus()
   {
@@ -107,7 +107,7 @@ private:
 
   /**
    * @brief 消费一条私服反馈计数
-   * 
+   *
    * @return true 消费正常
    * @return false 消费异常，此时消息队列析构或reset，需要注意后续代码安全
    */
@@ -119,7 +119,7 @@ private:
 
   /**
    * @brief 生产一条私服反馈计数
-   * 
+   *
    */
   inline void SetServoResponse()
   {
@@ -129,7 +129,7 @@ private:
   /**
    * @brief 重置私服反馈计数队列
    *        该行为会导致技术消费函数退出且返回false
-   * 
+   *
    */
   inline void StopServoResponse()
   {
@@ -138,7 +138,7 @@ private:
 
   /**
    * @brief 私服指令检测功能开关
-   * 
+   *
    * @param check_flag true: 打开检测功能; false: 关闭
    */
   inline void SetServoNeedCheck(bool check_flag)
@@ -157,7 +157,7 @@ private:
    * @brief 等待私服检测开关打开
    *        1. 如果已经打开，则忽略；
    *        2. 如果已经关闭，则挂起当前线程；
-   * 
+   *
    */
   inline void WaitServoNeedCheck()
   {
@@ -169,7 +169,7 @@ private:
 
   /**
    * @brief 入队一条伺服检测信号
-   * 
+   *
    */
   inline void SetServoCheck()
   {
@@ -178,7 +178,7 @@ private:
 
   /**
    * @brief 出队一条伺服检测信号
-   * 
+   *
    */
   inline bool GetServoCheck()
   {
@@ -187,12 +187,12 @@ private:
 
   /**
    * @brief 重置伺服反馈消息
-   * 
+   *
    */
   inline void ResetServoResponseMsg()
   {
     servo_response_msg_.result = true;
-    servo_response_msg_.code = （int32_t）MotionCode::kOK;
+    servo_response_msg_.code = (int32_t)MotionCode::kOK;
   }
 
 private:

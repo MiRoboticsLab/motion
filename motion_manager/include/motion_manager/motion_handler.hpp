@@ -58,7 +58,8 @@ public:
   /* 考虑重构的API */
   bool IsIdle() {return true;}
 
-  bool Wait4TargetMotionID(int32_t /*motion_id*/) {
+  bool Wait4TargetMotionID(int32_t /*motion_id*/)
+  {
     return true;
   }
 

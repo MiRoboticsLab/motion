@@ -11,8 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef MOTION_MANAGEER__MOTION_MACROS_HPP_
-#define MOTION_MANAGEER__MOTION_MACROS_HPP_
+#ifndef MOTION_MANAGER__MOTION_MACROS_HPP_
+#define MOTION_MANAGER__MOTION_MACROS_HPP_
 #include "cyberdog_system/robot_code.hpp"
 
 namespace cyberdog
@@ -26,7 +26,7 @@ namespace motion
  *        3. 重复置位为true为无效操作，不影响计数器状态
  *        4. 重复置位为false为无效操作，会得到false返回值；
  *        5. 该计数器用于检测消息频率合法性场景；
- * 
+ *
  */
 struct ServoClick
 {
@@ -50,7 +50,7 @@ struct ServoClick
 
 /**
  * @brief 运动模型状态记录， 后续考虑重构为Handler状态
- * 
+ *
  */
 enum class DecisionStatus : uint8_t
 {
@@ -68,6 +68,6 @@ enum class MotionCode : int32_t
   kCheckError = BaseCode + 32,
   kWithoutStart = BaseCode + 33
 };  // enum class MotionCode
-}  // namespaace motion
+}  // namespace motion
 }  // namespace cyberdog
-#endif  // MOTION_MANAGEER__MOTION_MACROS_HPP_
+#endif  // MOTION_MANAGER__MOTION_MACROS_HPP_

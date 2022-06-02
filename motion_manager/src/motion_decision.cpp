@@ -48,11 +48,11 @@ bool cyberdog::motion::MotionDecision::Init(
 
 /**
  * @brief 伺服指令接收入口
- *        重构思路： 
+ *        重构思路：
  *          1. servo数据装入buffer， 进行平滑缓冲
  *          2. 产生类似ur机械臂的servo控制接口
- * 
- * @param msg 
+ *
+ * @param msg
  */
 void cyberdog::motion::MotionDecision::Servo(const MotionServoCmdMsg::SharedPtr msg)
 {
@@ -113,7 +113,7 @@ void cyberdog::motion::MotionDecision::ServoEnd(const MotionServoCmdMsg::SharedP
 /**
  * @brief 私服指令反馈线程，运行在死循环线程中
  *        通过NeedServerResponse来挂起 / 唤醒线程
- * 
+ *
  */
 void cyberdog::motion::MotionDecision::ServoResponse()
 {
@@ -158,7 +158,7 @@ void cyberdog::motion::MotionDecision::ServoDataCheck()
 /**
  * @brief 停止运动，让机器人回归站立姿态
  *        后续计划改成调用当前动作的状态机结束动作，而不是写死
- * 
+ *
  */
 void cyberdog::motion::MotionDecision::StopMotion()
 {
@@ -169,9 +169,9 @@ void cyberdog::motion::MotionDecision::StopMotion()
 
 /**
  * @brief 执行结果指令
- * 
- * @param request 
- * @param response 
+ *
+ * @param request
+ * @param response
  */
 void cyberdog::motion::MotionDecision::Execute(
   const MotionResultSrv::Request::SharedPtr request,
@@ -185,12 +185,12 @@ void cyberdog::motion::MotionDecision::Execute(
 
 /**
  * @brief 结果指令的执行等待函数
- * 
+ *
  * @param motion_id 目标id
  * @param duration 等待期限
  * @param code 结果编码，引用形式返回
- * @return true 
- * @return false 
+ * @return true
+ * @return false
  */
 bool cyberdog::motion::MotionDecision::WaitExecute(
   int32_t motion_id, int32_t duration,
