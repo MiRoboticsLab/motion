@@ -54,6 +54,15 @@ public:
   void Checkout(MotionStatusMsg::SharedPtr motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
 
+public:
+  /* 考虑重构的API */
+  bool IsIdle() {return true;}
+
+  bool Wait4TargetMotionID(int32_t /*motion_id*/)
+  {
+    return true;
+  }
+
 private:
   /* ros members */
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
