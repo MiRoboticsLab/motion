@@ -27,6 +27,7 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
+#include "protocol/msg/motion_result_cmd.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
@@ -90,6 +91,7 @@ public:
 public:
   void Execute(const MotionServoCmdMsg::SharedPtr msg);
   void Execute(const MotionResultSrv::Request::SharedPtr request);
+  void Execute(const protocol::msg::MotionResultCmd::SharedPtr msg);
   void RegisterFeedback(std::function<void(MotionStatusMsg::SharedPtr)> feedback);
   bool Init(
     const std::string & publish_url = PUBLISH_URL,

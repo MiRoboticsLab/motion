@@ -14,6 +14,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/executors.hpp>
+#include <std_msgs/msg/int16.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <cyberdog_debug/backtrace.hpp>
 #include <motion_action/motion_action.hpp>
@@ -58,6 +59,10 @@ public:
       "motion_servo_cmd",
       rclcpp::SystemDefaultsQoS(),
       std::bind(&SimMotionManager::HandleTestServoCmd, this, std::placeholders::_1));
+    motion_result_queue_sub_ = node_ptr_->create_subscription<std_msgs::msg::Int16>(
+      "motion_result_queue",
+      rclcpp::SystemDefaultsQoS(),
+      std::bind(&SimMotionManager::HandleTestResultQueueCmd, this, std::placeholders::_1));
     motion_result_srv_ =
       node_ptr_->create_service<protocol::srv::MotionResultCmd>(
       "motion_result_cmd",
@@ -132,6 +137,43 @@ public:
       msg_t_->foot_pose[5], msg_t_->step_height[0], msg_t_->step_height[1]);
   }
 
+  void HandleTestResultQueueCmd(const std_msgs::msg::Int16::SharedPtr msg)
+  {
+    std::string cmd_preset = ament_index_cpp::get_package_share_directory("motion_action") + "/preset/" + std::to_string(msg->data) + ".toml";
+    toml::value steps;
+    if (!cyberdog::common::CyberdogToml::ParseFile(cmd_preset, steps)) {
+      FATAL("Cannot parse %s", cmd_preset.c_str());
+      exit(-1);
+    }
+    if(!steps.is_table()) {
+      FATAL("Toml format error");
+      exit(-1);
+    }
+    toml::value values;
+    cyberdog::common::CyberdogToml::Get(steps, "step", values);
+    INFO("size: %ld", values.size());
+    for(size_t i = 0; i < values.size(); i++) {
+      auto value = values.at(i);
+      protocol::msg::MotionResultCmd::SharedPtr msg(new protocol::msg::MotionResultCmd);
+      
+      GET_TOML_VALUE(value, "mode", msg->mode);
+      GET_TOML_VALUE(value, "gait_id", msg->gait_id);
+      GET_TOML_VALUE(value, "contact", msg->contact);
+      GET_TOML_VALUE(value, "life_count", msg->life_count);
+      GET_TOML_VALUE(value, "value", msg->value);
+      GET_TOML_VALUE(value, "duration", msg->duration);
+
+      GET_TOML_VALUE(value, "vel_des", msg->vel_des);
+      GET_TOML_VALUE(value, "rpy_des", msg->rpy_des);
+      GET_TOML_VALUE(value, "pos_des", msg->pos_des);
+      GET_TOML_VALUE(value, "acc_des", msg->acc_des);
+      GET_TOML_VALUE(value, "ctrl_point", msg->ctrl_point);
+      GET_TOML_VALUE(value, "foot_pose", msg->foot_pose);
+      GET_TOML_VALUE(value, "step_height", msg->step_height);
+      ma_->Execute(msg);
+    }
+  }
+
   void Run()
   {
     protocol::msg::MotionServoCmd::SharedPtr msg(new protocol::msg::MotionServoCmd);
@@ -191,6 +233,7 @@ private:
   rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::Subscription<protocol::msg::MotionServoCmd>::SharedPtr motion_cmd_sub_{nullptr};
   rclcpp::Service<protocol::srv::MotionResultCmd>::SharedPtr motion_result_srv_{nullptr};
+  rclcpp::Subscription<std_msgs::msg::Int16>::SharedPtr motion_result_queue_sub_{nullptr}; 
   protocol::msg::MotionServoCmd::SharedPtr msg_t_{nullptr}, last_msg_{nullptr};
   protocol::srv::MotionResultCmd::Request::SharedPtr srv_req_{nullptr};
   protocol::srv::MotionResultCmd::Response::SharedPtr srv_res_{nullptr};
