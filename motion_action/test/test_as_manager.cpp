@@ -76,7 +76,8 @@ public:
   {
     // if(*last_msg_ == *msg)
       // return;
-    srv_req_->motion_id = req->motion_id;
+    srv_req_->motion_id = req->motion_id; 
+    srv_req_->duration = req->duration;
     srv_req_->step_height.resize(2);
     GET_VALUE(req->step_height, srv_req_->step_height, 2, "step_height");
     srv_req_->vel_des.resize(3);
@@ -171,6 +172,7 @@ public:
       GET_TOML_VALUE(value, "foot_pose", msg->foot_pose);
       GET_TOML_VALUE(value, "step_height", msg->step_height);
       ma_->Execute(msg);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }
 
