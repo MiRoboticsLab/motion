@@ -55,21 +55,11 @@ void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr 
     lcm_cmd_.duration);
 }
 
-void cyberdog::motion::MotionAction::Execute(const protocol::msg::MotionResultCmd::SharedPtr msg)
+void cyberdog::motion::MotionAction::Execute(const robot_control_cmd_lcmt& lcm)
 {
-  lcm_cmd_.mode = msg->mode;
-  lcm_cmd_.gait_id = msg->gait_id;
-  lcm_cmd_.contact = msg->contact;
-  lcm_cmd_.life_count++;
-  lcm_cmd_.value = msg->value;
-  lcm_cmd_.duration = msg->duration;
-  GET_VALUE(msg->step_height, lcm_cmd_.step_height, 2, "step_height");
-  GET_VALUE(msg->vel_des, lcm_cmd_.vel_des, 3, "vel_des");
-  GET_VALUE(msg->rpy_des, lcm_cmd_.rpy_des, 3, "rpy_des");
-  GET_VALUE(msg->pos_des, lcm_cmd_.pos_des, 3, "pos_des");
-  GET_VALUE(msg->ctrl_point, lcm_cmd_.ctrl_point, 3, "ctrl_point");
-  GET_VALUE(msg->acc_des, lcm_cmd_.acc_des, 6, "acc_des");
-  GET_VALUE(msg->foot_pose, lcm_cmd_.foot_pose, 6, "foot_pose");
+  int8_t life_count = ++lcm_cmd_.life_count;
+  lcm_cmd_ = lcm;
+  lcm_cmd_.life_count = life_count;
   lcm_cmd_init_ = true;
   INFO(
     "ResultCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
@@ -125,10 +115,13 @@ bool cyberdog::motion::MotionAction::ParseMotionId()
 bool cyberdog::motion::MotionAction::Init(
   const std::string & publish_url, const std::string & subscribe_url)
 {
+  if(!ParseMotionId()) {
+    ERROR("Fail to parse MotionID");
+    return false;
+  }
   lcm_publish_duration_ = 1 / static_cast<float>(LCM_PUBLISH_FREQUENCY_) * 1000;
   lcm_publish_instance_ = std::make_shared<lcm::LCM>(publish_url);
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
-  ParseMotionId();
   lcm_subscribe_instance_->subscribe(lcm_subscribe_channel_, &MotionAction::ReadLcm, this);
   control_thread_ = std::thread(&MotionAction::WriteLcm, this);
   control_thread_.detach();

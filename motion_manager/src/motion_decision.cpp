@@ -16,16 +16,13 @@
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "motion_manager/motion_decision.hpp"
 
-cyberdog::motion::MotionDecision::MotionDecision(
-  std::shared_ptr<MotionAction> action_ptr,
-  std::shared_ptr<MotionHandler> handler_ptr)
-: action_ptr_(action_ptr), handler_ptr_(handler_ptr)
+cyberdog::motion::MotionDecision::MotionDecision()
 {
   // action_ptr = std::make_shared<cyberdog::motion::MotionAction>();
-  motion_status_ptr_ = std::make_shared<MotionStatusMsg>();
-  motion_status_ptr_->motor_error.resize(12);
-  servo_check_click_ = std::make_shared<ServoClick>();
-  ResetServoResponseMsg();
+  // motion_status_ptr_ = std::make_shared<MotionStatusMsg>();
+  // motion_status_ptr_->motor_error.resize(12);
+  // servo_check_click_ = std::make_shared<ServoClick>();
+  // ResetServoResponseMsg();
 }
 cyberdog::motion::MotionDecision::~MotionDecision() {}
 
@@ -34,16 +31,23 @@ void cyberdog::motion::MotionDecision::Config() {}
 bool cyberdog::motion::MotionDecision::Init(
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub)
 {
-  if (handler_ptr_ == nullptr) {
-    ERROR("Decision get nullptr with handler ptr!");
+  // if (handler_ptr_ == nullptr) {
+  //   ERROR("Decision get nullptr with handler ptr!");
+  //   return false;
+  // }
+  handler_ptr_ = std::make_shared<MotionHandler>();
+  if (!handler_ptr_->Init()) {
+    ERROR("Fail to initialize MotionHandler");
     return false;
   }
-
   handler_ptr_->RegisterUpdate(std::bind(&MotionDecision::Update, this, std::placeholders::_1));
 
   servo_response_pub_ = servo_response_pub;
-  servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponse, this));
-  servo_data_check_thread_ = std::thread(std::bind(&MotionDecision::ServoDataCheck, this));
+  servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponseThread, this));
+  // servo_data_check_thread_ = std::thread(std::bind(&MotionDecision::ServoDataCheck, this));
+  motion_status_ptr_ = std::make_shared<MotionStatusMsg>();
+  motion_status_ptr_->motor_error.resize(12);
+  ResetServoResponseMsg();
   return true;
 }
 
@@ -55,7 +59,7 @@ bool cyberdog::motion::MotionDecision::Init(
  *
  * @param msg
  */
-void cyberdog::motion::MotionDecision::Servo(const MotionServoCmdMsg::SharedPtr msg)
+void cyberdog::motion::MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
 {
   // 后续应该只检测运动状态，不检测mode
   if (!IsStateValid()) {
@@ -83,12 +87,12 @@ void cyberdog::motion::MotionDecision::Servo(const MotionServoCmdMsg::SharedPtr 
 void cyberdog::motion::MotionDecision::ServoStart(const MotionServoCmdMsg::SharedPtr msg)
 {
   INFO("Servo start with motion_id: %d", msg->motion_id);
-  action_ptr_->Execute(msg);
+  handler_ptr_->HandleServoStartFrame(msg);
   ResetServoResponseMsg();
   SetWorkStatus(DecisionStatus::kServoStart);
-  SetServoCheck();
+  // SetServoCheck();
   SetServoResponse();
-  SetServoNeedCheck(true);
+  // SetServoNeedCheck(true);
 }
 
 void cyberdog::motion::MotionDecision::ServoData(const MotionServoCmdMsg::SharedPtr msg)
@@ -96,7 +100,8 @@ void cyberdog::motion::MotionDecision::ServoData(const MotionServoCmdMsg::Shared
   if (DecisionStatus::kServoStart != GetWorkStatus()) {
     servo_response_msg_.result = false;
     servo_response_msg_.code = (int32_t)MotionCode::kCheckError;
-    return;
+  } else {
+    handler_ptr_->HandleServoDataFrame(msg);
   }
   SetServoResponse();
 }
@@ -104,19 +109,21 @@ void cyberdog::motion::MotionDecision::ServoData(const MotionServoCmdMsg::Shared
 void cyberdog::motion::MotionDecision::ServoEnd(const MotionServoCmdMsg::SharedPtr msg)
 {
   INFO("Servo end with motion_id: %d", msg->motion_id);
-  action_ptr_->Execute(msg);
-  StopServoResponse();
-  StopMotion();
-  SetServoNeedCheck(false);
+  // action_ptr_->Execute(msg);
+  handler_ptr_->HandleServoEndFrame(msg);
+  handler_ptr_->StandBy();
+  ResetServoResponse();
+  // StopMotion();
+  // SetServoNeedCheck(false);
   SetWorkStatus(DecisionStatus::kIdle);
 }
 
 /**
- * @brief 私服指令反馈线程，运行在死循环线程中
+ * @brief 伺服指令反馈线程，运行在死循环线程中
  *        通过NeedServerResponse来挂起 / 唤醒线程
  *
  */
-void cyberdog::motion::MotionDecision::ServoResponse()
+void cyberdog::motion::MotionDecision::ServoResponseThread()
 {
   while (true) {
     if (!NeedServoResponse()) {
@@ -133,43 +140,43 @@ void cyberdog::motion::MotionDecision::ServoResponse()
   }
 }
 
-/**
- * @brief 检测私服指令的下发间隔是否符合要求
- *        1. 运行在死循环线程中，通过waitServoNeedCheck进行线程挂起与唤醒操作
- *
- */
-void cyberdog::motion::MotionDecision::ServoDataCheck()
-{
-  while (true) {
-    WaitServoNeedCheck();
-    if (!GetServoCheck()) {
-      server_check_error_counter_++;
-    } else {
-      server_check_error_counter_ = 0;
-    }
-    if (server_check_error_counter_ >= 4) {
-      WARN("Servo data lost time with 4 times");
-      StopServoResponse();
-      StopMotion();
-      SetServoNeedCheck(false);
-      SetWorkStatus(DecisionStatus::kIdle);
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  }
-}
+// /**
+//  * @brief 检测伺服指令的下发间隔是否符合要求
+//  *        1. 运行在死循环线程中，通过waitServoNeedCheck进行线程挂起与唤醒操作
+//  *
+//  */
+// void cyberdog::motion::MotionDecision::ServoDataCheck()
+// {
+//   while (true) {
+//     WaitServoNeedCheck();
+//     if (!GetServoCheck()) {
+//       server_check_error_counter_++;
+//     } else {
+//       server_check_error_counter_ = 0;
+//     }
+//     if (server_check_error_counter_ >= 4) {
+//       WARN("Servo data lost time with 4 times");
+//       StopServoResponse();
+//       StopMotion();
+//       SetServoNeedCheck(false);
+//       SetWorkStatus(DecisionStatus::kIdle);
+//     }
+//     std::this_thread::sleep_for(std::chrono::milliseconds(50));
+//   }
+// }
 
-/**
- * @brief 停止运动，让机器人回归站立姿态
- *        后续计划改成调用当前动作的状态机结束动作，而不是写死
- *
- */
-void cyberdog::motion::MotionDecision::StopMotion()
-{
-  MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-  request->motion_id = 1;
-  request->pos_des = std::vector<float>{0.0, 0.0, 0.3};
-  action_ptr_->Execute(request);
-}
+// /**
+//  * @brief 停止运动，让机器人回归站立姿态
+//  *        后续计划改成调用当前动作的状态机结束动作，而不是写死
+//  *
+//  */
+// void cyberdog::motion::MotionDecision::StopMotion()
+// {
+//   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
+//   request->motion_id = 1;
+//   request->pos_des = std::vector<float>{0.0, 0.0, 0.3};
+//   action_ptr_->Execute(request);
+// }
 
 /**
  * @brief 执行结果指令
@@ -177,13 +184,21 @@ void cyberdog::motion::MotionDecision::StopMotion()
  * @param request
  * @param response
  */
-void cyberdog::motion::MotionDecision::Execute(
+void cyberdog::motion::MotionDecision::DecideResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  action_ptr_->Execute(request);
-  // auto duration = request->duration;
-  response->result = WaitExecute(request->motion_id, request->duration, response->code);
+  // action_ptr_->Execute(request);
+  // response->result = WaitExecute(request->motion_id, request->duration, response->code);
+  // response->motion_id = motion_status_ptr_->motion_id;
+  if (!IsStateValid()) {
+    return;
+  }
+  if (!IsModeValid()) {
+    return;
+  }
+  handler_ptr_->HandleResultCmd(request, response);
+  response->result = WaitHandlingResult(request->motion_id, request->duration, response->code);
   response->motion_id = motion_status_ptr_->motion_id;
 }
 
@@ -196,7 +211,7 @@ void cyberdog::motion::MotionDecision::Execute(
  * @return true
  * @return false
  */
-bool cyberdog::motion::MotionDecision::WaitExecute(
+bool cyberdog::motion::MotionDecision::WaitHandlingResult(
   int32_t motion_id, int32_t duration,
   int32_t & code)
 {
@@ -207,9 +222,7 @@ bool cyberdog::motion::MotionDecision::WaitExecute(
   auto wait_timeout = duration ? duration : 1000;
   auto wait_status = execute_cv_.wait_for(lk, std::chrono::milliseconds(wait_timeout));
   if (wait_status == std::cv_status::timeout) {
-    if (motion_status_ptr_->motion_id != motion_id) {
-      code = (int32_t)MotionCode::kTimeout;
-    }
+    code = (int32_t)MotionCode::kTimeout;
   } else if (motion_status_ptr_->motion_id != motion_id) {
     code = (int32_t)MotionCode::kCheckError;
   } else {

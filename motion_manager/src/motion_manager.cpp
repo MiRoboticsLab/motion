@@ -30,9 +30,8 @@ cyberdog::motion::MotionManager::~MotionManager()
 void cyberdog::motion::MotionManager::Config()
 {
   INFO("Get info from configure");
-  action_ptr_ = std::make_shared<MotionAction>();
-  handler_ptr_ = std::make_shared<MotionHandler>(motion_servo_pub_);
-  decision_ptr_ = std::make_shared<MotionDecision>(action_ptr_, handler_ptr_);
+  // action_ptr_ = std::make_shared<MotionAction>();
+  // handler_ptr_ = std::make_shared<MotionHandler>(motion_servo_pub_);
 }
 
 bool cyberdog::motion::MotionManager::Init()
@@ -44,15 +43,15 @@ bool cyberdog::motion::MotionManager::Init()
   }
 
   motion_servo_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
-    "motion_servo_response",
-    10);
+    "motion_servo_response", 10);
+  decision_ptr_ = std::make_shared<MotionDecision>();
   decision_ptr_->Init(motion_servo_pub_);
-  action_ptr_->Init();
+  // action_ptr_->Init();
 
-  action_ptr_->RegisterFeedback(
-    std::bind(
-      &MotionHandler::Checkout, this->handler_ptr_,
-      std::placeholders::_1));
+  // action_ptr_->RegisterFeedback(
+  //   std::bind(
+  //     &MotionHandler::Checkout, this->handler_ptr_,
+  //     std::placeholders::_1));
   motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
     "motion_servo_cmd", rclcpp::SystemDefaultsQoS(),
     std::bind(&MotionManager::MotionServoCmdCallback, this, std::placeholders::_1));
@@ -119,7 +118,7 @@ void cyberdog::motion::MotionManager::MotionServoCmdCallback(const MotionServoCm
     return;
   }
 
-  decision_ptr_->Servo(msg);
+  decision_ptr_->DecideServoCmd(msg);
 }
 
 void cyberdog::motion::MotionManager::MotionResultCmdCallback(
@@ -133,5 +132,5 @@ void cyberdog::motion::MotionManager::MotionResultCmdCallback(
     return;
   }
 
-  decision_ptr_->Execute(request, response);
+  decision_ptr_->DecideResultCmd(request, response);
 }

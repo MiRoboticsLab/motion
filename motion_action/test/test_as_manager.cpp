@@ -26,6 +26,14 @@
     exit(-1); \
   } \
 
+#define GET_TOML_VALUE_ARR(a, b, c, d) \
+  if (!cyberdog::common::CyberdogToml::Get(a, b, c)) { \
+    FATAL("Cannot get value %s", b); \
+    exit(-1); \
+  } \
+  std::copy(c.begin(), c.end(), d); \
+  c.clear(); \
+
 class SimMotionManager
 {
 public:
@@ -152,26 +160,24 @@ public:
     }
     toml::value values;
     cyberdog::common::CyberdogToml::Get(steps, "step", values);
-    INFO("size: %ld", values.size());
     for(size_t i = 0; i < values.size(); i++) {
       auto value = values.at(i);
-      protocol::msg::MotionResultCmd::SharedPtr msg(new protocol::msg::MotionResultCmd);
-      
-      GET_TOML_VALUE(value, "mode", msg->mode);
-      GET_TOML_VALUE(value, "gait_id", msg->gait_id);
-      GET_TOML_VALUE(value, "contact", msg->contact);
-      GET_TOML_VALUE(value, "life_count", msg->life_count);
-      GET_TOML_VALUE(value, "value", msg->value);
-      GET_TOML_VALUE(value, "duration", msg->duration);
-
-      GET_TOML_VALUE(value, "vel_des", msg->vel_des);
-      GET_TOML_VALUE(value, "rpy_des", msg->rpy_des);
-      GET_TOML_VALUE(value, "pos_des", msg->pos_des);
-      GET_TOML_VALUE(value, "acc_des", msg->acc_des);
-      GET_TOML_VALUE(value, "ctrl_point", msg->ctrl_point);
-      GET_TOML_VALUE(value, "foot_pose", msg->foot_pose);
-      GET_TOML_VALUE(value, "step_height", msg->step_height);
-      ma_->Execute(msg);
+      robot_control_cmd_lcmt lcm_base;
+      GET_TOML_VALUE(value, "mode", lcm_base.mode);
+      GET_TOML_VALUE(value, "gait_id", lcm_base.gait_id);
+      GET_TOML_VALUE(value, "contact", lcm_base.contact);
+      GET_TOML_VALUE(value, "life_count", lcm_base.life_count);
+      GET_TOML_VALUE(value, "value", lcm_base.value);
+      GET_TOML_VALUE(value, "duration", lcm_base.duration);
+      std::vector<float> tmp;
+      GET_TOML_VALUE_ARR(value, "vel_des", tmp, lcm_base.vel_des);
+      GET_TOML_VALUE_ARR(value, "rpy_des", tmp, lcm_base.rpy_des);
+      GET_TOML_VALUE_ARR(value, "pos_des", tmp, lcm_base.pos_des);
+      GET_TOML_VALUE_ARR(value, "acc_des", tmp, lcm_base.acc_des);
+      GET_TOML_VALUE_ARR(value, "ctrl_point", tmp, lcm_base.ctrl_point);
+      GET_TOML_VALUE_ARR(value, "foot_pose", tmp, lcm_base.foot_pose);
+      GET_TOML_VALUE_ARR(value, "step_height", tmp, lcm_base.step_height);
+      ma_->Execute(lcm_base);
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }
