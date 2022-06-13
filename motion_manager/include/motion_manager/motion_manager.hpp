@@ -33,9 +33,6 @@ namespace cyberdog
 {
 namespace motion
 {
-using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
-using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
-using MotionResultSrv = protocol::srv::MotionResultCmd;
 
 class MotionManager final : public manager::ManagerBase
 {

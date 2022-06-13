@@ -31,6 +31,7 @@
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "cyberdog_common/cyberdog_toml.hpp"
+#include "motion_action/motion_macros.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "ament_index_cpp/get_package_prefix.hpp"
 
@@ -38,28 +39,7 @@ namespace cyberdog
 {
 namespace motion
 {
-using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
-using LcmResponse = robot_control_response_lcmt;
-using MotionResultSrv = protocol::srv::MotionResultCmd;
-using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
-using MotionStatusMsg = protocol::msg::MotionStatus;
 
-constexpr uint8_t LCM_PUBLISH_FREQUENCY_ = 20;
-constexpr const char * PUBLISH_URL = "udpm://239.255.76.67:7671?ttl=255";
-constexpr const char * SUBSCRIBE_URL = "udpm://239.255.76.67:7670?ttl=255";
-
-// a: src, b: des, c: size, d: description
-#define GET_VALUE(a, b, c, d) \
-  if (a.size() != c) { \
-    DEBUG("Size of %s (%ld) is invalid, all elements will set to 0", d, a.size()); \
-    for (uint8_t i = 0; i < c; ++i) { \
-      b[i] = 0; \
-    } \
-  } else { \
-    for (uint8_t i = 0; i < c; ++i) { \
-      b[i] = a[i]; \
-    } \
-  } \
 
 inline bool CompareLcmResponse(const LcmResponse & res1, const LcmResponse & res2)
 {
@@ -78,10 +58,7 @@ inline bool CompareLcmResponse(const LcmResponse & res1, const LcmResponse & res
 }
 class MotionAction final
 {
-  using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
-  using LcmResponse = robot_control_response_lcmt;
-  using MotionResultSrv = protocol::srv::MotionResultCmd;
-  using MotionStatusMsg = protocol::msg::MotionStatus;
+
 
 public:
   MotionAction();

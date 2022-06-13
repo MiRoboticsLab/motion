@@ -14,11 +14,53 @@
 #ifndef MOTION_MANAGER__MOTION_MACROS_HPP_
 #define MOTION_MANAGER__MOTION_MACROS_HPP_
 #include "cyberdog_system/robot_code.hpp"
-
+#include "protocol/msg/motion_servo_cmd.hpp"
+#include "protocol/msg/motion_status.hpp"
+#include "protocol/msg/motion_servo_response.hpp"
+#include "protocol/lcm/robot_control_response_lcmt.hpp"
+#include "protocol/srv/motion_result_cmd.hpp"
 namespace cyberdog
 {
 namespace motion
 {
+
+using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
+using LcmResponse = robot_control_response_lcmt;
+using MotionResultSrv = protocol::srv::MotionResultCmd;
+using MotionStatusMsg = protocol::msg::MotionStatus;
+using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
+
+constexpr uint8_t LCM_PUBLISH_FREQUENCY_ = 20;
+constexpr const char * PUBLISH_URL = "udpm://239.255.76.67:7671?ttl=255";
+constexpr const char * SUBSCRIBE_URL = "udpm://239.255.76.67:7670?ttl=255";
+
+// a: src, b: des, c: size, d: description
+#define GET_VALUE(a, b, c, d) \
+  if (a.size() != c) { \
+    DEBUG("Size of %s (%ld) is invalid, all elements will set to 0", d, a.size()); \
+    for (uint8_t i = 0; i < c; ++i) { \
+      b[i] = 0; \
+    } \
+  } else { \
+    for (uint8_t i = 0; i < c; ++i) { \
+      b[i] = a[i]; \
+    } \
+  } \
+
+#define GET_TOML_VALUE(a, b, c) \
+  if (!cyberdog::common::CyberdogToml::Get(a, b, c)) { \
+    FATAL("Cannot get value %s", b); \
+    exit(-1); \
+  } \
+
+#define GET_TOML_VALUE_ARR(a, b, c, d) \
+  if (!cyberdog::common::CyberdogToml::Get(a, b, c)) { \
+    FATAL("Cannot get value %s", b); \
+    exit(-1); \
+  } \
+  std::copy(c.begin(), c.end(), d); \
+  c.clear(); \
+
 /**
  * @brief 震荡计数器
  *        1. 用于记录及刷新过去一段时间计数器是否被置位

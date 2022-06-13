@@ -17,7 +17,6 @@
 #include <thread>
 #include "rclcpp/rclcpp.hpp"
 #include "motion_action/motion_action.hpp"
-#include "motion_manager/motion_macros.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
 #include "protocol/msg/motion_status.hpp"
@@ -36,9 +35,7 @@ namespace motion
  */
 class MotionHandler final
 {
-  using LcmResponse = robot_control_response_lcmt;
-  using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
-  using MotionStatusMsg = protocol::msg::MotionStatus;
+
 
 public:
   explicit MotionHandler();

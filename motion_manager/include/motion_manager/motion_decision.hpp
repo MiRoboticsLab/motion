@@ -20,7 +20,6 @@
 #include <condition_variable>
 #include "motion_action/motion_action.hpp"
 #include "motion_manager/motion_handler.hpp"
-#include "motion_manager/motion_macros.hpp"
 #include "cyberdog_common/cyberdog_msg_queue.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
@@ -35,10 +34,7 @@ namespace motion
 
 class MotionDecision final
 {
-  using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
-  using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
-  using MotionResultSrv = protocol::srv::MotionResultCmd;
-  using MotionStatusMsg = protocol::msg::MotionStatus;
+
 
 public:
   MotionDecision();

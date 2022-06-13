@@ -19,11 +19,6 @@
 #include <motion_action/motion_action.hpp>
 #include <cyberdog_common/cyberdog_log.hpp>
 #include <cyberdog_common/cyberdog_toml.hpp>
-#define GET_TOML_VALUE(a, b, c) \
-  if (!cyberdog::common::CyberdogToml::Get(a, b, c)) { \
-    FATAL("Cannot get value %s", b); \
-    exit(-1); \
-  } \
 
 class SimMotionPublisher
 {

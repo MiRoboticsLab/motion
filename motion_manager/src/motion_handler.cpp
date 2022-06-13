@@ -115,6 +115,7 @@ void cyberdog::motion::MotionHandler::HandleResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
+  (void)response;
   action_ptr_->Execute(request);
   // auto duration = request->duration;
   // response->result = WaitExecute(request->motion_id, request->duration, response->code);
