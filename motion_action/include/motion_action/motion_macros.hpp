@@ -11,8 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef MOTION_MANAGER__MOTION_MACROS_HPP_
-#define MOTION_MANAGER__MOTION_MACROS_HPP_
+#ifndef MOTION_ACTION__MOTION_MACROS_HPP_
+#define MOTION_ACTION__MOTION_MACROS_HPP_
+#include <algorithm>
 #include "cyberdog_system/robot_code.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
@@ -112,4 +113,4 @@ enum class MotionCode : int32_t
 };  // enum class MotionCode
 }  // namespace motion
 }  // namespace cyberdog
-#endif  // MOTION_MANAGER__MOTION_MACROS_HPP_
+#endif  // MOTION_ACTION__MOTION_MACROS_HPP_

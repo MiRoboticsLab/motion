@@ -58,8 +58,6 @@ inline bool CompareLcmResponse(const LcmResponse & res1, const LcmResponse & res
 }
 class MotionAction final
 {
-
-
 public:
   MotionAction();
   ~MotionAction();
@@ -67,7 +65,7 @@ public:
 public:
   void Execute(const MotionServoCmdMsg::SharedPtr msg);
   void Execute(const MotionResultSrv::Request::SharedPtr request);
-  void Execute(const robot_control_cmd_lcmt& lcm);
+  void Execute(const robot_control_cmd_lcmt & lcm);
   void RegisterFeedback(std::function<void(MotionStatusMsg::SharedPtr)> feedback);
   bool Init(
     const std::string & publish_url = PUBLISH_URL,

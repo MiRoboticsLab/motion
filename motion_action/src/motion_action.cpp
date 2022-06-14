@@ -55,7 +55,7 @@ void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr 
     lcm_cmd_.duration);
 }
 
-void cyberdog::motion::MotionAction::Execute(const robot_control_cmd_lcmt& lcm)
+void cyberdog::motion::MotionAction::Execute(const robot_control_cmd_lcmt & lcm)
 {
   int8_t life_count = ++lcm_cmd_.life_count;
   lcm_cmd_ = lcm;
@@ -115,7 +115,7 @@ bool cyberdog::motion::MotionAction::ParseMotionId()
 bool cyberdog::motion::MotionAction::Init(
   const std::string & publish_url, const std::string & subscribe_url)
 {
-  if(!ParseMotionId()) {
+  if (!ParseMotionId()) {
     ERROR("Fail to parse MotionID");
     return false;
   }
