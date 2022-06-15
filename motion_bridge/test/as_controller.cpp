@@ -8,7 +8,7 @@
 #include "motion_bridge/elevation_bridge.hpp"
 namespace cyberdog
 {
-namespace motion_bridge
+namespace motion
 {
 class AsController
 {
@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   LOGGER_MAIN_INSTANCE("AsController");
-  std::shared_ptr<cyberdog::motion_bridge::AsController> ac =
-    std::make_shared<cyberdog::motion_bridge::AsController>();
+  std::shared_ptr<cyberdog::motion::AsController> ac =
+    std::make_shared<cyberdog::motion::AsController>();
   ac->Spin();
 }

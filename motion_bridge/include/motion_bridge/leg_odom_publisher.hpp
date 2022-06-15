@@ -30,7 +30,7 @@
 
 namespace cyberdog
 {
-namespace motion_bridge
+namespace motion
 {
 
 class LegOdomPublisher
@@ -41,7 +41,8 @@ public:
   void Spin();
 
 private:
-  void OdomLCMCabllback(const lcm::ReceiveBuffer *, const std::string &,
+  void OdomLCMCabllback(
+    const lcm::ReceiveBuffer *, const std::string &,
     const localization_lcmt * msg);
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf2_broadcaster_;
   rclcpp::Node::SharedPtr node_;
@@ -54,6 +55,6 @@ private:
   std::mutex mutex_;
   bool ready_publish_;
 };  // class LegOdomPublisher
-}  // namespace motion_bridge
+}  // namespace motion
 }  // namespace cyberdog
 #endif  // MOTION_BRIDGE__LEG_ODOM_PUBLISHER_HPP_

@@ -35,10 +35,8 @@ namespace motion
  */
 class MotionHandler final
 {
-
-
 public:
-  explicit MotionHandler();
+  MotionHandler();
   ~MotionHandler();
 
 public:
@@ -59,6 +57,7 @@ public:
   void HandleResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
+
 public:
   /* 考虑重构的API */
   bool IsIdle() {return true;}
@@ -69,8 +68,6 @@ public:
   }
 
 private:
-
-
   /**
    * @brief 伺服指令检测功能开关
    *
@@ -131,7 +128,6 @@ private:
   std::condition_variable servo_check_cv_;
   bool is_servo_need_check_ {false};
   int8_t server_check_error_counter_ {0};
-
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

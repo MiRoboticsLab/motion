@@ -31,9 +31,10 @@ using MotionResultSrv = protocol::srv::MotionResultCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 
-constexpr uint8_t LCM_PUBLISH_FREQUENCY_ = 20;
-constexpr const char * PUBLISH_URL = "udpm://239.255.76.67:7671?ttl=255";
-constexpr const char * SUBSCRIBE_URL = "udpm://239.255.76.67:7670?ttl=255";
+constexpr uint8_t ACTION_LCM_PUBLISH_FREQUENCY_ = 20;
+constexpr const char * ACTION_PUBLISH_URL = "udpm://239.255.76.67:7671?ttl=255";
+constexpr const char * ACTION_SUBSCRIBE_URL = "udpm://239.255.76.67:7670?ttl=255";
+constexpr const char * BRIDGE_SUBSCRIBE_URL = "udpm://239.255.76.67:7667?ttl=255";
 
 // a: src, b: des, c: size, d: description
 #define GET_VALUE(a, b, c, d) \

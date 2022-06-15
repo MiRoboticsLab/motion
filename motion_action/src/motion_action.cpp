@@ -119,7 +119,7 @@ bool cyberdog::motion::MotionAction::Init(
     ERROR("Fail to parse MotionID");
     return false;
   }
-  lcm_publish_duration_ = 1 / static_cast<float>(LCM_PUBLISH_FREQUENCY_) * 1000;
+  lcm_publish_duration_ = 1 / static_cast<float>(ACTION_LCM_PUBLISH_FREQUENCY_) * 1000;
   lcm_publish_instance_ = std::make_shared<lcm::LCM>(publish_url);
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
   lcm_subscribe_instance_->subscribe(lcm_subscribe_channel_, &MotionAction::ReadLcm, this);

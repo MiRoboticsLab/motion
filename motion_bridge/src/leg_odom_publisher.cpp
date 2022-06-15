@@ -18,7 +18,7 @@
 
 namespace cyberdog
 {
-namespace motion_bridge
+namespace motion
 {
 LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
 : map_frame_("map"),
@@ -26,20 +26,22 @@ LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
   base_frame_("base_link")
 {
   node_ = node;
-  leg_odom_publisher_ = node_->create_publisher<nav_msgs::msg::Odometry>("leg_odom", rclcpp::SystemDefaultsQoS());
+  leg_odom_publisher_ = node_->create_publisher<nav_msgs::msg::Odometry>(
+    "leg_odom",
+    rclcpp::SystemDefaultsQoS());
   tf2_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node_);
   lcm_ = std::make_shared<lcm::LCM>("udpm://239.255.76.67:7667?ttl=255");
   lcm_->subscribe("global_to_robot", &LegOdomPublisher::OdomLCMCabllback, this);
   std::thread{
-    [this](){
+    [this]() {
       while (rclcpp::ok()) {
         while (0 == this->lcm_->handleTimeout(1000) && rclcpp::ok()) {
           ERROR("Cannot read LegOdomLCM from MR813");
-          if(ready_publish_) {
+          if (ready_publish_) {
             ready_publish_ = false;
           }
         }
-        if(!ready_publish_) {
+        if (!ready_publish_) {
           ready_publish_ = true;
           cv_.notify_one();
         }
@@ -47,8 +49,8 @@ LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
     }
   }.detach();
   std::thread{
-    [this](){
-      while(rclcpp::ok()){
+    [this]() {
+      while (rclcpp::ok()) {
         if (!ready_publish_) {
           std::unique_lock<std::mutex> lk(mutex_);
           cv_.wait(lk);
@@ -61,12 +63,12 @@ LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
   }.detach();
 }
 
-void LegOdomPublisher::OdomLCMCabllback(const lcm::ReceiveBuffer *, const std::string &,
-    const localization_lcmt * msg)
+void LegOdomPublisher::OdomLCMCabllback(
+  const lcm::ReceiveBuffer *, const std::string &,
+  const localization_lcmt * msg)
 {
-
   odom_.header.frame_id = transform_stamped_.header.frame_id = odom_frame_;
-  odom_.header.stamp = transform_stamped_.header.stamp =node_->get_clock()->now();
+  odom_.header.stamp = transform_stamped_.header.stamp = node_->get_clock()->now();
   odom_.child_frame_id = transform_stamped_.child_frame_id = base_frame_;
   odom_.pose.pose.position.x = transform_stamped_.transform.translation.x = msg->xyz[0];
   odom_.pose.pose.position.y = transform_stamped_.transform.translation.y = msg->xyz[1];
@@ -83,7 +85,6 @@ void LegOdomPublisher::OdomLCMCabllback(const lcm::ReceiveBuffer *, const std::s
   odom_.twist.twist.angular.x = msg->omegaBody[0];
   odom_.twist.twist.angular.y = msg->omegaBody[1];
   odom_.twist.twist.angular.z = msg->omegaBody[2];
-
 }
 
 void LegOdomPublisher::Spin()
@@ -92,5 +93,5 @@ void LegOdomPublisher::Spin()
   rclcpp::shutdown();
 }
 
-}
-}
+}  // namespace motion
+}  // namespace cyberdog

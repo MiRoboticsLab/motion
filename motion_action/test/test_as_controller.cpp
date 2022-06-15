@@ -22,8 +22,8 @@ class SimMotionController
 public:
   SimMotionController()
   {
-    lcm_sub_.reset(new lcm::LCM(cyberdog::motion::PUBLISH_URL));
-    lcm_pub_.reset(new lcm::LCM(cyberdog::motion::SUBSCRIBE_URL));
+    lcm_sub_.reset(new lcm::LCM(cyberdog::motion::ACTION_PUBLISH_URL));
+    lcm_pub_.reset(new lcm::LCM(cyberdog::motion::ACTION_SUBSCRIBE_URL));
     lcm_sub_->subscribe("robot_control_cmd", &SimMotionController::HandleCmd, this);
     std::thread([this]() {while (0 == this->lcm_sub_->handle()) {}}).detach();
   }

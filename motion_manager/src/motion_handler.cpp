@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#include <memory>
+#include <vector>
 #include "motion_manager/motion_handler.hpp"
 
 cyberdog::motion::MotionHandler::MotionHandler()
@@ -28,7 +30,7 @@ void cyberdog::motion::MotionHandler::Update()
 bool cyberdog::motion::MotionHandler::Init()
 {
   action_ptr_ = std::make_shared<MotionAction>();
-  if(!action_ptr_->Init()) {
+  if (!action_ptr_->Init()) {
     ERROR("Fail to initialize MotionAction");
     return false;
   }
@@ -38,7 +40,8 @@ bool cyberdog::motion::MotionHandler::Init()
   //   std::bind(&MotionHandler::Checkout, this,std::placeholders::_1));
   return true;
 }
-void cyberdog::motion::MotionHandler::RegisterUpdate(std::function<void(MotionStatusMsg::SharedPtr)> f)
+void cyberdog::motion::MotionHandler::RegisterUpdate(
+  std::function<void(MotionStatusMsg::SharedPtr)> f)
 {
   action_ptr_->RegisterFeedback(f);
 }
@@ -83,10 +86,11 @@ void cyberdog::motion::MotionHandler::ServoDataCheck()
     if (server_check_error_counter_ >= 4) {
       WARN("Servo data lost time with 4 times");
       // StopServoResponse();
-      // SetServoDataLost(); TODO 是否通知Decision？
+      // SetServoDataLost(); TODO(harvey): 是否通知Decision？
       StandBy();
       SetServoNeedCheck(false);
-      // SetWorkStatus(DecisionStatus::kIdle); TODO 当信号丢失的时候，是否需要将Decision中的状态复位？
+      // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
+      // SetWorkStatus(DecisionStatus::kIdle);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }

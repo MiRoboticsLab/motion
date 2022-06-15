@@ -34,8 +34,6 @@ namespace motion
 
 class MotionDecision final
 {
-
-
 public:
   MotionDecision();
   ~MotionDecision();

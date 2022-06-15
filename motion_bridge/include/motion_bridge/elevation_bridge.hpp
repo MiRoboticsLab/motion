@@ -26,10 +26,11 @@
 #include <cyberdog_common/cyberdog_log.hpp>
 #include <string>
 #include <memory>
+#include "motion_action/motion_macros.hpp"
 
 namespace cyberdog
 {
-namespace motion_bridge
+namespace motion
 {
 constexpr int8_t SIZE_X = 80;
 constexpr int8_t SIZE_Y = 80;
@@ -56,6 +57,6 @@ private:
   heightmap_t elevation_;
   std::string map_frame_, odom_frame_, base_frame_, cam_frame_;
 };  // class ElevationBridge
-}  // namespace motion_bridge
+}  // namespace motion
 }  // namespace cyberdog
 #endif  // MOTION_BRIDGE__ELEVATION_BRIDGE_HPP_

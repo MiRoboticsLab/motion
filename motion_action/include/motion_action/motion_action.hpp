@@ -68,8 +68,8 @@ public:
   void Execute(const robot_control_cmd_lcmt & lcm);
   void RegisterFeedback(std::function<void(MotionStatusMsg::SharedPtr)> feedback);
   bool Init(
-    const std::string & publish_url = PUBLISH_URL,
-    const std::string & subscribe_url = SUBSCRIBE_URL);
+    const std::string & publish_url = ACTION_PUBLISH_URL,
+    const std::string & subscribe_url = ACTION_SUBSCRIBE_URL);
   bool SelfCheck();
 
 private:

@@ -18,11 +18,11 @@
 
 namespace cyberdog
 {
-namespace motion_bridge
+namespace motion
 {
 ElevationBridge::ElevationBridge(const rclcpp::Node::SharedPtr node)
 : map_frame_("map"),
-  odom_frame_("odom"),
+  odom_frame_("map"),
   base_frame_("base_link")
 {
   node_ = node;
@@ -30,13 +30,15 @@ ElevationBridge::ElevationBridge(const rclcpp::Node::SharedPtr node)
     "elevation_map_raw",
     rclcpp::SystemDefaultsQoS(),
     std::bind(&ElevationBridge::GridMapCallback, this, std::placeholders::_1));
-  lcm_ = std::make_shared<lcm::LCM>("udpm://239.255.76.67:7667?ttl=255");
+  lcm_ = std::make_shared<lcm::LCM>(BRIDGE_SUBSCRIBE_URL);
   tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
   auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
     node_->get_node_base_interface(),
     node_->get_node_timers_interface());
   tf2_buffer_->setCreateTimerInterface(timer_interface);
-  tf2_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf2_buffer_, std::make_shared<rclcpp::Node>(std::string(node_->get_name()) + "_tf_listener"));
+  tf2_listener_ = std::make_shared<tf2_ros::TransformListener>(
+    *tf2_buffer_,
+    std::make_shared<rclcpp::Node>(std::string(node_->get_name()) + "_tf_listener"));
   std::thread{[this]() {
       while (lcm_->good()) {
         lcm_->publish("local_heightmap", &elevation_);
@@ -142,6 +144,6 @@ void ElevationBridge::GridMapCallback(const grid_map_msgs::msg::GridMap::SharedP
     }
   }
   /**************************************************************************/
-}
-}
-}
+}  // class ElevationBridge
+}  // namespace motion
+}  // namespace cyberdog
