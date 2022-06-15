@@ -30,7 +30,7 @@ LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
     "leg_odom",
     rclcpp::SystemDefaultsQoS());
   tf2_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node_);
-  lcm_ = std::make_shared<lcm::LCM>("udpm://239.255.76.67:7667?ttl=255");
+  lcm_ = std::make_shared<lcm::LCM>(BRIDGE_SUBSCRIBE_URL);
   lcm_->subscribe("global_to_robot", &LegOdomPublisher::OdomLCMCabllback, this);
   std::thread{
     [this]() {

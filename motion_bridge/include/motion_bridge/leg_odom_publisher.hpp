@@ -27,6 +27,7 @@
 #include <condition_variable>
 #include <string>
 #include <memory>
+#include "motion_action/motion_macros.hpp"
 
 namespace cyberdog
 {

@@ -11,6 +11,7 @@ find_package(tf2_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(lcm REQUIRED)
 find_package(cyberdog_common REQUIRED)
+find_package(motion_action REQUIRED)
 find_package(grid_map REQUIRED)
 find_package(grid_map_core REQUIRED)
 find_package(grid_map_ros REQUIRED)
@@ -24,6 +25,7 @@ set(dependencies
   tf2_ros
   lcm
   cyberdog_common
+  motion_action
   grid_map
   grid_map_core
   grid_map_ros
