@@ -12,6 +12,7 @@
   <depend>rclcpp</depend>
   <depend>lcm</depend>
   <depend>cyberdog_common</depend>
+  <depend>motion_action</depend>
   <depend>tf2_ros</depend>
   <depend>grid_map</depend>
   <depend>grid_map_core</depend>
