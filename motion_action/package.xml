@@ -14,6 +14,7 @@
   <depend>rclpy</depend>
   <depend>cyberdog_system</depend>
   <depend>cyberdog_common</depend>
+  <depend>cyberdog_debug</depend>
   <depend>protocol</depend>
 
   <test_depend>ament_lint_auto</test_depend>
