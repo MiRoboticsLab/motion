@@ -14,7 +14,7 @@
 
 #include <memory>
 #include "motion_bridge/elevation_bridge.hpp"
-#include "motion_bridge/leg_odom_publisher.hpp"
+#include "motion_bridge/odom_out_publisher.hpp"
 
 int main(int argc, char ** argv)
 {

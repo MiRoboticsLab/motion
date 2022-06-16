@@ -14,7 +14,7 @@
 
 #include <string>
 #include <memory>
-#include "motion_bridge/leg_odom_publisher.hpp"
+#include "motion_bridge/odom_out_publisher.hpp"
 
 namespace cyberdog
 {
@@ -23,7 +23,7 @@ namespace motion
 LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
 : map_frame_("map"),
   odom_frame_("odom_out"),
-  base_frame_("base_link")
+  base_frame_("base_link_leg")
 {
   node_ = node;
   leg_odom_publisher_ = node_->create_publisher<nav_msgs::msg::Odometry>(
