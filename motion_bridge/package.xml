@@ -1,21 +1,24 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>motion_action</name>
+  <name>motion_bridge</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="dukun1@xiaomi.com">dukun</maintainer>
+  <maintainer email="tianhonghai@xiaomi.com">harvey</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <depend>rclcpp</depend>
-  <depend>rclpy</depend>
-  <depend>cyberdog_system</depend>
+  <depend>lcm</depend>
   <depend>cyberdog_common</depend>
-  <depend>cyberdog_debug</depend>
-  <depend>protocol</depend>
+  <depend>motion_action</depend>
+  <depend>tf2_ros</depend>
+  <depend>grid_map</depend>
+  <depend>grid_map_core</depend>
+  <depend>grid_map_ros</depend>
+  <depend>nav2_msgs</depend>
+
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

@@ -14,16 +14,13 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/executors.hpp>
+#include <std_msgs/msg/int16.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <cyberdog_debug/backtrace.hpp>
 #include <motion_action/motion_action.hpp>
 #include <cyberdog_common/cyberdog_log.hpp>
 #include <cyberdog_common/cyberdog_toml.hpp>
-#define GET_TOML_VALUE(a, b, c) \
-  if (!cyberdog::common::CyberdogToml::Get(a, b, c)) { \
-    FATAL("Cannot get value %s", b); \
-    exit(-1); \
-  } \
+
 
 class SimMotionManager
 {
@@ -31,11 +28,11 @@ public:
   SimMotionManager(const std::string & name)
   {
     node_ptr_ = rclcpp::Node::make_shared(name);
-    node_ptr_->declare_parameter("publish_url", cyberdog::motion::PUBLISH_URL);
+    node_ptr_->declare_parameter("publish_url", cyberdog::motion::ACTION_PUBLISH_URL);
     node_ptr_->get_parameter("publish_url", publish_url_);
-    node_ptr_->declare_parameter("subscribe_url", cyberdog::motion::SUBSCRIBE_URL);
+    node_ptr_->declare_parameter("subscribe_url", cyberdog::motion::ACTION_SUBSCRIBE_URL);
     node_ptr_->get_parameter("subscribe_url", subscribe_url);
-    node_ptr_->declare_parameter<std::string>("cmd_preset");
+    node_ptr_->declare_parameter<std::string>("cmd_preset", std::string("8"));
     node_ptr_->get_parameter("cmd_preset", cmd_preset_);
     if (cmd_preset_.empty()) {
       FATAL("Preset cmd cannot be empty");
@@ -58,6 +55,10 @@ public:
       "motion_servo_cmd",
       rclcpp::SystemDefaultsQoS(),
       std::bind(&SimMotionManager::HandleTestServoCmd, this, std::placeholders::_1));
+    motion_result_queue_sub_ = node_ptr_->create_subscription<std_msgs::msg::Int16>(
+      "motion_result_queue",
+      rclcpp::SystemDefaultsQoS(),
+      std::bind(&SimMotionManager::HandleTestResultQueueCmd, this, std::placeholders::_1));
     motion_result_srv_ =
       node_ptr_->create_service<protocol::srv::MotionResultCmd>(
       "motion_result_cmd",
@@ -71,7 +72,8 @@ public:
   {
     // if(*last_msg_ == *msg)
       // return;
-    srv_req_->motion_id = req->motion_id;
+    srv_req_->motion_id = req->motion_id; 
+    srv_req_->duration = req->duration;
     srv_req_->step_height.resize(2);
     GET_VALUE(req->step_height, srv_req_->step_height, 2, "step_height");
     srv_req_->vel_des.resize(3);
@@ -87,7 +89,6 @@ public:
     srv_req_->foot_pose.resize(6);
     GET_VALUE(req->foot_pose, srv_req_->foot_pose, 6, "foot_pose");
 
-    ma_->Execute((srv_req_));
     INFO(
       "MotionManager send ResultCmd:\n motion_id: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", srv_req_->motion_id,
       srv_req_->vel_des[0], srv_req_->vel_des[1], srv_req_->vel_des[2], srv_req_->rpy_des[0], srv_req_->rpy_des[1],
@@ -96,6 +97,7 @@ public:
       srv_req_->ctrl_point[0], srv_req_->ctrl_point[1], srv_req_->ctrl_point[2], srv_req_->foot_pose[0],
       srv_req_->foot_pose[1], srv_req_->foot_pose[2], srv_req_->foot_pose[3], srv_req_->foot_pose[4],
       srv_req_->foot_pose[5], srv_req_->step_height[0], srv_req_->step_height[1]);
+    ma_->Execute((srv_req_));
   }
 
 
@@ -121,7 +123,6 @@ public:
     msg_t_->foot_pose.resize(6);
     GET_VALUE(msg->foot_pose, msg_t_->foot_pose, 6, "foot_pose");
 
-    ma_->Execute((msg_t_));
     INFO(
       "MotionManager send ServoCmd:\n motion_id: %d\n cmd_type: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", msg_t_->motion_id, msg_t_->cmd_type,
       msg_t_->vel_des[0], msg_t_->vel_des[1], msg_t_->vel_des[2], msg_t_->rpy_des[0], msg_t_->rpy_des[1],
@@ -130,14 +131,52 @@ public:
       msg_t_->ctrl_point[0], msg_t_->ctrl_point[1], msg_t_->ctrl_point[2], msg_t_->foot_pose[0],
       msg_t_->foot_pose[1], msg_t_->foot_pose[2], msg_t_->foot_pose[3], msg_t_->foot_pose[4],
       msg_t_->foot_pose[5], msg_t_->step_height[0], msg_t_->step_height[1]);
+    ma_->Execute((msg_t_));
+  }
+
+  void HandleTestResultQueueCmd(const std_msgs::msg::Int16::SharedPtr msg)
+  {
+    std::string cmd_preset = ament_index_cpp::get_package_share_directory("motion_action") + "/preset/" + std::to_string(msg->data) + ".toml";
+    toml::value steps;
+    if (!cyberdog::common::CyberdogToml::ParseFile(cmd_preset, steps)) {
+      FATAL("Cannot parse %s", cmd_preset.c_str());
+      exit(-1);
+    }
+    if(!steps.is_table()) {
+      FATAL("Toml format error");
+      exit(-1);
+    }
+    toml::value values;
+    cyberdog::common::CyberdogToml::Get(steps, "step", values);
+    for(size_t i = 0; i < values.size(); i++) {
+      auto value = values.at(i);
+      robot_control_cmd_lcmt lcm_base;
+      GET_TOML_VALUE(value, "mode", lcm_base.mode);
+      GET_TOML_VALUE(value, "gait_id", lcm_base.gait_id);
+      GET_TOML_VALUE(value, "contact", lcm_base.contact);
+      GET_TOML_VALUE(value, "life_count", lcm_base.life_count);
+      GET_TOML_VALUE(value, "value", lcm_base.value);
+      GET_TOML_VALUE(value, "duration", lcm_base.duration);
+      std::vector<float> tmp;
+      GET_TOML_VALUE_ARR(value, "vel_des", tmp, lcm_base.vel_des);
+      GET_TOML_VALUE_ARR(value, "rpy_des", tmp, lcm_base.rpy_des);
+      GET_TOML_VALUE_ARR(value, "pos_des", tmp, lcm_base.pos_des);
+      GET_TOML_VALUE_ARR(value, "acc_des", tmp, lcm_base.acc_des);
+      GET_TOML_VALUE_ARR(value, "ctrl_point", tmp, lcm_base.ctrl_point);
+      GET_TOML_VALUE_ARR(value, "foot_pose", tmp, lcm_base.foot_pose);
+      GET_TOML_VALUE_ARR(value, "step_height", tmp, lcm_base.step_height);
+      ma_->Execute(lcm_base);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
   }
 
   void Run()
   {
     protocol::msg::MotionServoCmd::SharedPtr msg(new protocol::msg::MotionServoCmd);
+    std::string cmd_preset = ament_index_cpp::get_package_share_directory("motion_action") + "/preset/" + cmd_preset_ + ".toml";  
     toml::value value;
-    if (!cyberdog::common::CyberdogToml::ParseFile(cmd_preset_, value)) {
-      FATAL("Cannot parse %s", cmd_preset_.c_str());
+    if (!cyberdog::common::CyberdogToml::ParseFile(cmd_preset, value)) {
+      FATAL("Cannot parse %s", cmd_preset.c_str());
       exit(-1);
     }
     GET_TOML_VALUE(value, "motion_id", msg->motion_id);
@@ -191,6 +230,7 @@ private:
   rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::Subscription<protocol::msg::MotionServoCmd>::SharedPtr motion_cmd_sub_{nullptr};
   rclcpp::Service<protocol::srv::MotionResultCmd>::SharedPtr motion_result_srv_{nullptr};
+  rclcpp::Subscription<std_msgs::msg::Int16>::SharedPtr motion_result_queue_sub_{nullptr}; 
   protocol::msg::MotionServoCmd::SharedPtr msg_t_{nullptr}, last_msg_{nullptr};
   protocol::srv::MotionResultCmd::Request::SharedPtr srv_req_{nullptr};
   protocol::srv::MotionResultCmd::Response::SharedPtr srv_res_{nullptr};

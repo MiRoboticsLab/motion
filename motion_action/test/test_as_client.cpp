@@ -19,11 +19,6 @@
 #include <motion_action/motion_action.hpp>
 #include <cyberdog_common/cyberdog_log.hpp>
 #include <cyberdog_common/cyberdog_toml.hpp>
-#define GET_TOML_VALUE(a, b, c) \
-  if (!cyberdog::common::CyberdogToml::Get(a, b, c)) { \
-    FATAL("Cannot get value %s", b); \
-    exit(-1); \
-  } \
 
 class SimMotionClient
 {
@@ -61,7 +56,7 @@ public:
     // std::shared_future<protocol::srv::MotionResultCmd::Response::SharedPtr> future_result = motion_result_client_->async_send_request(req);
     auto future_result = motion_result_client_->async_send_request(req);
     INFO(
-      "MotionClient call with cmd:\n motion_id: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", req->motion_id,
+      "MotionClient call with cmd:\n motion_id: %d\n duration: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", req->motion_id, req->duration,
       req->vel_des[0], req->vel_des[1], req->vel_des[2], req->rpy_des[0], req->rpy_des[1],
       req->rpy_des[2], req->pos_des[0], req->pos_des[1], req->pos_des[2], req->acc_des[0],
       req->acc_des[1], req->acc_des[2], req->acc_des[3], req->acc_des[4], req->acc_des[5],

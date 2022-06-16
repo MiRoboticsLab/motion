@@ -33,9 +33,6 @@ namespace cyberdog
 {
 namespace motion
 {
-using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
-using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
-using MotionResultSrv = protocol::srv::MotionResultCmd;
 
 class MotionManager final : public manager::ManagerBase
 {
@@ -65,8 +62,8 @@ private:
 private:
   std::string name_;
   std::shared_ptr<MotionDecision> decision_ptr_ {nullptr};
-  std::shared_ptr<MotionHandler> handler_ptr_ {nullptr};
-  std::shared_ptr<MotionAction> action_ptr_ {nullptr};
+  // std::shared_ptr<MotionHandler> handler_ptr_ {nullptr};
+  // std::shared_ptr<MotionAction> action_ptr_ {nullptr};
 
 private:
   rclcpp::Subscription<MotionServoCmdMsg>::SharedPtr motion_servo_sub_ {nullptr};

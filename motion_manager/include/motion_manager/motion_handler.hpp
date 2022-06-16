@@ -35,30 +35,99 @@ namespace motion
  */
 class MotionHandler final
 {
-  using LcmResponse = robot_control_response_lcmt;
-  using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
-  using MotionStatusMsg = protocol::msg::MotionStatus;
-
 public:
-  explicit MotionHandler(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr publisher);
+  MotionHandler();
   ~MotionHandler();
 
 public:
   /* recv api */
   // void ServoResponse();
-  void RegisterUpdate(std::function<void(MotionStatusMsg::SharedPtr)> f)
-  {
-    motion_response_func = f;
-  }
+  void RegisterUpdate(std::function<void(MotionStatusMsg::SharedPtr)> f);
+  bool Init();
   void Update();
   void Checkout(MotionStatusMsg::SharedPtr motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
+  // void Servo(const MotionServoCmdMsg::SharedPtr msg);
+  void Stop();
+  void ServoDataCheck();
+  void StandBy();
+  void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
+  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg);
+  void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
+  void HandleResultCmd(
+    const MotionResultSrv::Request::SharedPtr request,
+    MotionResultSrv::Response::SharedPtr response);
+
+public:
+  /* 考虑重构的API */
+  bool IsIdle() {return true;}
+
+  bool Wait4TargetMotionID(int32_t /*motion_id*/)
+  {
+    return true;
+  }
 
 private:
+  /**
+   * @brief 伺服指令检测功能开关
+   *
+   * @param check_flag true: 打开检测功能; false: 关闭
+   */
+  inline void SetServoNeedCheck(bool check_flag)
+  {
+    std::unique_lock<std::mutex> lk(servo_check_mutex_);
+    if (check_flag && (!is_servo_need_check_)) {  // 从关闭状态打开时，重置检测数据， 并唤醒线程
+      server_check_error_counter_ = 0;
+      is_servo_need_check_ = check_flag;
+      servo_check_cv_.notify_one();
+    } else {
+      is_servo_need_check_ = check_flag;
+    }
+  }
+
+  /**
+   * @brief 等待伺服检测开关打开
+   *        1. 如果已经打开，则忽略；
+   *        2. 如果已经关闭，则挂起当前线程；
+   *
+   */
+  inline void WaitServoNeedCheck()
+  {
+    std::unique_lock<std::mutex> lk(servo_check_mutex_);
+    if (!is_servo_need_check_) {
+      servo_check_cv_.wait(lk);
+    }
+  }
+
+  /**
+   * @brief 入队一条伺服检测信号
+   *
+   */
+  inline void TickServoCmd()
+  {
+    servo_check_click_->Tick();
+  }
+
+  /**
+   * @brief 出队一条伺服检测信号
+   *
+   */
+  inline bool TockServoCmd()
+  {
+    return servo_check_click_->Tock();
+  }
+
   /* ros members */
+  std::shared_ptr<MotionAction> action_ptr_ {nullptr};
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
   std::thread servo_response_thread_;
+  std::thread servo_data_check_thread_;
   std::function<void(MotionStatusMsg::SharedPtr)> motion_response_func;
+  std::shared_ptr<ServoClick> servo_check_click_;
+  std::mutex servo_check_mutex_;
+  std::condition_variable servo_check_cv_;
+  bool is_servo_need_check_ {false};
+  int8_t server_check_error_counter_ {0};
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog
