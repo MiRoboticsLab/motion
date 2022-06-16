@@ -16,8 +16,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <lcm/lcm-cpp.hpp>
-#include <lcm/heightmap_t.hpp>
-#include <lcm/localization_lcmt.hpp>
+#include <protocol/lcm/heightmap_t.hpp>
+#include <protocol/lcm/localization_lcmt.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/buffer.h>

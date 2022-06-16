@@ -22,7 +22,7 @@ namespace motion
 {
 ElevationBridge::ElevationBridge(const rclcpp::Node::SharedPtr node)
 : map_frame_("map"),
-  odom_frame_("map"),
+  odom_frame_("odom_out"), // NOTE 腿式里程计坐标系
   base_frame_("base_link")
 {
   node_ = node;

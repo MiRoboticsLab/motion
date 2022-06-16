@@ -10,6 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(lcm REQUIRED)
+find_package(protocol REQUIRED)
 find_package(cyberdog_common REQUIRED)
 find_package(motion_action REQUIRED)
 find_package(grid_map REQUIRED)
@@ -24,6 +25,7 @@ set(dependencies
   rclcpp
   tf2_ros
   lcm
+  protocol
   cyberdog_common
   motion_action
   grid_map
@@ -36,7 +38,7 @@ include_directories(include)
 add_executable(${PROJECT_NAME}
   src/main.cpp
   src/elevation_bridge.cpp
-  src/leg_odom_publisher.cpp
+  src/odom_out_publisher.cpp
 )
 target_link_libraries(${PROJECT_NAME} lcm)
 ament_target_dependencies(${PROJECT_NAME} ${dependencies})

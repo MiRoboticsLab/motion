@@ -19,7 +19,7 @@
 #include <grid_map_msgs/msg/grid_map.hpp>
 #include <grid_map_ros/GridMapRosConverter.hpp>
 #include <lcm/lcm-cpp.hpp>
-#include <lcm/heightmap_t.hpp>
+#include <protocol/lcm/heightmap_t.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/create_timer_ros.h>

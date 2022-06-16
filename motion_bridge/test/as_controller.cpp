@@ -1,4 +1,4 @@
-#include "lcm/heightmap_t.hpp"
+#include "protocol/lcm/heightmap_t.hpp"
 #include "lcm/lcm-cpp.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "grid_map_core/grid_map_core.hpp"

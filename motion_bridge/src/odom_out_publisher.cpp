@@ -22,12 +22,12 @@ namespace motion
 {
 LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
 : map_frame_("map"),
-  odom_frame_("odom"),
+  odom_frame_("odom_out"),
   base_frame_("base_link")
 {
   node_ = node;
   leg_odom_publisher_ = node_->create_publisher<nav_msgs::msg::Odometry>(
-    "leg_odom",
+    odom_frame_,
     rclcpp::SystemDefaultsQoS());
   tf2_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node_);
   lcm_ = std::make_shared<lcm::LCM>(BRIDGE_SUBSCRIBE_URL);
