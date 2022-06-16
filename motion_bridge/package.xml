@@ -17,6 +17,7 @@
   <depend>grid_map</depend>
   <depend>grid_map_core</depend>
   <depend>grid_map_ros</depend>
+  <depend>nav2_msgs</depend>
 
 
   <test_depend>ament_lint_auto</test_depend>
