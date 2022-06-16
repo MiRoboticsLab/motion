@@ -11,8 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef MOTION_BRIDGE__LEG_ODOM_PUBLISHER_HPP_
-#define MOTION_BRIDGE__LEG_ODOM_PUBLISHER_HPP_
+#ifndef MOTION_BRIDGE__ODOM_OUT_PUBLISHER_HPP_
+#define MOTION_BRIDGE__ODOM_OUT_PUBLISHER_HPP_
 
 #include <rclcpp/rclcpp.hpp>
 #include <lcm/lcm-cpp.hpp>
@@ -58,4 +58,4 @@ private:
 };  // class LegOdomPublisher
 }  // namespace motion
 }  // namespace cyberdog
-#endif  // MOTION_BRIDGE__LEG_ODOM_PUBLISHER_HPP_
+#endif  // MOTION_BRIDGE__ODOM_OUT_PUBLISHER_HPP_
