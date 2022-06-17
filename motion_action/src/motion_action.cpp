@@ -20,8 +20,8 @@
 cyberdog::motion::MotionAction::MotionAction()
 : lcm_publish_channel_("robot_control_cmd"),
   lcm_subscribe_channel_("robot_control_response"),
-  lcm_cmd_init_(false),
-  ins_init_(false)
+  lcm_cmd_init_(false), ins_init_(false),
+  last_res_mode_(0), last_res_gait_id_(0), last_motion_id_(0)
 {}
 
 cyberdog::motion::MotionAction::~MotionAction() {}
@@ -156,20 +156,24 @@ void cyberdog::motion::MotionAction::ReadLcm(
 {
   protocol::msg::MotionStatus::SharedPtr lcm_res(new protocol::msg::MotionStatus);
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
+    last_res_mode_ = msg->mode;
+    last_res_gait_id_ = msg->gait_id;
     for (auto m = motion_id_map_.begin(); ; m++) {
       if (m == motion_id_map_.end()) {
         DEBUG_EXPRESSION(
           lcm_cmd_init_,
           "Get unkown response about motion_id, mode: %d, gait_id: %d!",
           static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));
-        return;
+        last_motion_id_ = -1;
+        break;
       }
       if (m->second.front() == msg->mode && m->second.back() == msg->gait_id) {
-        lcm_res->motion_id = m->first;
+        last_motion_id_ = m->first;
         break;
       }
     }
   }
+  lcm_res->motion_id = last_motion_id_;
   lcm_res->contact = msg->contact;
   lcm_res->order_process_bar = msg->order_process_bar;
   lcm_res->switch_status = msg->switch_status;
