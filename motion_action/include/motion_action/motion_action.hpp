@@ -85,8 +85,8 @@ private:
   std::shared_ptr<lcm::LCM> lcm_publish_instance_, lcm_subscribe_instance_;
   robot_control_cmd_lcmt lcm_cmd_;
   uint8_t lcm_publish_duration_;
-  int8_t last_res_mode_, last_res_gait_id_, last_motion_id_;
   std::string lcm_publish_channel_, lcm_subscribe_channel_;
+  int8_t last_res_mode_, last_res_gait_id_, last_motion_id_;
   std::map<int32_t, std::vector<int8_t>> motion_id_map_;
   bool lcm_cmd_init_, ins_init_;
   LOGGER_MINOR_INSTANCE("MotionAction");

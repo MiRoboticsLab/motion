@@ -20,8 +20,8 @@
 cyberdog::motion::MotionAction::MotionAction()
 : lcm_publish_channel_("robot_control_cmd"),
   lcm_subscribe_channel_("robot_control_response"),
-  lcm_cmd_init_(false), ins_init_(false),
-  last_res_mode_(0), last_res_gait_id_(0), last_motion_id_(0)
+  last_res_mode_(0), last_res_gait_id_(0), last_motion_id_(0),
+  lcm_cmd_init_(false), ins_init_(false)
 {}
 
 cyberdog::motion::MotionAction::~MotionAction() {}
