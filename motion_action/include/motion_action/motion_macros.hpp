@@ -32,6 +32,7 @@ using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 
 constexpr uint8_t ACTION_LCM_PUBLISH_FREQUENCY_ = 20;
+constexpr uint16_t TRANSITIONING_TIMEOUT = 3000; // millisecond
 constexpr const char * ACTION_PUBLISH_URL = "udpm://239.255.76.67:7671?ttl=255";
 constexpr const char * ACTION_SUBSCRIBE_URL = "udpm://239.255.76.67:7670?ttl=255";
 constexpr const char * BRIDGE_SUBSCRIBE_URL = "udpm://239.255.76.67:7667?ttl=255";
@@ -103,14 +104,23 @@ enum class DecisionStatus : uint8_t
   kExecuting = 2
 };  // enum class DecisionStatus
 
+enum class SwithStatus : int8_t
+{
+  DONE = 0,
+  TRANSITIONING = 1,
+  ESTOP = 2,
+  EDAMP = 3,
+  BAN_TRANS = 4
+};
+
 // 所有的motion相关code都从300开始，该值为全局架构设计分配
-int32_t constexpr BaseCode = (int32_t)system::ModuleCode::kMotion;
+// constexpr int32_t BaseCode = (int32_t)system::ModuleCode::kMotion;
 enum class MotionCode : int32_t
 {
   kOK = 0,
-  kTimeout = BaseCode + 31,
-  kCheckError = BaseCode + 32,
-  kWithoutStart = BaseCode + 33
+  kTimeout = (int32_t)system::ModuleCode::kMotion + 31,
+  kCheckError = (int32_t)system::ModuleCode::kMotion + 32,
+  kWithoutStart = (int32_t)system::ModuleCode::kMotion + 33
 };  // enum class MotionCode
 }  // namespace motion
 }  // namespace cyberdog

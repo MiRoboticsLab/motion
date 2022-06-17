@@ -215,21 +215,51 @@ bool cyberdog::motion::MotionDecision::WaitHandlingResult(
   int32_t motion_id, int32_t duration,
   int32_t & code)
 {
-  bool result = false;
-  std::unique_lock<std::mutex> lk(execute_mutex_);
-  is_execute_wait_ = true;
+  // bool result = false;
+  (void)duration;
+  std::unique_lock<std::mutex> check_lk(execute_mutex_);
   wait_id = motion_id;
-  auto wait_timeout = duration ? duration : 1000;
-  auto wait_status = execute_cv_.wait_for(lk, std::chrono::milliseconds(wait_timeout));
-  if (wait_status == std::cv_status::timeout) {
-    code = (int32_t)MotionCode::kTimeout;
-  } else if (motion_status_ptr_->motion_id != motion_id) {
+  // auto wait_timeout = duration ? duration : 1000;
+  // auto wait_status = execute_cv_.wait_for(lk, std::chrono::milliseconds(wait_timeout));
+  // if (wait_status == std::cv_status::timeout) {
+  //   code = (int32_t)MotionCode::kTimeout;
+  // } else if (motion_status_ptr_->motion_id != motion_id) {
+  //   code = (int32_t)MotionCode::kCheckError;
+  // } else {
+  //   code = (int32_t)MotionCode::kOK;
+  //   result = true;
+  // }
+  if (motion_status_ptr_->switch_status == (int8_t)SwithStatus::BAN_TRANS ||
+    motion_status_ptr_->switch_status == (int8_t)SwithStatus::EDAMP ||
+    motion_status_ptr_->switch_status == (int8_t)SwithStatus::ESTOP)
+  {
     code = (int32_t)MotionCode::kCheckError;
-  } else {
-    code = (int32_t)MotionCode::kOK;
-    result = true;
+    return false;
   }
-  return result;
+  if (motion_status_ptr_->switch_status == (int8_t)SwithStatus::TRANSITIONING) {
+    is_transitioning_wait_ = true;
+    if (execute_cv_.wait_for(check_lk, std::chrono::milliseconds(TRANSITIONING_TIMEOUT)) ==
+      std::cv_status::timeout)
+    {
+      code = (int32_t)MotionCode::kTimeout;
+      return false;
+    }
+  }
+  if(is_transitioning_wait_) check_lk.lock();
+  is_execute_wait_ = true;
+  // TODO(harvey):
+  // auto wait_timeout = duration > min_duration_map_[motion_id] ?
+  //   duration : min_duration_map_[motion_id];
+  auto wait_timeout = 5000;
+  if (execute_cv_.wait_for(
+      check_lk,
+      std::chrono::milliseconds(wait_timeout)) == std::cv_status::timeout)
+  {
+    code = (int32_t)MotionCode::kTimeout;
+    return false;
+  }
+  code = (int32_t)MotionCode::kOK;
+  return true;
 }
 
 /**
@@ -249,11 +279,23 @@ void cyberdog::motion::MotionDecision::Update(MotionStatusMsg::SharedPtr motion_
   for (size_t i = 0; i < motion_status_ptr->motor_error.size(); ++i) {
     motion_status_ptr_->motor_error[i] = motion_status_ptr->motor_error[i];
   }
-  if (is_execute_wait_ &&
-    ((motion_status_ptr_->motion_id == wait_id) ||
-    (motion_status_ptr_->switch_status != MotionStatusMsg::NORMAL)))
+  // if (is_execute_wait_ &&
+  //   ((motion_status_ptr_->motion_id == wait_id) ||
+  //   (motion_status_ptr_->switch_status != MotionStatusMsg::NORMAL)))
+  // {
+  //   is_execute_wait_ = false;
+  //   execute_cv_.notify_one();
+  // }
+  if (is_transitioning_wait_ &&
+    motion_status_ptr_->switch_status == (int32_t)SwithStatus::DONE)
   {
-    is_execute_wait_ = false;
     execute_cv_.notify_one();
+    is_transitioning_wait_ = false;
+  }
+  if (is_execute_wait_ &&
+    motion_status_ptr_->order_process_bar == 100)
+  {
+    execute_cv_.notify_one();
+    is_execute_wait_ = false;
   }
 }

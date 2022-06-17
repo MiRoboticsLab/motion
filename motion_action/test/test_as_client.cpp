@@ -64,7 +64,7 @@ public:
       req->foot_pose[1], req->foot_pose[2], req->foot_pose[3], req->foot_pose[4],
       req->foot_pose[5], req->step_height[0], req->step_height[1]);
     
-    if(rclcpp::spin_until_future_complete(node_ptr_, future_result, std::chrono::seconds(5)) != rclcpp::FutureReturnCode::SUCCESS)
+    if(rclcpp::spin_until_future_complete(node_ptr_, future_result, std::chrono::seconds(60)) != rclcpp::FutureReturnCode::SUCCESS)
     {
       FATAL("Service failed");
       return;
