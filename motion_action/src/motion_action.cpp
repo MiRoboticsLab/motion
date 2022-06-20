@@ -77,7 +77,7 @@ void cyberdog::motion::MotionAction::Execute(const MotionResultSrv::Request::Sha
   }
   lcm_cmd_.mode = motion_id_map_.at(request->motion_id).front();
   lcm_cmd_.gait_id = motion_id_map_.at(request->motion_id).back();
-  lcm_cmd_.contact = 0;
+  lcm_cmd_.contact = 15;
   lcm_cmd_.life_count++;
   lcm_cmd_.value = 0;
   lcm_cmd_.duration = request->duration;
@@ -155,7 +155,7 @@ void cyberdog::motion::MotionAction::ReadLcm(
   const robot_control_response_lcmt * msg)
 {
   // TODO
-  INFO("bar: %d, mode: %d, gaid_id:%d", (int)msg->order_process_bar, (int)msg->mode, (int)msg->gait_id);
+  INFO("bar:%d, mod:%d, gid:%d, sws:%d", msg->order_process_bar, msg->mode, msg->gait_id, msg->switch_status);
   protocol::msg::MotionStatus::SharedPtr lcm_res(new protocol::msg::MotionStatus);
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
     last_res_mode_ = msg->mode;
