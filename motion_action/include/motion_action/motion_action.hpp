@@ -23,6 +23,7 @@
 #include <memory>
 #include <map>
 #include <vector>
+#include <mutex>
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
@@ -83,10 +84,12 @@ private:
   std::thread control_thread_, response_thread_;
   std::function<void(MotionStatusMsg::SharedPtr)> feedback_func_;
   std::shared_ptr<lcm::LCM> lcm_publish_instance_, lcm_subscribe_instance_;
+  std::mutex lcm_write_mutex_;
   robot_control_cmd_lcmt lcm_cmd_;
   uint8_t lcm_publish_duration_;
   std::string lcm_publish_channel_, lcm_subscribe_channel_;
   int8_t last_res_mode_, last_res_gait_id_, last_motion_id_;
+  int8_t life_count_;
   std::map<int32_t, std::vector<int8_t>> motion_id_map_;
   bool lcm_cmd_init_, ins_init_;
   LOGGER_MINOR_INSTANCE("MotionAction");

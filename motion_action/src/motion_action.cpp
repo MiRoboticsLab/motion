@@ -21,6 +21,7 @@ cyberdog::motion::MotionAction::MotionAction()
 : lcm_publish_channel_("robot_control_cmd"),
   lcm_subscribe_channel_("robot_control_response"),
   last_res_mode_(0), last_res_gait_id_(0), last_motion_id_(0),
+  life_count_(0),
   lcm_cmd_init_(false), ins_init_(false)
 {}
 
@@ -36,19 +37,24 @@ void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr 
   if (motion_id_map_.empty()) {
     return;
   }
-  lcm_cmd_.mode = motion_id_map_.at(msg->motion_id).front();
-  lcm_cmd_.gait_id = motion_id_map_.at(msg->motion_id).back();
-  lcm_cmd_.contact = 0;
-  lcm_cmd_.life_count++;
-  lcm_cmd_.value = 0;
-  lcm_cmd_.duration = 0;
-  GET_VALUE(msg->step_height, lcm_cmd_.step_height, 2, "step_height");
-  GET_VALUE(msg->vel_des, lcm_cmd_.vel_des, 3, "vel_des");
-  GET_VALUE(msg->rpy_des, lcm_cmd_.rpy_des, 3, "rpy_des");
-  GET_VALUE(msg->pos_des, lcm_cmd_.pos_des, 3, "pos_des");
-  GET_VALUE(msg->ctrl_point, lcm_cmd_.ctrl_point, 3, "ctrl_point");
-  GET_VALUE(msg->acc_des, lcm_cmd_.acc_des, 6, "acc_des");
-  GET_VALUE(msg->foot_pose, lcm_cmd_.foot_pose, 6, "foot_pose");
+  robot_control_cmd_lcmt lcm_cmd;
+  lcm_cmd.mode = motion_id_map_.at(msg->motion_id).front();
+  lcm_cmd.gait_id = motion_id_map_.at(msg->motion_id).back();
+  lcm_cmd.contact = 0;
+  lcm_cmd.value = 0;
+  lcm_cmd.duration = 0;
+  GET_VALUE(msg->step_height, lcm_cmd.step_height, 2, "step_height");
+  GET_VALUE(msg->vel_des, lcm_cmd.vel_des, 3, "vel_des");
+  GET_VALUE(msg->rpy_des, lcm_cmd.rpy_des, 3, "rpy_des");
+  GET_VALUE(msg->pos_des, lcm_cmd.pos_des, 3, "pos_des");
+  GET_VALUE(msg->ctrl_point, lcm_cmd.ctrl_point, 3, "ctrl_point");
+  GET_VALUE(msg->acc_des, lcm_cmd.acc_des, 6, "acc_des");
+  GET_VALUE(msg->foot_pose, lcm_cmd.foot_pose, 6, "foot_pose");
+  std::unique_lock lk(lcm_write_mutex_);
+  lcm_cmd_ = lcm_cmd;
+  lcm_cmd_.life_count = life_count_++;
+  lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+  lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
     "ServoCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
@@ -57,9 +63,11 @@ void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr 
 
 void cyberdog::motion::MotionAction::Execute(const robot_control_cmd_lcmt & lcm)
 {
-  int8_t life_count = ++lcm_cmd_.life_count;
+  std::unique_lock lk(lcm_write_mutex_);
   lcm_cmd_ = lcm;
-  lcm_cmd_.life_count = life_count;
+  lcm_cmd_.life_count = life_count_++;
+  lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+  lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
     "ResultCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
@@ -75,19 +83,24 @@ void cyberdog::motion::MotionAction::Execute(const MotionResultSrv::Request::Sha
   if (motion_id_map_.empty()) {
     return;
   }
-  lcm_cmd_.mode = motion_id_map_.at(request->motion_id).front();
-  lcm_cmd_.gait_id = motion_id_map_.at(request->motion_id).back();
-  lcm_cmd_.contact = 15;
-  lcm_cmd_.life_count++;
-  lcm_cmd_.value = 0;
-  lcm_cmd_.duration = request->duration;
-  GET_VALUE(request->step_height, lcm_cmd_.step_height, 2, "step_height");
-  GET_VALUE(request->vel_des, lcm_cmd_.vel_des, 3, "vel_des");
-  GET_VALUE(request->rpy_des, lcm_cmd_.rpy_des, 3, "rpy_des");
-  GET_VALUE(request->pos_des, lcm_cmd_.pos_des, 3, "pos_des");
-  GET_VALUE(request->ctrl_point, lcm_cmd_.ctrl_point, 3, "ctrl_point");
-  GET_VALUE(request->acc_des, lcm_cmd_.acc_des, 6, "acc_des");
-  GET_VALUE(request->foot_pose, lcm_cmd_.foot_pose, 6, "foot_pose");
+  robot_control_cmd_lcmt lcm_cmd;
+  lcm_cmd.mode = motion_id_map_.at(request->motion_id).front();
+  lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).back();
+  lcm_cmd.contact = 15;
+  lcm_cmd.value = 0;
+  lcm_cmd.duration = request->duration;
+  GET_VALUE(request->step_height, lcm_cmd.step_height, 2, "step_height");
+  GET_VALUE(request->vel_des, lcm_cmd.vel_des, 3, "vel_des");
+  GET_VALUE(request->rpy_des, lcm_cmd.rpy_des, 3, "rpy_des");
+  GET_VALUE(request->pos_des, lcm_cmd.pos_des, 3, "pos_des");
+  GET_VALUE(request->ctrl_point, lcm_cmd.ctrl_point, 3, "ctrl_point");
+  GET_VALUE(request->acc_des, lcm_cmd.acc_des, 6, "acc_des");
+  GET_VALUE(request->foot_pose, lcm_cmd.foot_pose, 6, "foot_pose");
+  std::unique_lock lk(lcm_write_mutex_);
+  lcm_cmd_ = lcm_cmd;
+  lcm_cmd_.life_count = life_count_++;
+  lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+  lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
     "ResultCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
@@ -195,6 +208,7 @@ void cyberdog::motion::MotionAction::WriteLcm()
 {
   while (lcm_publish_instance_->good()) {
     if (lcm_cmd_init_) {
+      std::unique_lock lk(lcm_write_mutex_);
       lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(lcm_publish_duration_));
