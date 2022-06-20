@@ -154,6 +154,8 @@ void cyberdog::motion::MotionAction::ReadLcm(
   const lcm::ReceiveBuffer *, const std::string &,
   const robot_control_response_lcmt * msg)
 {
+  // TODO
+  INFO("bar: %d, mode: %d, gaid_id:%d", (int)msg->order_process_bar, (int)msg->mode, (int)msg->gait_id);
   protocol::msg::MotionStatus::SharedPtr lcm_res(new protocol::msg::MotionStatus);
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
     last_res_mode_ = msg->mode;
@@ -165,6 +167,7 @@ void cyberdog::motion::MotionAction::ReadLcm(
           "Get unkown response about motion_id, mode: %d, gait_id: %d!",
           static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));
         last_motion_id_ = -1;
+        // std::cout << (int)msg->mode << ";" << (int)msg->gait_id << std::endl;
         break;
       }
       if (m->second.front() == msg->mode && m->second.back() == msg->gait_id) {

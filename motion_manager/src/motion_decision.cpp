@@ -218,7 +218,7 @@ bool cyberdog::motion::MotionDecision::WaitHandlingResult(
   // bool result = false;
   (void)duration;
   std::unique_lock<std::mutex> check_lk(execute_mutex_);
-  wait_id = motion_id;
+  wait_id_ = motion_id;
   // auto wait_timeout = duration ? duration : 1000;
   // auto wait_status = execute_cv_.wait_for(lk, std::chrono::milliseconds(wait_timeout));
   // if (wait_status == std::cv_status::timeout) {
@@ -238,7 +238,7 @@ bool cyberdog::motion::MotionDecision::WaitHandlingResult(
   }
   if (motion_status_ptr_->switch_status == (int8_t)SwithStatus::TRANSITIONING) {
     is_transitioning_wait_ = true;
-    if (execute_cv_.wait_for(check_lk, std::chrono::milliseconds(TRANSITIONING_TIMEOUT)) ==
+    if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(TRANSITIONING_TIMEOUT)) ==
       std::cv_status::timeout)
     {
       code = (int32_t)MotionCode::kTimeout;
@@ -247,7 +247,7 @@ bool cyberdog::motion::MotionDecision::WaitHandlingResult(
   }
   if(is_transitioning_wait_) check_lk.lock();
   is_execute_wait_ = true;
-  // TODO(harvey):
+  // TODO(harvey): 超时时间按给定duration和每个动作的最小duration之间的较大值计算
   // auto wait_timeout = duration > min_duration_map_[motion_id] ?
   //   duration : min_duration_map_[motion_id];
   auto wait_timeout = 5000;
@@ -289,10 +289,11 @@ void cyberdog::motion::MotionDecision::Update(MotionStatusMsg::SharedPtr motion_
   if (is_transitioning_wait_ &&
     motion_status_ptr_->switch_status == (int32_t)SwithStatus::DONE)
   {
-    execute_cv_.notify_one();
+    transitioning_cv_.notify_one();
     is_transitioning_wait_ = false;
   }
   if (is_execute_wait_ &&
+    motion_status_ptr_->motion_id == wait_id_ && 
     motion_status_ptr_->order_process_bar == 100)
   {
     execute_cv_.notify_one();
