@@ -30,7 +30,7 @@ public:
     motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>("motion_result_cmd");
   }
 
-  void Run(char ** argv)
+  void Run(int argc, char ** argv)
   {
     if (!motion_result_client_->wait_for_service()) {
       FATAL("Service not avalible");
@@ -52,6 +52,9 @@ public:
     GET_TOML_VALUE(value, "foot_pose", req->foot_pose);
     GET_TOML_VALUE(value, "step_height", req->step_height);
     GET_TOML_VALUE(value, "duration", req->duration);
+    if(argc > 2) {
+      req->duration = std::atoi(argv[2]);
+    }
     // HandleTestCmd(msg);
     // std::shared_future<protocol::srv::MotionResultCmd::Response::SharedPtr> future_result = motion_result_client_->async_send_request(req);
     auto future_result = motion_result_client_->async_send_request(req);
@@ -93,6 +96,6 @@ int main(int argc, char ** argv)
   }
   rclcpp::init(argc, argv);
   SimMotionClient smm("test_as_publisher");
-  smm.Run(argv);
+  smm.Run(argc, argv);
   smm.Spin();
 }
