@@ -50,7 +50,7 @@ void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr 
   GET_VALUE(msg->ctrl_point, lcm_cmd.ctrl_point, 3, "ctrl_point");
   GET_VALUE(msg->acc_des, lcm_cmd.acc_des, 6, "acc_des");
   GET_VALUE(msg->foot_pose, lcm_cmd.foot_pose, 6, "foot_pose");
-  std::unique_lock lk(lcm_write_mutex_);
+  std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
   lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
@@ -96,7 +96,7 @@ void cyberdog::motion::MotionAction::Execute(const MotionResultSrv::Request::Sha
   GET_VALUE(request->ctrl_point, lcm_cmd.ctrl_point, 3, "ctrl_point");
   GET_VALUE(request->acc_des, lcm_cmd.acc_des, 6, "acc_des");
   GET_VALUE(request->foot_pose, lcm_cmd.foot_pose, 6, "foot_pose");
-  std::unique_lock lk(lcm_write_mutex_);
+  std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
   lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
@@ -208,7 +208,7 @@ void cyberdog::motion::MotionAction::WriteLcm()
 {
   while (lcm_publish_instance_->good()) {
     if (lcm_cmd_init_) {
-      std::unique_lock lk(lcm_write_mutex_);
+      std::unique_lock<std::mutex> lk(lcm_write_mutex_);
       lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(lcm_publish_duration_));

@@ -194,7 +194,9 @@ private:
   std::mutex status_mutex_;
 
   /* Execute cmd members */
+  std::mutex feedback_mutex_;
   std::mutex execute_mutex_;
+  std::condition_variable feedback_cv_;
   std::condition_variable transitioning_cv_;
   std::condition_variable execute_cv_;
   bool is_transitioning_wait_ {false};

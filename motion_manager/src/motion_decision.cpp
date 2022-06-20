@@ -217,6 +217,8 @@ bool cyberdog::motion::MotionDecision::WaitHandlingResult(
 {
   // bool result = false;
   (void)duration;
+  std::unique_lock<std::mutex> feedback_lk(feedback_mutex_);
+  feedback_cv_.wait(feedback_lk);
   std::unique_lock<std::mutex> check_lk(execute_mutex_);
   wait_id_ = motion_id;
   // auto wait_timeout = duration ? duration : 1000;
@@ -229,6 +231,8 @@ bool cyberdog::motion::MotionDecision::WaitHandlingResult(
   //   code = (int32_t)MotionCode::kOK;
   //   result = true;
   // }
+  // TODO
+  INFO("sws:%d", motion_status_ptr_->switch_status);
   if (motion_status_ptr_->switch_status == (int8_t)SwithStatus::BAN_TRANS ||
     motion_status_ptr_->switch_status == (int8_t)SwithStatus::EDAMP ||
     motion_status_ptr_->switch_status == (int8_t)SwithStatus::ESTOP)
@@ -269,6 +273,7 @@ bool cyberdog::motion::MotionDecision::WaitHandlingResult(
  */
 void cyberdog::motion::MotionDecision::Update(MotionStatusMsg::SharedPtr motion_status_ptr)
 {
+  feedback_cv_.notify_one();
   std::unique_lock<std::mutex> lk(execute_mutex_);
   motion_status_ptr_->motion_id = motion_status_ptr->motion_id;
   motion_status_ptr_->contact = motion_status_ptr->contact;
@@ -287,6 +292,7 @@ void cyberdog::motion::MotionDecision::Update(MotionStatusMsg::SharedPtr motion_
   //   execute_cv_.notify_one();
   // }
   if (is_transitioning_wait_ &&
+    motion_status_ptr_->motion_id == wait_id_ && 
     motion_status_ptr_->switch_status == (int32_t)SwithStatus::DONE)
   {
     transitioning_cv_.notify_one();
