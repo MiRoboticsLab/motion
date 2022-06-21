@@ -17,7 +17,11 @@
 #include <map>
 #include <vector>
 
-cyberdog::motion::MotionAction::MotionAction()
+namespace cyberdog
+{
+namespace motion
+{
+MotionAction::MotionAction()
 : lcm_publish_channel_("robot_control_cmd"),
   lcm_subscribe_channel_("robot_control_response"),
   last_res_mode_(0), last_res_gait_id_(0), last_motion_id_(0),
@@ -25,9 +29,9 @@ cyberdog::motion::MotionAction::MotionAction()
   lcm_cmd_init_(false), ins_init_(false)
 {}
 
-cyberdog::motion::MotionAction::~MotionAction() {}
+MotionAction::~MotionAction() {}
 
-void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
+void MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
 {
   // Checkout mode global, send msg continuously
   if (!ins_init_) {
@@ -61,9 +65,9 @@ void cyberdog::motion::MotionAction::Execute(const MotionServoCmdMsg::SharedPtr 
     lcm_cmd_.duration);
 }
 
-void cyberdog::motion::MotionAction::Execute(const robot_control_cmd_lcmt & lcm)
+void MotionAction::Execute(const robot_control_cmd_lcmt & lcm)
 {
-  std::unique_lock lk(lcm_write_mutex_);
+  std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm;
   lcm_cmd_.life_count = life_count_++;
   lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
@@ -74,7 +78,7 @@ void cyberdog::motion::MotionAction::Execute(const robot_control_cmd_lcmt & lcm)
     lcm_cmd_.duration);
 }
 
-void cyberdog::motion::MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
+void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
 {
   if (!ins_init_) {
     ERROR("MotionAction has not been initialized when execute ResultSrv");
@@ -107,7 +111,7 @@ void cyberdog::motion::MotionAction::Execute(const MotionResultSrv::Request::Sha
     lcm_cmd_.duration);
 }
 
-bool cyberdog::motion::MotionAction::ParseMotionId()
+bool MotionAction::ParseMotionId()
 {
   std::string motion_id_map_config = ament_index_cpp::get_package_share_directory("motion_action") +
     "/preset/" + "motion_id_map.toml";
@@ -125,14 +129,14 @@ bool cyberdog::motion::MotionAction::ParseMotionId()
   return true;
 }
 
-bool cyberdog::motion::MotionAction::Init(
+bool MotionAction::Init(
   const std::string & publish_url, const std::string & subscribe_url)
 {
   if (!ParseMotionId()) {
     ERROR("Fail to parse MotionID");
     return false;
   }
-  lcm_publish_duration_ = 1 / static_cast<float>(ACTION_LCM_PUBLISH_FREQUENCY_) * 1000;
+  lcm_publish_duration_ = 1 / static_cast<float>(kActionLcmPublishFrequency) * 1000;
   lcm_publish_instance_ = std::make_shared<lcm::LCM>(publish_url);
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
   lcm_subscribe_instance_->subscribe(lcm_subscribe_channel_, &MotionAction::ReadLcm, this);
@@ -142,7 +146,7 @@ bool cyberdog::motion::MotionAction::Init(
     std::thread(
     [this]() {
       while (rclcpp::ok()) {
-        while (0 == this->lcm_subscribe_instance_->handleTimeout(1000)) {
+        while (0 == this->lcm_subscribe_instance_->handleTimeout(kAcitonLcmReadTimeout)) {
           ERROR("Cannot read LCM from MR813");
         }
       }
@@ -152,18 +156,18 @@ bool cyberdog::motion::MotionAction::Init(
   return true;
 }
 
-bool cyberdog::motion::MotionAction::SelfCheck()
+bool MotionAction::SelfCheck()
 {
   return true;
 }
 
-void cyberdog::motion::MotionAction::RegisterFeedback(
+void MotionAction::RegisterFeedback(
   std::function<void(MotionStatusMsg::SharedPtr)> feedback)
 {
   feedback_func_ = feedback;
 }
 
-void cyberdog::motion::MotionAction::ReadLcm(
+void MotionAction::ReadLcm(
   const lcm::ReceiveBuffer *, const std::string &,
   const robot_control_response_lcmt * msg)
 {
@@ -204,7 +208,7 @@ void cyberdog::motion::MotionAction::ReadLcm(
   }
 }
 
-void cyberdog::motion::MotionAction::WriteLcm()
+void MotionAction::WriteLcm()
 {
   while (lcm_publish_instance_->good()) {
     if (lcm_cmd_init_) {
@@ -214,3 +218,5 @@ void cyberdog::motion::MotionAction::WriteLcm()
     std::this_thread::sleep_for(std::chrono::milliseconds(lcm_publish_duration_));
   }
 }
+}  // motion
+}  // cyberdog

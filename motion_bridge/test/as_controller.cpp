@@ -16,7 +16,7 @@ public:
   AsController()
   {
     node_.reset(new rclcpp::Node("as_controller"));
-    lcm_.reset(new lcm::LCM(BRIDGE_SUBSCRIBE_URL));
+    lcm_.reset(new lcm::LCM(kBirdgeSubscribeURL));
     pub_ = node_->create_publisher<grid_map_msgs::msg::GridMap>(
       "elevation_submap",
       rclcpp::SystemDefaultsQoS());

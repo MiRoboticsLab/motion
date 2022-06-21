@@ -31,11 +31,13 @@ using MotionResultSrv = protocol::srv::MotionResultCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 
-constexpr uint8_t ACTION_LCM_PUBLISH_FREQUENCY_ = 20;
-constexpr uint16_t TRANSITIONING_TIMEOUT = 3000; // millisecond
-constexpr const char * ACTION_PUBLISH_URL = "udpm://239.255.76.67:7671?ttl=255";
-constexpr const char * ACTION_SUBSCRIBE_URL = "udpm://239.255.76.67:7670?ttl=255";
-constexpr const char * BRIDGE_SUBSCRIBE_URL = "udpm://239.255.76.67:7667?ttl=255";
+constexpr uint8_t kActionLcmPublishFrequency = 20;
+constexpr uint16_t kTransitioningTimeout = 3000; // millisecond
+constexpr uint16_t kAcitonLcmReadTimeout = 1000; // millisecond
+constexpr int kMotorNormal = -2147483648;
+constexpr const char * kActionPublishURL = "udpm://239.255.76.67:7671?ttl=255";
+constexpr const char * kActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=255";
+constexpr const char * kBirdgeSubscribeURL = "udpm://239.255.76.67:7667?ttl=255";
 
 // a: src, b: des, c: size, d: description
 #define GET_VALUE(a, b, c, d) \
@@ -104,23 +106,17 @@ enum class DecisionStatus : uint8_t
   kExecuting = 2
 };  // enum class DecisionStatus
 
-enum class SwithStatus : int8_t
-{
-  DONE = 0,
-  TRANSITIONING = 1,
-  ESTOP = 2,
-  EDAMP = 3,
-  BAN_TRANS = 4
-};
-
 // 所有的motion相关code都从300开始，该值为全局架构设计分配
 // constexpr int32_t BaseCode = (int32_t)system::ModuleCode::kMotion;
 enum class MotionCode : int32_t
 {
   kOK = 0,
-  kTimeout = (int32_t)system::ModuleCode::kMotion + 31,
-  kCheckError = (int32_t)system::ModuleCode::kMotion + 32,
-  kWithoutStart = (int32_t)system::ModuleCode::kMotion + 33
+  kReadLcmTimeout = (int32_t)system::ModuleCode::kMotion + 30,
+  kSwitchError = (int32_t)system::ModuleCode::kMotion + 31,
+  kTransitionTimeout = (int32_t)system::ModuleCode::kMotion + 32,
+  kExecuteTimeout = (int32_t)system::ModuleCode::kMotion + 33,
+  kExecuteError = (int32_t)system::ModuleCode::kMotion + 34,
+  kWithoutStart = (int32_t)system::ModuleCode::kMotion + 35
 };  // enum class MotionCode
 }  // namespace motion
 }  // namespace cyberdog

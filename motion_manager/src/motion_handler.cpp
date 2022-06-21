@@ -15,19 +15,19 @@
 #include <vector>
 #include "motion_manager/motion_handler.hpp"
 
-cyberdog::motion::MotionHandler::MotionHandler()
+namespace cyberdog
 {
-  // (void) publisher;
-  // servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
-}
+namespace motion
+{
 
-cyberdog::motion::MotionHandler::~MotionHandler()
+MotionHandler::MotionHandler()
 {}
 
-void cyberdog::motion::MotionHandler::Update()
+
+MotionHandler::~MotionHandler()
 {}
 
-bool cyberdog::motion::MotionHandler::Init()
+bool MotionHandler::Init()
 {
   action_ptr_ = std::make_shared<MotionAction>();
   if (!action_ptr_->Init()) {
@@ -36,34 +36,27 @@ bool cyberdog::motion::MotionHandler::Init()
   }
   servo_check_click_ = std::make_shared<ServoClick>();
   servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
-  // action_ptr_->RegisterFeedback(
-  //   std::bind(&MotionHandler::Checkout, this,std::placeholders::_1));
+  action_ptr_->RegisterFeedback(
+    std::bind(&MotionHandler::UpdateMotionStatus, this, std::placeholders::_1));
+  motion_status_ptr_.reset(new MotionStatusMsg);
+  motion_status_ptr_->motor_error.resize(12);
   return true;
 }
-void cyberdog::motion::MotionHandler::RegisterUpdate(
-  std::function<void(MotionStatusMsg::SharedPtr)> f)
-{
-  action_ptr_->RegisterFeedback(f);
-}
-// void cyberdog::motion::MotionHandler::Checkout(MotionStatusMsg::SharedPtr motion_status_ptr)
-// {
-//   motion_response_func(motion_status_ptr);
-// }
 
-void cyberdog::motion::MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg)
+void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg)
 {
   action_ptr_->Execute(msg);
   TickServoCmd();
   SetServoNeedCheck(true);
 }
 
-void cyberdog::motion::MotionHandler::HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg)
+void MotionHandler::HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg)
 {
   action_ptr_->Execute(msg);
   TickServoCmd();
 }
 
-void cyberdog::motion::MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
+void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
 {
   action_ptr_->Execute(msg);
   SetServoNeedCheck(false);
@@ -74,7 +67,7 @@ void cyberdog::motion::MotionHandler::HandleServoEndFrame(const MotionServoCmdMs
  *        1. 运行在死循环线程中，通过waitServoNeedCheck进行线程挂起与唤醒操作
  *
  */
-void cyberdog::motion::MotionHandler::ServoDataCheck()
+void MotionHandler::ServoDataCheck()
 {
   while (true) {
     WaitServoNeedCheck();
@@ -101,12 +94,24 @@ void cyberdog::motion::MotionHandler::ServoDataCheck()
  *        后续计划改成调用当前动作的状态机结束动作，而不是写死
  *
  */
-void cyberdog::motion::MotionHandler::StandBy()
+void MotionHandler::StandBy()
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
   request->motion_id = 1;
   request->pos_des = std::vector<float>{0.0, 0.0, 0.3};
   action_ptr_->Execute(request);
+}
+
+bool MotionHandler::CheckMotionResult()
+{
+
+  bool result = true;
+  for (auto e : motion_status_ptr_->motor_error){
+    result = (e == 0 || e == kMotorNormal);
+  }
+  return motion_status_ptr_->ori_error == 0 &&
+         motion_status_ptr_->footpos_error == 0 &&
+         result;
 }
 
 /**
@@ -115,19 +120,109 @@ void cyberdog::motion::MotionHandler::StandBy()
  * @param request
  * @param response
  */
-void cyberdog::motion::MotionHandler::HandleResultCmd(
+void MotionHandler::HandleResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  (void)response;
   action_ptr_->Execute(request);
-  // auto duration = request->duration;
-  // response->result = WaitExecute(request->motion_id, request->duration, response->code);
-  // response->motion_id = motion_status_ptr_->motion_id;
+  std::unique_lock<std::mutex> feedback_lk(feedback_mutex_);
+  if( feedback_cv_.wait_for(feedback_lk, std::chrono::milliseconds(kAcitonLcmReadTimeout))==
+    std::cv_status::timeout)
+  {
+    response->code = (int32_t)MotionCode::kReadLcmTimeout;
+    response->result = false;
+    response->motion_id = motion_status_ptr_->motion_id;
+    return;
+  }
+  std::unique_lock<std::mutex> check_lk(execute_mutex_);
+  wait_id_ = request->motion_id;
+  // TODO
+  INFO("sws:%d", motion_status_ptr_->switch_status);
+  if (motion_status_ptr_->switch_status == MotionStatusMsg::BAN_TRANS ||
+    motion_status_ptr_->switch_status == MotionStatusMsg::EDAMP ||
+    motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP)
+  {
+    response->code = (int32_t)MotionCode::kSwitchError;
+    response->result = false;
+    response->motion_id = motion_status_ptr_->motion_id;
+    return;
+  }
+  if (motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING) {
+    is_transitioning_wait_ = true;
+    if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
+      std::cv_status::timeout)
+    {
+      response->code = (int32_t)MotionCode::kTransitionTimeout;
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      return;
+    }
+  }
+  if (is_transitioning_wait_) {check_lk.lock();}
+  is_execute_wait_ = true;
+  // TODO(harvey): 超时时间按给定duration和每个动作的最小duration之间的较大值计算
+  // auto wait_timeout = duration > min_duration_map_[motion_id] ?
+  //   duration : min_duration_map_[motion_id];
+  auto wait_timeout = 5000;
+  if (execute_cv_.wait_for(
+      check_lk,
+      std::chrono::milliseconds(wait_timeout)) == std::cv_status::timeout)
+  {
+    response->code = (int32_t)MotionCode::kExecuteTimeout;
+    response->result = false;
+    response->motion_id = motion_status_ptr_->motion_id;
+    return;
+  }
+  if (!CheckMotionResult()) {
+    response->code = (int32_t)MotionCode::kExecuteError;
+    response->result = false;
+    response->motion_id = motion_status_ptr_->motion_id;
+    return;
+  }
+  response->code = (int32_t)MotionCode::kOK;
+  response->result = true;
+  response->motion_id = motion_status_ptr_->motion_id;
+  return;
 }
 
+/**
+ * @brief Inelegant code
+ *
+ * @param motion_status_ptr
+ */
+void MotionHandler::UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr)
+{
+  feedback_cv_.notify_one();
+  std::unique_lock<std::mutex> lk(execute_mutex_);
+  motion_status_ptr_->motion_id = motion_status_ptr->motion_id;
+  motion_status_ptr_->contact = motion_status_ptr->contact;
+  motion_status_ptr_->order_process_bar = motion_status_ptr->order_process_bar;
+  motion_status_ptr_->switch_status = motion_status_ptr->switch_status;
+  motion_status_ptr_->ori_error = motion_status_ptr->ori_error;
+  motion_status_ptr_->footpos_error = motion_status_ptr->footpos_error;
+  for (size_t i = 0; i < motion_status_ptr->motor_error.size(); ++i) {
+    motion_status_ptr_->motor_error[i] = motion_status_ptr->motor_error[i];
+  }
+  if (is_transitioning_wait_ &&
+    motion_status_ptr_->motion_id == wait_id_ &&
+    motion_status_ptr_->switch_status == MotionStatusMsg::NORMAL)
+  {
+    transitioning_cv_.notify_one();
+    is_transitioning_wait_ = false;
+  }
+  if (is_execute_wait_ &&
+    motion_status_ptr_->motion_id == wait_id_ &&
+    motion_status_ptr_->order_process_bar == 100)
+  {
+    execute_cv_.notify_one();
+    is_execute_wait_ = false;
+  }
+}
 
-// void cyberdog::motion::MotionHandler::ServoResponse()
-// {
+MotionStatusMsg::SharedPtr MotionHandler::GetMotionStatus()
+{
+  return motion_status_ptr_;
+}
 
-// }
+}  // namespace motion
+}  // namespace cyberdog

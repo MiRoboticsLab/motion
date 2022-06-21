@@ -26,7 +26,6 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
 
-
 namespace cyberdog
 {
 namespace motion
@@ -128,55 +127,6 @@ private:
     servo_response_queue_.Reset();
   }
 
-  // /**
-  //  * @brief 伺服指令检测功能开关
-  //  *
-  //  * @param check_flag true: 打开检测功能; false: 关闭
-  //  */
-  // inline void SetServoNeedCheck(bool check_flag)
-  // {
-  //   std::unique_lock<std::mutex> lk(servo_check_mutex_);
-  //   if (check_flag && (!is_servo_need_check_)) {  // 从关闭状态打开时，重置检测数据， 并唤醒线程
-  //     server_check_error_counter_ = 0;
-  //     is_servo_need_check_ = check_flag;
-  //     servo_check_cv_.notify_one();
-  //   } else {
-  //     is_servo_need_check_ = check_flag;
-  //   }
-  // }
-
-  // /**
-  //  * @brief 等待伺服检测开关打开
-  //  *        1. 如果已经打开，则忽略；
-  //  *        2. 如果已经关闭，则挂起当前线程；
-  //  *
-  //  */
-  // inline void WaitServoNeedCheck()
-  // {
-  //   std::unique_lock<std::mutex> lk(servo_check_mutex_);
-  //   if (!is_servo_need_check_) {
-  //     servo_check_cv_.wait(lk);
-  //   }
-  // }
-
-  // /**
-  //  * @brief 入队一条伺服检测信号
-  //  *
-  //  */
-  // inline void SetServoCheck()
-  // {
-  //   servo_check_click_->Tick();
-  // }
-
-  // /**
-  //  * @brief 出队一条伺服检测信号
-  //  *
-  //  */
-  // inline bool GetServoCheck()
-  // {
-  //   return servo_check_click_->Tock();
-  // }
-
   /**
    * @brief 重置伺服反馈消息
    *
@@ -193,27 +143,9 @@ private:
   DecisionStatus motion_work_mode_ {DecisionStatus::kIdle};
   std::mutex status_mutex_;
 
-  /* Execute cmd members */
-  std::mutex feedback_mutex_;
-  std::mutex execute_mutex_;
-  std::condition_variable feedback_cv_;
-  std::condition_variable transitioning_cv_;
-  std::condition_variable execute_cv_;
-  bool is_transitioning_wait_ {false};
-  bool is_execute_wait_ {false};
-  std::unordered_map<int32_t, int> min_duration_map_;
-  int32_t wait_id_;
-  MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
-
   /* Servo cmd members */
   std::thread servo_response_thread_;
-  // std::thread servo_data_check_thread_;
   common::MsgQueue<int> servo_response_queue_;
-  // std::shared_ptr<ServoClick> servo_check_click_;
-  // std::mutex servo_check_mutex_;
-  // std::condition_variable servo_check_cv_;
-  // bool is_servo_need_check_ {false};
-  // int8_t server_check_error_counter_ {0};
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub_;
   MotionServoResponseMsg servo_response_msg_;
 };  // class MotionDecision

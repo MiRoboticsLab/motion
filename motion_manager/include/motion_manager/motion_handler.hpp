@@ -42,13 +42,10 @@ public:
 public:
   /* recv api */
   // void ServoResponse();
-  void RegisterUpdate(std::function<void(MotionStatusMsg::SharedPtr)> f);
   bool Init();
-  void Update();
-  void Checkout(MotionStatusMsg::SharedPtr motion_status_ptr);
+  void UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
-  // void Servo(const MotionServoCmdMsg::SharedPtr msg);
-  void Stop();
+  bool CheckMotionResult();
   void ServoDataCheck();
   void StandBy();
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
@@ -57,6 +54,8 @@ public:
   void HandleResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
+  MotionStatusMsg::SharedPtr GetMotionStatus();
+  
 
 public:
   /* 考虑重构的API */
@@ -128,6 +127,19 @@ private:
   std::condition_variable servo_check_cv_;
   bool is_servo_need_check_ {false};
   int8_t server_check_error_counter_ {0};
+
+  /* Execute cmd members */
+  std::mutex feedback_mutex_;
+  std::mutex execute_mutex_;
+  std::condition_variable feedback_cv_;
+  std::condition_variable transitioning_cv_;
+  std::condition_variable execute_cv_;
+  bool is_transitioning_wait_ {false};
+  bool is_execute_wait_ {false};
+  std::unordered_map<int32_t, int> min_duration_map_;
+  int32_t wait_id_;
+  MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
+
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog
