@@ -54,6 +54,7 @@ void MotionHandler::HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg)
 {
   action_ptr_->Execute(msg);
   TickServoCmd();
+  SetServoNeedCheck(true);
 }
 
 void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)

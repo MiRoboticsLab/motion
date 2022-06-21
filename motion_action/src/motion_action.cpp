@@ -172,7 +172,7 @@ void MotionAction::ReadLcm(
   const robot_control_response_lcmt * msg)
 {
   // TODO
-  INFO("bar:%d, mod:%d, gid:%d, sws:%d", msg->order_process_bar, msg->mode, msg->gait_id, msg->switch_status);
+  // INFO("bar:%d, mod:%d, gid:%d, sws:%d", msg->order_process_bar, msg->mode, msg->gait_id, msg->switch_status);
   protocol::msg::MotionStatus::SharedPtr lcm_res(new protocol::msg::MotionStatus);
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
     last_res_mode_ = msg->mode;

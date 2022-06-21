@@ -47,6 +47,13 @@ bool MotionDecision::Init(
   return true;
 }
 
+bool MotionDecision::AllowServoCmd()
+{
+  // TODO: 判断当前状态是否能够行走
+  return handler_ptr_->GetMotionStatus()->motion_id == 1 ||
+    handler_ptr_->GetMotionStatus()->motion_id ==12; 
+}
+
 /**
  * @brief 伺服指令接收入口
  *        重构思路：
@@ -57,56 +64,38 @@ bool MotionDecision::Init(
  */
 void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
 {
-  // 后续应该只检测运动状态，不检测mode
-  if (!IsStateValid()) {
-    return;
-  }
-  if (!IsModeValid()) {
-    return;
-  }
-
-  switch (msg->cmd_type) {
-    case MotionServoCmdMsg::SERVO_START:
-      ServoStart(msg);
-      break;
-    case MotionServoCmdMsg::SERVO_DATA:
-      ServoData(msg);
-      break;
-    case MotionServoCmdMsg::SERVO_END:
-      ServoEnd(msg);
-      break;
-    default:
-      break;
-  }
-}
-
-void MotionDecision::ServoStart(const MotionServoCmdMsg::SharedPtr msg)
-{
-  INFO("Servo start with motion_id: %d", msg->motion_id);
-  handler_ptr_->HandleServoStartFrame(msg);
-  ResetServoResponseMsg();
-  SetWorkStatus(DecisionStatus::kServoStart);
   SetServoResponse();
-}
-
-void MotionDecision::ServoData(const MotionServoCmdMsg::SharedPtr msg)
-{
-  if (DecisionStatus::kServoStart != GetWorkStatus()) {
+  if (!IsStateValid()) {
     servo_response_msg_.result = false;
-    servo_response_msg_.code = (int32_t)MotionCode::kSwitchError;
-  } else {
+    servo_response_msg_.code = (int32_t)MotionCode::kStateError;
+    return;
+  }
+
+  if (msg->cmd_type != MotionServoCmdMsg::SERVO_END){
+    if(!AllowServoCmd()) {
+      if (retry_ < max_retry_) {
+        MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
+        MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
+        request->motion_id = 1;
+        INFO("Trying to be ready for ServoCmd");
+        handler_ptr_->HandleResultCmd(request, response);
+        if (!response->result) {
+          retry_++;
+        } else {
+          retry_ = 0;
+        }
+      } else {
+        servo_response_msg_.result = false;
+        servo_response_msg_.code = (int32_t)MotionCode::kSwitchError;
+      }
+      return;
+    }
     handler_ptr_->HandleServoDataFrame(msg);
   }
-  SetServoResponse();
-}
-
-void MotionDecision::ServoEnd(const MotionServoCmdMsg::SharedPtr msg)
-{
-  INFO("Servo end with motion_id: %d", msg->motion_id);
-  handler_ptr_->HandleServoEndFrame(msg);
-  handler_ptr_->StandBy();
-  ResetServoResponse();
-  SetWorkStatus(DecisionStatus::kIdle);
+  else {
+    handler_ptr_->HandleServoEndFrame(msg);
+    ResetServoResponse();
+  }
 }
 
 /**
@@ -141,6 +130,9 @@ void MotionDecision::DecideResultCmd(
   MotionResultSrv::Response::SharedPtr response)
 {
   if (!IsStateValid()) {
+    response->motion_id = -1;
+    response->result = false;
+    response->code = (int32_t)MotionCode::kStateError;
     return;
   }
   if (!IsModeValid()) {

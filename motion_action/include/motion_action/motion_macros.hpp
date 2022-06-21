@@ -116,7 +116,7 @@ enum class MotionCode : int32_t
   kTransitionTimeout = (int32_t)system::ModuleCode::kMotion + 32,
   kExecuteTimeout = (int32_t)system::ModuleCode::kMotion + 33,
   kExecuteError = (int32_t)system::ModuleCode::kMotion + 34,
-  kWithoutStart = (int32_t)system::ModuleCode::kMotion + 35
+  kStateError = (int32_t)system::ModuleCode::kMotion + 35
 };  // enum class MotionCode
 }  // namespace motion
 }  // namespace cyberdog
