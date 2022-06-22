@@ -115,16 +115,38 @@ bool MotionAction::ParseMotionId()
 {
   std::string motion_id_map_config = ament_index_cpp::get_package_share_directory("motion_action") +
     "/preset/" + "motion_id_map.toml";
-  toml::value value;
-  if (!cyberdog::common::CyberdogToml::ParseFile(motion_id_map_config, value)) {
+  toml::value motion_ids;
+  if (!cyberdog::common::CyberdogToml::ParseFile(motion_id_map_config, motion_ids)) {
     FATAL("Cannot parse %s", motion_id_map_config.c_str());
     return false;
   }
-  for (auto p : value.as_table()) {
-    motion_id_map_.emplace(
-      int32_t(std::stoi(p.first)),
-      std::vector<int8_t>{int8_t(p.second.as_array().front().as_integer()),
-        int8_t(p.second.as_array().back().as_integer())});
+  if(!motion_ids.is_table()) {
+    FATAL("Toml format error");
+    exit(-1);
+  }
+  toml::value values;
+  cyberdog::common::CyberdogToml::Get(motion_ids, "motion_ids", values);  
+  std::map<int, std::vector<std::vector<int>>> motion_id_map;
+  for(size_t i = 0; i < values.size(); i++) {
+    auto value = values.at(i);
+    std::pair<int, std::vector<std::vector<int>>> motion_id;
+    GET_TOML_VALUE(value, "motion_id", motion_id.first);
+    std::vector<int> map, pre_motion, post_motion;
+    GET_TOML_VALUE(value, "map", map);
+    GET_TOML_VALUE(value, "pre_motion", pre_motion);
+    GET_TOML_VALUE(value, "post_motion", post_motion);
+    motion_id.second.push_back(map);
+    motion_id.second.push_back(pre_motion);
+    motion_id.second.push_back(post_motion);
+    motion_id_map.emplace(motion_id);
+  }
+  for(auto motion_id : motion_id_map)
+  {
+    INFO("---%d", motion_id.first);
+    INFO("%d, %d", motion_id.second[0][0], motion_id.second[0][1]);
+    INFO("%d, %d", motion_id.second[1][0], motion_id.second[1][1]);
+    INFO("%d, %d", motion_id.second[2][0], motion_id.second[2][1]);
+
   }
   return true;
 }
