@@ -115,6 +115,13 @@ bool MotionHandler::CheckMotionResult()
          result;
 }
 
+bool MotionHandler::FeedbackTimeout()
+{
+  std::unique_lock<std::mutex> feedback_lk(feedback_mutex_);
+  return feedback_cv_.wait_for(feedback_lk, std::chrono::milliseconds(kAcitonLcmReadTimeout))==
+      std::cv_status::timeout;
+}
+
 /**
  * @brief 执行结果指令
  *
@@ -126,9 +133,7 @@ void MotionHandler::HandleResultCmd(
   MotionResultSrv::Response::SharedPtr response)
 {
   action_ptr_->Execute(request);
-  std::unique_lock<std::mutex> feedback_lk(feedback_mutex_);
-  if( feedback_cv_.wait_for(feedback_lk, std::chrono::milliseconds(kAcitonLcmReadTimeout))==
-    std::cv_status::timeout)
+  if(FeedbackTimeout())
   {
     response->code = (int32_t)MotionCode::kReadLcmTimeout;
     response->result = false;

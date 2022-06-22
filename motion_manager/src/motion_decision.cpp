@@ -94,7 +94,7 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
   }
   else {
     handler_ptr_->HandleServoEndFrame(msg);
-    ResetServoResponse();
+    // SetServoResponse();
   }
 }
 
@@ -111,10 +111,13 @@ void MotionDecision::ServoResponseThread()
     }
     if (servo_response_pub_ != nullptr) {
       // FIXME(harvey): 伺服指令的运行结果判断机制
-      servo_response_msg_.motion_id = handler_ptr_->GetMotionStatus()->motion_id;
-      servo_response_msg_.order_process_bar = handler_ptr_->GetMotionStatus()->order_process_bar;
-      servo_response_msg_.status = handler_ptr_->GetMotionStatus()->switch_status;
-      servo_response_pub_->publish(servo_response_msg_);
+      if(!handler_ptr_->FeedbackTimeout()) {
+        INFO("motion_id: %d", handler_ptr_->GetMotionStatus()->motion_id);
+        servo_response_msg_.motion_id = handler_ptr_->GetMotionStatus()->motion_id;
+        servo_response_msg_.order_process_bar = handler_ptr_->GetMotionStatus()->order_process_bar;
+        servo_response_msg_.status = handler_ptr_->GetMotionStatus()->switch_status;
+        servo_response_pub_->publish(servo_response_msg_);
+      }
     }
   }
 }

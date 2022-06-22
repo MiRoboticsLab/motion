@@ -46,6 +46,7 @@ public:
   void UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
   bool CheckMotionResult();
+  bool FeedbackTimeout();
   void ServoDataCheck();
   void StandBy();
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
