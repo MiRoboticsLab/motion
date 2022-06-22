@@ -15,7 +15,7 @@
 
 import os
 import select
-import sys, tty, termios
+import sys, tty, termios, getopt
 # from typing import Protocol
 import rclpy
 
@@ -84,7 +84,11 @@ def switch_run():
 def keep_idle():
     return
 
-def main():
+def main(argv):
+    if len(argv) == 1:
+        end = 0
+    else:
+        end = argv[1]
     global settings
     settings = termios.tcgetattr(sys.stdin)
     rclpy.init()
@@ -183,14 +187,15 @@ def main():
         print(e)
 
     finally:
-        cmd = MotionServoCmd()
-        cmd.cmd_type = 2
-        cmd.motion_id = 1
-        # cmd.mode = 3; cmd.gait_id = 0; cmd.life_count = life_count + 1
-        cmd.pos_des.fromlist([0.0, 0.0, 0.3])
-        cmd.vel_des.fromlist([0.0, 0.0, 0.0])
-        pub.publish(cmd)
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+        if end == 'end':
+            cmd = MotionServoCmd()
+            cmd.cmd_type = 2
+            cmd.motion_id = 1
+            # cmd.mode = 3; cmd.gait_id = 0; cmd.life_count = life_count + 1
+            # cmd.pos_des.fromlist([0.0, 0.0, 0.3])
+            # cmd.vel_des.fromlist([0.0, 0.0, 0.0])
+            pub.publish(cmd)
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
