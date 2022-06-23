@@ -54,28 +54,28 @@ map  = [12, 17]
 pre_motion = [1, 3]
 post_motion = [124]
 
-# 绝对量力控姿态,保证崎岖地面能够站立，绝对量力控
+# 绝对量力控姿态,保证崎岖地面能够站立，绝对量力控，运控内部限制了站立的速度，duration=0
 [[motion_ids]]
 motion_id = 201
 map = [3, 0]    
 pre_motion = [1, 3]
 post_motion = [201]
 
-# 增量力控姿态,保证崎岖地面能够站立，增量力控
+# 增量力控姿态,保证崎岖地面能够站立，增量力控, 需要设定duration限定站立速度
 [[motion_ids]]
 motion_id = 202
 map = [3, 3]    
 pre_motion = [1, 3]
 post_motion = [202]
 
-# 位控姿态-相对姿态
+# 位控姿态-相对姿态, duration>0, 控制站立的速度
 [[motion_ids]]
 motion_id = 211
 map = [21, 0]   
 pre_motion = [1, 3]
 post_motion = [211]
 
-# 位控姿态-站立
+# 位控姿态-绝对姿态，需要给定姿态，duration>0, 控制站立的速度
 [[motion_ids]]
 motion_id = 212
 map = [21, 5]   
@@ -100,7 +100,7 @@ post_motion = [302]
 [[motion_ids]]
 motion_id = 303
 map = [11, 3]  
-pre_motion = [111, 201, 211]
+pre_motion = [111, 201, 202, 211, 303]
 post_motion = [303]
 
 # 遛狗
