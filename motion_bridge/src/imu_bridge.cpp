@@ -42,15 +42,15 @@ ImuBridge::ImuBridge(const rclcpp::Node::SharedPtr node)
     });
   lcm_handle_thread_.detach();
 
-  topic_publish_thread_ =
-  std::thread(
-  [this]() {
-    while (rclcpp::ok()) {
-      imu_pub_->publish(*imu_ros_data_);
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-  });
-  topic_publish_thread_.detach();
+  // topic_publish_thread_ =
+  // std::thread(
+  // [this]() {
+  //   while (rclcpp::ok()) {
+  //     imu_pub_->publish(*imu_ros_data_);
+  //     std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  //   }
+  // });
+  // topic_publish_thread_.detach();
 }
 
 void ImuBridge::Spin()
@@ -66,16 +66,18 @@ void ImuBridge::ReadLcm(
 {
   imu_ros_data_->header.frame_id = imu_frame_;
   imu_ros_data_->header.stamp = node_->get_clock()->now();
-  // imu_ros_data_->linear_acceleration.x = msg->acc[0];
-  // imu_ros_data_->linear_acceleration.y = msg->acc[1];
-  // imu_ros_data_->linear_acceleration.z = msg->acc[2];
-  // imu_ros_data_->angular_velocity.x = msg->omega[0];
-  // imu_ros_data_->angular_velocity.y = msg->omega[1];
-  // imu_ros_data_->angular_velocity.z = msg->omega[2];
-  // imu_ros_data_->orientation.x = msg->quat[0];
-  // imu_ros_data_->orientation.y = msg->quat[1];
-  // imu_ros_data_->orientation.z = msg->quat[2];
-  // imu_ros_data_->orientation.w = msg->quat[3];
+  imu_ros_data_->linear_acceleration.x = msg->acc[0];
+  imu_ros_data_->linear_acceleration.y = msg->acc[1];
+  imu_ros_data_->linear_acceleration.z = msg->acc[2];
+  imu_ros_data_->angular_velocity.x = msg->omega[0];
+  imu_ros_data_->angular_velocity.y = msg->omega[1];
+  imu_ros_data_->angular_velocity.z = msg->omega[2];
+  imu_ros_data_->orientation.x = msg->quat[0];
+  imu_ros_data_->orientation.y = msg->quat[1];
+  imu_ros_data_->orientation.z = msg->quat[2];
+  imu_ros_data_->orientation.w = msg->quat[3];
+  imu_pub_->publish(*imu_ros_data_);
+
 }
 }  // namespace motion
 }  // namespace cyberdog
