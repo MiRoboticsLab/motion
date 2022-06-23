@@ -42,8 +42,8 @@ void MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
     return;
   }
   robot_control_cmd_lcmt lcm_cmd;
-  lcm_cmd.mode = motion_id_map_.at(msg->motion_id).front();
-  lcm_cmd.gait_id = motion_id_map_.at(msg->motion_id).back();
+  lcm_cmd.mode = motion_id_map_.at(msg->motion_id).map.front();
+  lcm_cmd.gait_id = motion_id_map_.at(msg->motion_id).map.back();
   lcm_cmd.contact = 0;
   lcm_cmd.value = 0;
   lcm_cmd.duration = 0;
@@ -88,8 +88,8 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
     return;
   }
   robot_control_cmd_lcmt lcm_cmd;
-  lcm_cmd.mode = motion_id_map_.at(request->motion_id).front();
-  lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).back();
+  lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
+  lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
   lcm_cmd.contact = 15;
   lcm_cmd.value = 0;
   lcm_cmd.duration = request->duration;
@@ -111,7 +111,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
     lcm_cmd_.duration);
 }
 
-bool MotionAction::ParseMotionId()
+bool MotionAction::ParseMotionIdMap()
 {
   std::string motion_id_map_config = ament_index_cpp::get_package_share_directory("motion_action") +
     "/preset/" + "motion_id_map.toml";
@@ -126,27 +126,16 @@ bool MotionAction::ParseMotionId()
   }
   toml::value values;
   cyberdog::common::CyberdogToml::Get(motion_ids, "motion_ids", values);  
-  std::map<int, std::vector<std::vector<int>>> motion_id_map;
+  std::map<int16_t, MotionIdMap> motion_id_map;
   for(size_t i = 0; i < values.size(); i++) {
     auto value = values.at(i);
-    std::pair<int, std::vector<std::vector<int>>> motion_id;
-    GET_TOML_VALUE(value, "motion_id", motion_id.first);
-    std::vector<int> map, pre_motion, post_motion;
-    GET_TOML_VALUE(value, "map", map);
-    GET_TOML_VALUE(value, "pre_motion", pre_motion);
-    GET_TOML_VALUE(value, "post_motion", post_motion);
-    motion_id.second.push_back(map);
-    motion_id.second.push_back(pre_motion);
-    motion_id.second.push_back(post_motion);
-    motion_id_map.emplace(motion_id);
-  }
-  for(auto motion_id : motion_id_map)
-  {
-    INFO("---%d", motion_id.first);
-    INFO("%d, %d", motion_id.second[0][0], motion_id.second[0][1]);
-    INFO("%d, %d", motion_id.second[1][0], motion_id.second[1][1]);
-    INFO("%d, %d", motion_id.second[2][0], motion_id.second[2][1]);
-
+    int16_t motion_id;
+    MotionIdMap motion_id_map;
+    GET_TOML_VALUE(value, "motion_id", motion_id);
+    GET_TOML_VALUE(value, "map", motion_id_map.map);
+    GET_TOML_VALUE(value, "pre_motion", motion_id_map.pre_motion);
+    GET_TOML_VALUE(value, "post_motion", motion_id_map.post_motion);
+    motion_id_map_.emplace(motion_id, motion_id_map);
   }
   return true;
 }
@@ -154,7 +143,7 @@ bool MotionAction::ParseMotionId()
 bool MotionAction::Init(
   const std::string & publish_url, const std::string & subscribe_url)
 {
-  if (!ParseMotionId()) {
+  if (!ParseMotionIdMap()) {
     ERROR("Fail to parse MotionID");
     return false;
   }
@@ -209,7 +198,7 @@ void MotionAction::ReadLcm(
         // std::cout << (int)msg->mode << ";" << (int)msg->gait_id << std::endl;
         break;
       }
-      if (m->second.front() == msg->mode && m->second.back() == msg->gait_id) {
+      if (m->second.map.front() == msg->mode && m->second.map.back() == msg->gait_id) {
         last_motion_id_ = m->first;
         break;
       }

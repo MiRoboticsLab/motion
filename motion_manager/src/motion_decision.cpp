@@ -47,11 +47,10 @@ bool MotionDecision::Init(
   return true;
 }
 
-bool MotionDecision::AllowServoCmd()
+bool MotionDecision::AllowServoCmd(int16_t motion_id)
 {
   // TODO: 判断当前状态是否能够行走
-  return handler_ptr_->GetMotionStatus()->motion_id == 1 ||
-    handler_ptr_->GetMotionStatus()->motion_id ==12; 
+  return handler_ptr_->CheckPreMotion(motion_id); 
 }
 
 /**
@@ -72,11 +71,11 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
   }
 
   if (msg->cmd_type != MotionServoCmdMsg::SERVO_END){
-    if(!AllowServoCmd()) {
+    if(!AllowServoCmd(msg->motion_id)) {
       if (retry_ < max_retry_) {
         MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
         MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
-        request->motion_id = 1;
+        request->motion_id = 111;
         INFO("Trying to be ready for ServoCmd");
         handler_ptr_->HandleResultCmd(request, response);
         if (!response->result) {

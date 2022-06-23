@@ -43,7 +43,8 @@ public:
       FATAL("Cannot parse %s", cmd_preset.c_str());
       exit(-1);
     }
-    GET_TOML_VALUE(value, "motion_id", req->motion_id);
+    // GET_TOML_VALUE(value, "motion_id", req->motion_id);
+    req->motion_id = std::atoi(argv[1]);
     GET_TOML_VALUE(value, "vel_des", req->vel_des);
     GET_TOML_VALUE(value, "rpy_des", req->rpy_des);
     GET_TOML_VALUE(value, "pos_des", req->pos_des);

@@ -1,5 +1,4 @@
-# 慢走 gait_id: 21
-motion_id = 13
+# 自变频行走
 cmd_type = 0 
 vel_des = [0.1, 0.0, 0.0]
 rpy_des = [0.0, 0.0, 0.0]

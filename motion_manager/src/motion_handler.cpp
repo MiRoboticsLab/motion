@@ -40,6 +40,7 @@ bool MotionHandler::Init()
     std::bind(&MotionHandler::UpdateMotionStatus, this, std::placeholders::_1));
   motion_status_ptr_.reset(new MotionStatusMsg);
   motion_status_ptr_->motor_error.resize(12);
+  motion_id_map_ = action_ptr_->GetMotionIdMap();
   return true;
 }
 
@@ -98,16 +99,15 @@ void MotionHandler::ServoDataCheck()
 void MotionHandler::StandBy()
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-  request->motion_id = 1;
-  request->pos_des = std::vector<float>{0.0, 0.0, 0.3};
+  request->motion_id = 202;
+  // request->pos_des = std::vector<float>{0.0, 0.0, 0.3};
   action_ptr_->Execute(request);
 }
 
 bool MotionHandler::CheckMotionResult()
 {
-
   bool result = true;
-  for (auto e : motion_status_ptr_->motor_error){
+  for (auto e : motion_status_ptr_->motor_error) {
     result = (e == 0 || e == kMotorNormal);
   }
   return motion_status_ptr_->ori_error == 0 &&
@@ -118,8 +118,8 @@ bool MotionHandler::CheckMotionResult()
 bool MotionHandler::FeedbackTimeout()
 {
   std::unique_lock<std::mutex> feedback_lk(feedback_mutex_);
-  return feedback_cv_.wait_for(feedback_lk, std::chrono::milliseconds(kAcitonLcmReadTimeout))==
-      std::cv_status::timeout;
+  return feedback_cv_.wait_for(feedback_lk, std::chrono::milliseconds(kAcitonLcmReadTimeout)) ==
+         std::cv_status::timeout;
 }
 
 /**
@@ -133,8 +133,7 @@ void MotionHandler::HandleResultCmd(
   MotionResultSrv::Response::SharedPtr response)
 {
   action_ptr_->Execute(request);
-  if(FeedbackTimeout())
-  {
+  if (FeedbackTimeout()) {
     response->code = (int32_t)MotionCode::kReadLcmTimeout;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
@@ -188,7 +187,6 @@ void MotionHandler::HandleResultCmd(
   response->code = (int32_t)MotionCode::kOK;
   response->result = true;
   response->motion_id = motion_status_ptr_->motion_id;
-  return;
 }
 
 /**
@@ -228,6 +226,14 @@ void MotionHandler::UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_
 MotionStatusMsg::SharedPtr MotionHandler::GetMotionStatus()
 {
   return motion_status_ptr_;
+}
+
+bool MotionHandler::CheckPreMotion(int16_t motion_id)
+{
+  std::vector<int16_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;
+  return std::find(
+    pre_motion.begin(), pre_motion.end(),
+    motion_status_ptr_->motion_id) != pre_motion.end();
 }
 
 }  // namespace motion

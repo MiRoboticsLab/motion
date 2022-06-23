@@ -50,12 +50,6 @@ bool MotionManager::Init()
     "motion_servo_response", 10);
   decision_ptr_ = std::make_shared<MotionDecision>();
   decision_ptr_->Init(motion_servo_pub_);
-  // action_ptr_->Init();
-
-  // action_ptr_->RegisterFeedback(
-  //   std::bind(
-  //     &MotionHandler::Checkout, this->handler_ptr_,
-  //     std::placeholders::_1));
   motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
     "motion_servo_cmd", rclcpp::SystemDefaultsQoS(),
     std::bind(&MotionManager::MotionServoCmdCallback, this, std::placeholders::_1));

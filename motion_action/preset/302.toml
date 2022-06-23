@@ -1,5 +1,4 @@
-# 快跑
-motion_id = 5
+# 四足小跳
 cmd_type = 0 
 vel_des = [0.1, 0.0, 0.0]
 rpy_des = [0.0, 0.0, 0.0]

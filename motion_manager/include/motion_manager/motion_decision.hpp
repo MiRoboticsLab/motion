@@ -72,7 +72,7 @@ private:
   // void ServoDataCheck();
   void StopMotion();
   void ServoResponseThread();
-  bool AllowServoCmd();
+  bool AllowServoCmd(int16_t motion_id);
   /**
    * @brief 设置工作状态
    *        后续考虑改成Handler持有的status，并且放在macros里面

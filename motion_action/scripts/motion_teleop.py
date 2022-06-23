@@ -117,7 +117,7 @@ def main(argv):
       print(msg)
       print(vels(speed, turn))
       while(1):
-          motion_id = 12
+          motion_id = 303
           key = getKey()
           if key in moveBindings.keys():
               x = moveBindings[key][0]
@@ -190,7 +190,7 @@ def main(argv):
         if end == 'end':
             cmd = MotionServoCmd()
             cmd.cmd_type = 2
-            cmd.motion_id = 1
+            cmd.motion_id = 202
             # cmd.mode = 3; cmd.gait_id = 0; cmd.life_count = life_count + 1
             # cmd.pos_des.fromlist([0.0, 0.0, 0.3])
             # cmd.vel_des.fromlist([0.0, 0.0, 0.0])

@@ -41,6 +41,12 @@ namespace cyberdog
 namespace motion
 {
 
+struct MotionIdMap
+{
+  std::vector<int16_t> map; 
+  std::vector<int16_t> pre_motion; 
+  std::vector<int16_t> post_motion; 
+};
 
 inline bool CompareLcmResponse(const LcmResponse & res1, const LcmResponse & res2)
 {
@@ -72,13 +78,14 @@ public:
     const std::string & publish_url = kActionPublishURL,
     const std::string & subscribe_url = kActionSubscibeURL);
   bool SelfCheck();
+  std::map<int16_t, MotionIdMap> GetMotionIdMap() { return motion_id_map_; };
 
 private:
   void WriteLcm();
   void ReadLcm(
     const lcm::ReceiveBuffer *, const std::string &,
     const robot_control_response_lcmt * msg);
-  bool ParseMotionId();
+  bool ParseMotionIdMap();
 
 private:
   std::thread control_thread_, response_thread_;
@@ -90,7 +97,7 @@ private:
   std::string lcm_publish_channel_, lcm_subscribe_channel_;
   int8_t last_res_mode_, last_res_gait_id_, last_motion_id_;
   int8_t life_count_;
-  std::map<int32_t, std::vector<int8_t>> motion_id_map_;
+  std::map<int16_t, MotionIdMap> motion_id_map_;
   bool lcm_cmd_init_, ins_init_;
   LOGGER_MINOR_INSTANCE("MotionAction");
 };  // class MotionAction
