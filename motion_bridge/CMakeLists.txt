@@ -17,6 +17,7 @@ find_package(grid_map REQUIRED)
 find_package(grid_map_core REQUIRED)
 find_package(grid_map_ros REQUIRED)
 find_package(grid_map_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -31,7 +32,8 @@ set(dependencies
   grid_map
   grid_map_core
   grid_map_ros
-  grid_map_msgs)
+  grid_map_msgs
+  sensor_msgs)
 
 include_directories(include)
 
@@ -48,6 +50,11 @@ add_executable(as_controller
 target_link_libraries(as_controller lcm)
 ament_target_dependencies(as_controller ${dependencies})
 
+add_executable(imu_bridge
+  src/imu_bridge.cpp)
+target_link_libraries(imu_bridge lcm)
+ament_target_dependencies(imu_bridge ${dependencies})
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -60,7 +67,7 @@ if(BUILD_TESTING)
 endif()
 
 install(TARGETS
-  ${PROJECT_NAME} as_controller
+  ${PROJECT_NAME} as_controller imu_bridge
   DESTINATION lib/${PROJECT_NAME}
 )
 ament_export_dependencies(${dependencies})
