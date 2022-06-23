@@ -95,7 +95,7 @@ private:
   robot_control_cmd_lcmt lcm_cmd_;
   uint8_t lcm_publish_duration_;
   std::string lcm_publish_channel_, lcm_subscribe_channel_;
-  int8_t last_res_mode_, last_res_gait_id_, last_motion_id_;
+  int16_t last_res_mode_, last_res_gait_id_, last_motion_id_;
   int8_t life_count_;
   std::map<int16_t, MotionIdMap> motion_id_map_;
   bool lcm_cmd_init_, ins_init_;
