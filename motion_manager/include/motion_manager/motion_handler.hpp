@@ -48,16 +48,17 @@ public:
   bool CheckMotionResult();
   bool FeedbackTimeout();
   void ServoDataCheck();
-  void StandBy();
+  void PoseControldefinitively();
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
-  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg);
+  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg& res);
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
   void HandleResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
   bool CheckPreMotion(int16_t motion_id);
-
+  bool AllowServoCmd(int16_t motion_id);
+  bool isCommandValid(const MotionResultSrv::Request::SharedPtr request);
 public:
   /* 考虑重构的API */
   bool IsIdle() {return true;}
@@ -141,6 +142,7 @@ private:
   std::map<int16_t, MotionIdMap> motion_id_map_;
   int32_t wait_id_;
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
+  uint8_t retry_ {0}, max_retry_{3};
 
 };  // class MotionHandler
 }  // namespace motion

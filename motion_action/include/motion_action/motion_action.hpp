@@ -46,6 +46,7 @@ struct MotionIdMap
   std::vector<int16_t> map;
   std::vector<int16_t> pre_motion;
   std::vector<int16_t> post_motion;
+  int16_t min_exec_time;
 };  // struct MotionIdMap
 
 inline bool CompareLcmResponse(const LcmResponse & res1, const LcmResponse & res2)

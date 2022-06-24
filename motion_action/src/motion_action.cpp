@@ -130,6 +130,7 @@ bool MotionAction::ParseMotionIdMap()
     GET_TOML_VALUE(value, "map", motion_id_map.map);
     GET_TOML_VALUE(value, "pre_motion", motion_id_map.pre_motion);
     GET_TOML_VALUE(value, "post_motion", motion_id_map.post_motion);
+    GET_TOML_VALUE(value, "min_exec_time", motion_id_map.min_exec_time);
     motion_id_map_.emplace(motion_id, motion_id_map);
   }
   return true;

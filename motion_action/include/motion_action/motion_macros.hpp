@@ -104,6 +104,16 @@ struct ServoClick
   std::atomic_bool data_ {false};
 };  // struct HeartQueue
 
+enum class MotionID : int16_t
+{
+  kGetDown = 101,
+  kRecoveryStand = 111,
+  kForceControlRelatively = 201,
+  kForceControldefinitively = 202,
+  kPoseControlRelatively = 211,
+  kPoseControldefinitively = 212
+};  // enmu calss MotionID
+
 /**
  * @brief 运动模型状态记录， 后续考虑重构为Handler状态
  *
@@ -119,12 +129,13 @@ enum class DecisionStatus : uint8_t
 enum class MotionCode : int32_t
 {
   kOK = 0,
-  kReadLcmTimeout = (int32_t)system::ModuleCode::kMotion + 30,
+  kCommandInvalid = (int32_t)system::ModuleCode::kMotion + 10,
+  kReadLcmTimeout = (int32_t)system::ModuleCode::kMotion + 20,
   kSwitchError = (int32_t)system::ModuleCode::kMotion + 31,
   kTransitionTimeout = (int32_t)system::ModuleCode::kMotion + 32,
   kExecuteTimeout = (int32_t)system::ModuleCode::kMotion + 33,
   kExecuteError = (int32_t)system::ModuleCode::kMotion + 34,
-  kStateError = (int32_t)system::ModuleCode::kMotion + 35
+  kStateError = (int32_t)system::ModuleCode::kMotion + 40
 };  // enum class MotionCode
 }  // namespace motion
 }  // namespace cyberdog

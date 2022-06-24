@@ -42,11 +42,11 @@ bool MotionDecision::Init(
   return true;
 }
 
-bool MotionDecision::AllowServoCmd(int16_t motion_id)
-{
-  // TODO: 判断当前状态是否能够行走
-  return handler_ptr_->CheckPreMotion(motion_id);
-}
+// bool MotionDecision::AllowServoCmd(int16_t motion_id)
+// {
+//   // TODO: 判断当前状态是否能够行走
+//   return handler_ptr_->CheckPreMotion(motion_id);
+// }
 
 /**
  * @brief 伺服指令接收入口
@@ -66,25 +66,25 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
   }
 
   if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
-    if (!AllowServoCmd(msg->motion_id)) {
-      if (retry_ < max_retry_) {
-        MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-        MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
-        request->motion_id = 111;
-        INFO("Trying to be ready for ServoCmd");
-        handler_ptr_->HandleResultCmd(request, response);
-        if (!response->result) {
-          retry_++;
-        } else {
-          retry_ = 0;
-        }
-      } else {
-        servo_response_msg_.result = false;
-        servo_response_msg_.code = (int32_t)MotionCode::kSwitchError;
-      }
-      return;
-    }
-    handler_ptr_->HandleServoDataFrame(msg);
+    // if (!AllowServoCmd(msg->motion_id)) {
+    //   if (retry_ < max_retry_) {
+    //     MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
+    //     MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
+    //     request->motion_id = 111;
+    //     INFO("Trying to be ready for ServoCmd");
+    //     handler_ptr_->HandleResultCmd(request, response);
+    //     if (!response->result) {
+    //       retry_++;
+    //     } else {
+    //       retry_ = 0;
+    //     }
+    //   } else {
+    //     servo_response_msg_.result = false;
+    //     servo_response_msg_.code = (int32_t)MotionCode::kSwitchError;
+    //   }
+    //   return;
+    // }
+    handler_ptr_->HandleServoDataFrame(msg, servo_response_msg_);
   } else {
     handler_ptr_->HandleServoEndFrame(msg);
     // SetServoResponse();
