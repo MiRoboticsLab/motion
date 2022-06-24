@@ -297,6 +297,9 @@ bool MotionHandler::AllowServoCmd(int16_t motion_id)
 
 bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr request)
 {
+  if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
+    return false;
+  }
   bool result = true;
   auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
   if(min_exec_time > 0) {
@@ -304,7 +307,10 @@ bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr req
   } else if(min_exec_time < 0) {
     result = request->duration > 0;
   } else {}
-  return result;
+  if(!result) {
+    return false;
+  }
+  return true;
 }
 
 }  // namespace motion
