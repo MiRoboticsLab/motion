@@ -12,7 +12,7 @@ motion_id = 101
 map = [7, 0]    
 pre_motion = [0, 101, 111, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
 post_motion = [0, 101, 111]
-min_exec_time = 1000
+min_exec_time = 5000
 
 # 高阻尼趴下
 # [[motion_ids]]
@@ -27,7 +27,7 @@ motion_id = 111
 map  = [12, 0]   
 pre_motion = [0, 101, 111, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
 post_motion = [0, 101, 111, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
-min_exec_time = 1000
+min_exec_time = 5000
 
 # 后空翻， duration必须为0
 [[motion_ids]]
@@ -66,7 +66,7 @@ motion_id = 201
 map = [3, 0]    
 pre_motion = [111, 121, 202, 211, 212, 301, 302, 303, 304, 305]
 post_motion = [101, 111, 121, 201, 202, 301, 302, 303, 304, 305]
-min_exec_time = 1000
+min_exec_time = 5000
 
 # 增量力控姿态,保证崎岖地面能够站立，增量力控, duration控制站立速度，duration必须大于0
 [[motion_ids]]
