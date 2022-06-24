@@ -26,8 +26,7 @@ public:
   SimMotionClient(const std::string & name)
   {
     node_ptr_ = rclcpp::Node::make_shared(name);
-
-    motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>("motion_result_cmd");
+    motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>(cyberdog::motion::kMotionResultServiceName);
   }
 
   void Run(int argc, char ** argv)

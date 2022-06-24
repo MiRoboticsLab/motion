@@ -44,7 +44,6 @@ private:
   void ReadLcm(
     const lcm::ReceiveBuffer *, const std::string &,
     const microstrain_lcmt * msg);
-    // const robot_control_response_lcmt * msg);
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<lcm::LCM> lcm_subscribe_instance_;
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_ {nullptr};
@@ -52,8 +51,8 @@ private:
   microstrain_lcmt imu_lcm_data_;
   robot_control_response_lcmt response_lcm_data_;
   std::thread topic_publish_thread_, lcm_handle_thread_;
-  std::string imu_frame_;
+  std::string imu_frame_{"imu"};
 };  // class ImuBridge
 }  // namespace motion
 }  // namespace cyberdog
-#endif  // MOTION_BRIDGE__ELEVATION_BRIDGE_HPP_
+#endif  // MOTION_BRIDGE__IMU_BRIDGE_HPP_

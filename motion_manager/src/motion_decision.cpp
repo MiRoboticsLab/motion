@@ -22,13 +22,8 @@ namespace motion
 {
 
 MotionDecision::MotionDecision()
-{
-  // action_ptr = std::make_shared<MotionAction>();
-  // motion_status_ptr_ = std::make_shared<MotionStatusMsg>();
-  // motion_status_ptr_->motor_error.resize(12);
-  // servo_check_click_ = std::make_shared<ServoClick>();
-  // ResetServoResponseMsg();
-}
+{}
+
 MotionDecision::~MotionDecision() {}
 
 void MotionDecision::Config() {}
@@ -50,7 +45,7 @@ bool MotionDecision::Init(
 bool MotionDecision::AllowServoCmd(int16_t motion_id)
 {
   // TODO: 判断当前状态是否能够行走
-  return handler_ptr_->CheckPreMotion(motion_id); 
+  return handler_ptr_->CheckPreMotion(motion_id);
 }
 
 /**
@@ -70,8 +65,8 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
     return;
   }
 
-  if (msg->cmd_type != MotionServoCmdMsg::SERVO_END){
-    if(!AllowServoCmd(msg->motion_id)) {
+  if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
+    if (!AllowServoCmd(msg->motion_id)) {
       if (retry_ < max_retry_) {
         MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
         MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
@@ -90,8 +85,7 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
       return;
     }
     handler_ptr_->HandleServoDataFrame(msg);
-  }
-  else {
+  } else {
     handler_ptr_->HandleServoEndFrame(msg);
     // SetServoResponse();
   }
@@ -110,7 +104,7 @@ void MotionDecision::ServoResponseThread()
     }
     if (servo_response_pub_ != nullptr) {
       // FIXME(harvey): 伺服指令的运行结果判断机制
-      if(!handler_ptr_->FeedbackTimeout()) {
+      if (!handler_ptr_->FeedbackTimeout()) {
         INFO("motion_id: %d", handler_ptr_->GetMotionStatus()->motion_id);
         servo_response_msg_.motion_id = handler_ptr_->GetMotionStatus()->motion_id;
         servo_response_msg_.order_process_bar = handler_ptr_->GetMotionStatus()->order_process_bar;

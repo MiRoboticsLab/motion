@@ -47,16 +47,16 @@ bool MotionManager::Init()
   }
 
   motion_servo_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
-    "motion_servo_response", 10);
+    kMotionServoResponseTopicName, 10);
   decision_ptr_ = std::make_shared<MotionDecision>();
   decision_ptr_->Init(motion_servo_pub_);
   motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
-    "motion_servo_cmd", rclcpp::SystemDefaultsQoS(),
+    kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS(),
     std::bind(&MotionManager::MotionServoCmdCallback, this, std::placeholders::_1));
 
   motion_result_srv_ =
     node_ptr_->create_service<MotionResultSrv>(
-    "motion_result_cmd",
+    kMotionResultServiceName,
     std::bind(
       &MotionManager::MotionResultCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2));

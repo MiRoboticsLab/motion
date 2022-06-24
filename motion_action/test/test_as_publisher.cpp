@@ -26,8 +26,8 @@ public:
   SimMotionPublisher(const std::string & name)
   {
     node_ptr_ = rclcpp::Node::make_shared(name);
-    motion_cmd_pub_ = node_ptr_->create_publisher<protocol::msg::MotionServoCmd>("motion_servo_cmd", rclcpp::SystemDefaultsQoS());
-    moiton_result_queue_pub_ = node_ptr_->create_publisher<std_msgs::msg::Int16>("motion_result_queue", rclcpp::SystemDefaultsQoS());
+    motion_cmd_pub_ = node_ptr_->create_publisher<protocol::msg::MotionServoCmd>(cyberdog::motion::kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS());
+    moiton_result_queue_pub_ = node_ptr_->create_publisher<std_msgs::msg::Int16>(cyberdog::motion::kMotionQueueCommandTopicName, rclcpp::SystemDefaultsQoS());
   }
 
   void Run(char ** argv)

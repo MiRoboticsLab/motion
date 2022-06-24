@@ -55,7 +55,7 @@ private:
   std::shared_ptr<lcm::LCM> lcm_;
   rclcpp::Subscription<grid_map_msgs::msg::GridMap>::SharedPtr gridmap_sub_;
   heightmap_t elevation_;
-  std::string map_frame_, odom_frame_, base_frame_, cam_frame_;
+  std::string map_frame_{"map"}, odom_frame_{"odom_out"}, base_frame_{"base_link"};
 };  // class ElevationBridge
 }  // namespace motion
 }  // namespace cyberdog

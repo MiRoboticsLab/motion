@@ -32,12 +32,21 @@ using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 
 constexpr uint8_t kActionLcmPublishFrequency = 20;
+constexpr uint8_t kServoDataLostTimesThreshold = 4;
 constexpr uint16_t kTransitioningTimeout = 3000; // millisecond
 constexpr uint16_t kAcitonLcmReadTimeout = 1000; // millisecond
 constexpr int kMotorNormal = -2147483648;
 constexpr const char * kActionPublishURL = "udpm://239.255.76.67:7671?ttl=255";
 constexpr const char * kActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=255";
 constexpr const char * kBirdgeSubscribeURL = "udpm://239.255.76.67:7667?ttl=255";
+constexpr const char * kActionControlChannel = "robot_control_cmd";
+constexpr const char * kActionResponseChannel = "robot_control_response";
+constexpr const char * kBridgeImuChannel = "external_imu";
+constexpr const char * kBridgeElevationChannel = "local_heightmap";
+constexpr const char * kMotionServoCommandTopicName = "motion_servo_cmd";
+constexpr const char * kMotionServoResponseTopicName = "motion_servo_response";
+constexpr const char * kMotionResultServiceName = "motion_result_cmd";
+constexpr const char * kMotionQueueCommandTopicName = "motion_queue_cmd";
 
 // a: src, b: des, c: size, d: description
 #define GET_VALUE(a, b, c, d) \
@@ -107,7 +116,6 @@ enum class DecisionStatus : uint8_t
 };  // enum class DecisionStatus
 
 // 所有的motion相关code都从300开始，该值为全局架构设计分配
-// constexpr int32_t BaseCode = (int32_t)system::ModuleCode::kMotion;
 enum class MotionCode : int32_t
 {
   kOK = 0,

@@ -22,11 +22,6 @@ namespace cyberdog
 namespace motion
 {
 MotionAction::MotionAction()
-: lcm_publish_channel_("robot_control_cmd"),
-  lcm_subscribe_channel_("robot_control_response"),
-  last_res_mode_(0), last_res_gait_id_(0), last_motion_id_(0),
-  life_count_(0),
-  lcm_cmd_init_(false), ins_init_(false)
 {}
 
 MotionAction::~MotionAction() {}
@@ -57,7 +52,7 @@ void MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
-  lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+  lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
   lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
@@ -70,7 +65,7 @@ void MotionAction::Execute(const robot_control_cmd_lcmt & lcm)
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm;
   lcm_cmd_.life_count = life_count_++;
-  lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+  lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
   lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
@@ -103,7 +98,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
-  lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+  lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
   lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
@@ -120,14 +115,14 @@ bool MotionAction::ParseMotionIdMap()
     FATAL("Cannot parse %s", motion_id_map_config.c_str());
     return false;
   }
-  if(!motion_ids.is_table()) {
+  if (!motion_ids.is_table()) {
     FATAL("Toml format error");
     exit(-1);
   }
   toml::value values;
-  cyberdog::common::CyberdogToml::Get(motion_ids, "motion_ids", values);  
+  cyberdog::common::CyberdogToml::Get(motion_ids, "motion_ids", values);
   std::map<int16_t, MotionIdMap> motion_id_map;
-  for(size_t i = 0; i < values.size(); i++) {
+  for (size_t i = 0; i < values.size(); i++) {
     auto value = values.at(i);
     int16_t motion_id;
     MotionIdMap motion_id_map;
@@ -150,7 +145,7 @@ bool MotionAction::Init(
   lcm_publish_duration_ = 1 / static_cast<float>(kActionLcmPublishFrequency) * 1000;
   lcm_publish_instance_ = std::make_shared<lcm::LCM>(publish_url);
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
-  lcm_subscribe_instance_->subscribe(lcm_subscribe_channel_, &MotionAction::ReadLcm, this);
+  lcm_subscribe_instance_->subscribe(kActionResponseChannel, &MotionAction::ReadLcm, this);
   control_thread_ = std::thread(&MotionAction::WriteLcm, this);
   control_thread_.detach();
   response_thread_ =
@@ -183,7 +178,9 @@ void MotionAction::ReadLcm(
   const robot_control_response_lcmt * msg)
 {
   // TODO
-  INFO("bar:%d, mod:%d, gid:%d, sws:%d, fer:%d", msg->order_process_bar, msg->mode, msg->gait_id, msg->switch_status, msg->footpos_error);
+  INFO(
+    "bar:%d, mod:%d, gid:%d, sws:%d, fer:%d", msg->order_process_bar, msg->mode, msg->gait_id,
+    msg->switch_status, msg->footpos_error);
   protocol::msg::MotionStatus::SharedPtr lcm_res(new protocol::msg::MotionStatus);
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
     last_res_mode_ = msg->mode;
@@ -224,7 +221,7 @@ void MotionAction::WriteLcm()
   while (lcm_publish_instance_->good()) {
     if (lcm_cmd_init_) {
       std::unique_lock<std::mutex> lk(lcm_write_mutex_);
-      lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+      lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(lcm_publish_duration_));
   }

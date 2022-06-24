@@ -43,10 +43,10 @@ namespace motion
 
 struct MotionIdMap
 {
-  std::vector<int16_t> map; 
-  std::vector<int16_t> pre_motion; 
-  std::vector<int16_t> post_motion; 
-};
+  std::vector<int16_t> map;
+  std::vector<int16_t> pre_motion;
+  std::vector<int16_t> post_motion;
+};  // struct MotionIdMap
 
 inline bool CompareLcmResponse(const LcmResponse & res1, const LcmResponse & res2)
 {
@@ -78,7 +78,7 @@ public:
     const std::string & publish_url = kActionPublishURL,
     const std::string & subscribe_url = kActionSubscibeURL);
   bool SelfCheck();
-  std::map<int16_t, MotionIdMap> GetMotionIdMap() { return motion_id_map_; };
+  std::map<int16_t, MotionIdMap> GetMotionIdMap() {return motion_id_map_;}
 
 private:
   void WriteLcm();
@@ -94,11 +94,10 @@ private:
   std::mutex lcm_write_mutex_;
   robot_control_cmd_lcmt lcm_cmd_;
   uint8_t lcm_publish_duration_;
-  std::string lcm_publish_channel_, lcm_subscribe_channel_;
-  int16_t last_res_mode_, last_res_gait_id_, last_motion_id_;
-  int8_t life_count_;
+  int16_t last_res_mode_{0}, last_res_gait_id_{0}, last_motion_id_{0};
+  int8_t life_count_{0};
   std::map<int16_t, MotionIdMap> motion_id_map_;
-  bool lcm_cmd_init_, ins_init_;
+  bool lcm_cmd_init_{false}, ins_init_{false};
   LOGGER_MINOR_INSTANCE("MotionAction");
 };  // class MotionAction
 }  // namespace motion

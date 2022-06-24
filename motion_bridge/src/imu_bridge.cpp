@@ -21,14 +21,11 @@ namespace cyberdog
 namespace motion
 {
 ImuBridge::ImuBridge(const rclcpp::Node::SharedPtr node)
-: imu_frame_("imu")
 {
   node_ = node;
   imu_pub_ = node->create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SystemDefaultsQoS());
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(kBirdgeSubscribeURL);
-  lcm_subscribe_instance_->subscribe("external_imu", &ImuBridge::ReadLcm, this);
-  // lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(kActionSubscibeURL);
-  // lcm_subscribe_instance_->subscribe("robot_control_response", &ImuBridge::ReadLcm, this);
+  lcm_subscribe_instance_->subscribe(kBridgeImuChannel, &ImuBridge::ReadLcm, this);
   imu_ros_data_.reset(new sensor_msgs::msg::Imu);
 
   lcm_handle_thread_ =
@@ -41,16 +38,6 @@ ImuBridge::ImuBridge(const rclcpp::Node::SharedPtr node)
       }
     });
   lcm_handle_thread_.detach();
-
-  // topic_publish_thread_ =
-  // std::thread(
-  // [this]() {
-  //   while (rclcpp::ok()) {
-  //     imu_pub_->publish(*imu_ros_data_);
-  //     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  //   }
-  // });
-  // topic_publish_thread_.detach();
 }
 
 void ImuBridge::Spin()
@@ -62,7 +49,6 @@ void ImuBridge::Spin()
 void ImuBridge::ReadLcm(
   const lcm::ReceiveBuffer *, const std::string &,
   const microstrain_lcmt * msg)
-  // const robot_control_response_lcmt * msg)
 {
   imu_ros_data_->header.frame_id = imu_frame_;
   imu_ros_data_->header.stamp = node_->get_clock()->now();
@@ -82,7 +68,7 @@ void ImuBridge::ReadLcm(
 }  // namespace motion
 }  // namespace cyberdog
 
-int main(int argc, char const *argv[])
+int main(int argc, char const * argv[])
 {
   rclcpp::init(argc, argv);
   rclcpp::Node::SharedPtr node(new rclcpp::Node("test_imu_bridege"));

@@ -23,7 +23,6 @@ namespace motion
 MotionHandler::MotionHandler()
 {}
 
-
 MotionHandler::~MotionHandler()
 {}
 
@@ -78,8 +77,8 @@ void MotionHandler::ServoDataCheck()
     } else {
       server_check_error_counter_ = 0;
     }
-    if (server_check_error_counter_ >= 4) {
-      WARN("Servo data lost time with 4 times");
+    if (server_check_error_counter_ >= kServoDataLostTimesThreshold) {
+      WARN("Servo data lost time with %d times", kServoDataLostTimesThreshold);
       // StopServoResponse();
       // SetServoDataLost(); TODO(harvey): 是否通知Decision？
       StandBy();
