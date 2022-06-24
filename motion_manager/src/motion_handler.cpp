@@ -100,7 +100,7 @@ void MotionHandler::ServoDataCheck()
       WARN("Servo data lost time with %d times", kServoDataLostTimesThreshold);
       // StopServoResponse();
       // SetServoDataLost(); TODO(harvey): 是否通知Decision？
-      PoseControldefinitively();
+      PoseControlDefinitively();
       SetServoNeedCheck(false);
       // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
       // SetWorkStatus(DecisionStatus::kIdle);
@@ -114,7 +114,7 @@ void MotionHandler::ServoDataCheck()
  *        后续计划改成调用当前动作的状态机结束动作，而不是写死
  *
  */
-void MotionHandler::PoseControldefinitively()
+void MotionHandler::PoseControlDefinitively()
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
   request->motion_id = (int32_t)MotionID::kPoseControldefinitively;
