@@ -280,6 +280,9 @@ MotionStatusMsg::SharedPtr MotionHandler::GetMotionStatus()
 
 bool MotionHandler::CheckPreMotion(int16_t motion_id)
 {
+  if(motion_id == (int16_t)MotionID::kRecoveryStand) {
+    return true;
+  }
   std::vector<int16_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;
   return std::find(
     pre_motion.begin(), pre_motion.end(),
@@ -301,6 +304,7 @@ bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr req
   } else if(min_exec_time < 0) {
     result = request->duration > 0;
   } else {}
+  return result;
 }
 
 }  // namespace motion
