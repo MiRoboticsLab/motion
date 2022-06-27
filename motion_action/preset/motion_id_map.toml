@@ -50,7 +50,7 @@ motion_id = 123
 map  = [64, 0]   
 pre_motion = [111, 211, 212]
 post_motion = [0, 101, 111]
-min_exec_time = 8000
+min_exec_time = 10000
 
 # 向左侧躺下后恢复站立（向左打滚一圈）， duration必须为0
 [[motion_ids]]
