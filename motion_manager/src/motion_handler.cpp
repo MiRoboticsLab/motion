@@ -166,8 +166,8 @@ void MotionHandler::HandleResultCmd(
       response->code = (int32_t)MotionCode::kExecuteError;
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
+      return;
     }
-    return;
   }
   action_ptr_->Execute(request);
   if (FeedbackTimeout()) {
