@@ -2,7 +2,7 @@
 [[motion_ids]]
 motion_id = 0     
 map = [0, 0]     
-pre_motion = [0]
+pre_motion = [0, 101, 111, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
 post_motion = [0, 101, 111, 211, 212]
 min_exec_time = -1
 

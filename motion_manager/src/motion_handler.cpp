@@ -182,7 +182,8 @@ void MotionHandler::HandleResultCmd(
   INFO("sws:%d", motion_status_ptr_->switch_status);
   if (motion_status_ptr_->switch_status == MotionStatusMsg::BAN_TRANS ||
     motion_status_ptr_->switch_status == MotionStatusMsg::EDAMP ||
-    motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP)
+    motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP ||
+    motion_status_ptr_->switch_status == MotionStatusMsg::LIFTED)
   {
     response->code = (int32_t)MotionCode::kSwitchError;
     response->result = false;
@@ -280,7 +281,7 @@ MotionStatusMsg::SharedPtr MotionHandler::GetMotionStatus()
 
 bool MotionHandler::CheckPreMotion(int16_t motion_id)
 {
-  if(motion_id == (int16_t)MotionID::kRecoveryStand) {
+  if(motion_id == (int16_t)MotionID::kRecoveryStand || motion_id == (int16_t)MotionID::kEstop) {
     return true;
   }
   std::vector<int16_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;

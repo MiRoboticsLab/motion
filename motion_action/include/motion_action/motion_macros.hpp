@@ -106,6 +106,7 @@ struct ServoClick
 
 enum class MotionID : int16_t
 {
+  kEstop = 0,
   kGetDown = 101,
   kRecoveryStand = 111,
   kForceControlRelatively = 201,
