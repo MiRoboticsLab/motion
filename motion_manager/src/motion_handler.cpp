@@ -279,18 +279,18 @@ MotionStatusMsg::SharedPtr MotionHandler::GetMotionStatus()
   return motion_status_ptr_;
 }
 
-bool MotionHandler::CheckPreMotion(int16_t motion_id)
+bool MotionHandler::CheckPreMotion(int32_t motion_id)
 {
-  if(motion_id == (int16_t)MotionID::kRecoveryStand || motion_id == (int16_t)MotionID::kEstop) {
+  if(motion_id == (int32_t)MotionID::kRecoveryStand || motion_id == (int32_t)MotionID::kEstop) {
     return true;
   }
-  std::vector<int16_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;
+  std::vector<int32_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;
   return std::find(
     pre_motion.begin(), pre_motion.end(),
     motion_status_ptr_->motion_id) != pre_motion.end();
 }
 
-bool MotionHandler::AllowServoCmd(int16_t motion_id)
+bool MotionHandler::AllowServoCmd(int32_t motion_id)
 {
   // TODO: 判断当前状态是否能够行走
   return CheckPreMotion(motion_id);

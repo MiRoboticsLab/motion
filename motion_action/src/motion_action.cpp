@@ -121,10 +121,10 @@ bool MotionAction::ParseMotionIdMap()
   }
   toml::value values;
   cyberdog::common::CyberdogToml::Get(motion_ids, "motion_ids", values);
-  std::map<int16_t, MotionIdMap> motion_id_map;
+  std::map<int32_t, MotionIdMap> motion_id_map;
   for (size_t i = 0; i < values.size(); i++) {
     auto value = values.at(i);
-    int16_t motion_id;
+    int32_t motion_id;
     MotionIdMap motion_id_map;
     GET_TOML_VALUE(value, "motion_id", motion_id);
     GET_TOML_VALUE(value, "map", motion_id_map.map);

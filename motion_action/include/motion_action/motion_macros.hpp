@@ -104,7 +104,7 @@ struct ServoClick
   std::atomic_bool data_ {false};
 };  // struct HeartQueue
 
-enum class MotionID : int16_t
+enum class MotionID : int32_t
 {
   kEstop = 0,
   kGetDown = 101,

@@ -56,8 +56,8 @@ public:
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
-  bool CheckPreMotion(int16_t motion_id);
-  bool AllowServoCmd(int16_t motion_id);
+  bool CheckPreMotion(int32_t motion_id);
+  bool AllowServoCmd(int32_t motion_id);
   bool isCommandValid(const MotionResultSrv::Request::SharedPtr request);
 public:
   /* 考虑重构的API */
@@ -139,7 +139,7 @@ private:
   bool is_transitioning_wait_ {false};
   bool is_execute_wait_ {false};
   std::unordered_map<int32_t, int> min_duration_map_;
-  std::map<int16_t, MotionIdMap> motion_id_map_;
+  std::map<int32_t, MotionIdMap> motion_id_map_;
   int32_t wait_id_;
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
   uint8_t retry_ {0}, max_retry_{3};
