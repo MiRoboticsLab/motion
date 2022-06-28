@@ -78,7 +78,9 @@ void MotionHandler::HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg,
 
 void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
 {
-  action_ptr_->Execute(msg);
+  // action_ptr_->Execute(msg);
+  (void) msg;
+  PoseControlDefinitively();
   SetServoNeedCheck(false);
 }
 
