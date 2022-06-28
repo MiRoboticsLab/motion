@@ -109,9 +109,9 @@ enum class MotionID : int32_t
   kEstop = 0,
   kGetDown = 101,
   kRecoveryStand = 111,
-  kForceControldefinitively = 201,
+  kForceControlDefinitively = 201,
   kForceControlRelatively = 202,
-  kPoseControldefinitively = 211,
+  kPoseControlDefinitively = 211,
   kPoseControlRelatively = 212
 };  // enmu calss MotionID
 

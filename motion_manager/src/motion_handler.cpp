@@ -119,7 +119,7 @@ void MotionHandler::ServoDataCheck()
 void MotionHandler::PoseControlDefinitively()
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-  request->motion_id = (int32_t)MotionID::kPoseControldefinitively;
+  request->motion_id = (int32_t)MotionID::kPoseControlDefinitively;
   request->pos_des = std::vector<float>{0.0, 0.0, 0.2};
   action_ptr_->Execute(request);
 }
