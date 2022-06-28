@@ -94,10 +94,11 @@ private:
   std::shared_ptr<lcm::LCM> lcm_publish_instance_, lcm_subscribe_instance_;
   std::mutex lcm_write_mutex_;
   robot_control_cmd_lcmt lcm_cmd_;
-  uint8_t lcm_publish_duration_;
-  int8_t last_res_mode_{0}, last_res_gait_id_{0}, last_motion_id_{0};
-  int8_t life_count_{0};
   std::map<int32_t, MotionIdMap> motion_id_map_;
+  int32_t last_motion_id_{0};
+  uint8_t lcm_publish_duration_;
+  int8_t last_res_mode_{0}, last_res_gait_id_{0};
+  int8_t life_count_{0};
   bool lcm_cmd_init_{false}, ins_init_{false};
   LOGGER_MINOR_INSTANCE("MotionAction");
 };  // class MotionAction
