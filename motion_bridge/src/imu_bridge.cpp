@@ -63,7 +63,6 @@ void ImuBridge::ReadLcm(
   imu_ros_data_->orientation.z = msg->quat[2];
   imu_ros_data_->orientation.w = msg->quat[3];
   imu_pub_->publish(*imu_ros_data_);
-
 }
 }  // namespace motion
 }  // namespace cyberdog

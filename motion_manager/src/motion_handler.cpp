@@ -50,7 +50,9 @@ void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg
   SetServoNeedCheck(true);
 }
 
-void MotionHandler::HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg& res)
+void MotionHandler::HandleServoDataFrame(
+  const MotionServoCmdMsg::SharedPtr msg,
+  MotionServoResponseMsg & res)
 {
   if (!AllowServoCmd(msg->motion_id)) {
     if (retry_ < max_retry_) {
@@ -84,7 +86,9 @@ void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
   SetServoNeedCheck(false);
 }
 
-void MotionHandler::HandleServoCmd(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg& res)
+void MotionHandler::HandleServoCmd(
+  const MotionServoCmdMsg::SharedPtr msg,
+  MotionServoResponseMsg & res)
 {
   if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
     if (!AllowServoCmd(msg->motion_id)) {
@@ -162,8 +166,8 @@ bool MotionHandler::CheckMotionResult()
     result = (e == 0 || e == kMotorNormal);
   }
   return motion_status_ptr_->ori_error == 0 &&
-        // TODO:(harvey) footpos_error需要等到运控组确定策略后再加进来
-        //  motion_status_ptr_->footpos_error == 0 &&
+         // TODO(harvey): footpos_error需要等到运控组确定策略后再加进来
+         //  motion_status_ptr_->footpos_error == 0 &&
          motion_status_ptr_->switch_status == MotionStatusMsg::NORMAL &&
          result;
 }
@@ -185,13 +189,13 @@ void MotionHandler::HandleResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  if(!isCommandValid(request)) {
+  if (!isCommandValid(request)) {
     response->code = (int32_t)MotionCode::kCommandInvalid;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     return;
   }
-  if(!CheckPreMotion(request->motion_id)) {
+  if (!CheckPreMotion(request->motion_id)) {
     MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
     MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
     request->motion_id = (int32_t)MotionID::kRecoveryStand;
@@ -213,8 +217,8 @@ void MotionHandler::HandleResultCmd(
   }
   std::unique_lock<std::mutex> check_lk(execute_mutex_);
   wait_id_ = request->motion_id;
-  // TODO
-  INFO("sws:%d", motion_status_ptr_->switch_status);
+  // TODO(harvey):
+  // INFO("sws:%d", motion_status_ptr_->switch_status);
   if (motion_status_ptr_->switch_status == MotionStatusMsg::BAN_TRANS ||
     motion_status_ptr_->switch_status == MotionStatusMsg::EDAMP ||
     motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP ||
@@ -245,14 +249,11 @@ void MotionHandler::HandleResultCmd(
   auto wait_timeout = 0;
   auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
   // 站立、趴下、作揖、空翻、绝对力控这些动作运控内部设定了固定时间，duration必须为0
-  if( min_exec_time > 0) {          
-    wait_timeout = min_exec_time; 
-  } 
-  // 增量力控、增量位控、绝对位控、行走duration必须大于0
-  else if (min_exec_time < 0) {   
+  if (min_exec_time > 0) {
+    wait_timeout = min_exec_time;
+  } else if (min_exec_time < 0) {  // 增量力控、增量位控、绝对位控、行走duration必须大于0
     wait_timeout = request->duration;
-  }
-  else {
+  } else {
   }
 
   if (execute_cv_.wait_for(
@@ -316,7 +317,7 @@ MotionStatusMsg::SharedPtr MotionHandler::GetMotionStatus()
 
 bool MotionHandler::CheckPreMotion(int32_t motion_id)
 {
-  if(motion_id == (int32_t)MotionID::kRecoveryStand || motion_id == (int32_t)MotionID::kEstop) {
+  if (motion_id == (int32_t)MotionID::kRecoveryStand || motion_id == (int32_t)MotionID::kEstop) {
     return true;
   }
   std::vector<int32_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;
@@ -327,7 +328,7 @@ bool MotionHandler::CheckPreMotion(int32_t motion_id)
 
 bool MotionHandler::AllowServoCmd(int32_t motion_id)
 {
-  // TODO: 判断当前状态是否能够行走
+  // TODO(harvey): 判断当前状态是否能够行走
   return CheckPreMotion(motion_id);
 }
 
@@ -338,12 +339,12 @@ bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr req
   }
   bool result = true;
   auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
-  if(min_exec_time > 0) {
+  if (min_exec_time > 0) {
     result = request->duration == 0;
-  } else if(min_exec_time < 0) {
+  } else if (min_exec_time < 0) {
     result = request->duration > 0;
   } else {}
-  if(!result) {
+  if (!result) {
     return false;
   }
   return true;
