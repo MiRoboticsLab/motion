@@ -22,6 +22,6 @@ int main(int argc, char ** argv)
   rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("motion_bridge");
   LOGGER_MAIN_INSTANCE("MotionBridge");
   auto elevation_bridge = std::make_shared<cyberdog::motion::ElevationBridge>(node);
-  auto leg_odom_publisher = std::make_shared<cyberdog::motion::LegOdomPublisher>(node);
+  // auto leg_odom_publisher = std::make_shared<cyberdog::motion::LegOdomPublisher>(node);
   rclcpp::spin(node);
 }
