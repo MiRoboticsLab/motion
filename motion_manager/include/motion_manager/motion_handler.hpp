@@ -51,6 +51,7 @@ public:
   void PoseControlDefinitively();
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
   void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg& res);
+  void HandleServoCmd(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg& res);
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
   void HandleResultCmd(
     const MotionResultSrv::Request::SharedPtr request,

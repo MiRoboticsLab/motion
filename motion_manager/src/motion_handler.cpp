@@ -84,6 +84,37 @@ void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
   SetServoNeedCheck(false);
 }
 
+void MotionHandler::HandleServoCmd(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg& res)
+{
+  if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
+    if (!AllowServoCmd(msg->motion_id)) {
+      if (retry_ < max_retry_) {
+        MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
+        MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
+        request->motion_id = (int32_t)MotionID::kRecoveryStand;
+        INFO("Trying to be ready for ServoCmd");
+        HandleResultCmd(request, response);
+        if (!response->result) {
+          retry_++;
+        } else {
+          retry_ = 0;
+        }
+      } else {
+        res.result = false;
+        res.code = (int32_t)MotionCode::kSwitchError;
+      }
+      return;
+    }
+    action_ptr_->Execute(msg);
+    TickServoCmd();
+    SetServoNeedCheck(true);
+  } else {
+    PoseControlDefinitively();
+    SetServoNeedCheck(false);
+  }
+}
+
+
 /**
  * @brief 检测伺服指令的下发间隔是否符合要求
  *        1. 运行在死循环线程中，通过waitServoNeedCheck进行线程挂起与唤醒操作

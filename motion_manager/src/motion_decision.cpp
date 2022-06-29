@@ -65,30 +65,31 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
     return;
   }
 
-  if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
-    // if (!AllowServoCmd(msg->motion_id)) {
-    //   if (retry_ < max_retry_) {
-    //     MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-    //     MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
-    //     request->motion_id = 111;
-    //     INFO("Trying to be ready for ServoCmd");
-    //     handler_ptr_->HandleResultCmd(request, response);
-    //     if (!response->result) {
-    //       retry_++;
-    //     } else {
-    //       retry_ = 0;
-    //     }
-    //   } else {
-    //     servo_response_msg_.result = false;
-    //     servo_response_msg_.code = (int32_t)MotionCode::kSwitchError;
-    //   }
-    //   return;
-    // }
-    handler_ptr_->HandleServoDataFrame(msg, servo_response_msg_);
-  } else {
-    handler_ptr_->HandleServoEndFrame(msg);
-    // SetServoResponse();
-  }
+  // if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
+  //   if (!AllowServoCmd(msg->motion_id)) {
+  //     if (retry_ < max_retry_) {
+  //       MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
+  //       MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
+  //       request->motion_id = 111;
+  //       INFO("Trying to be ready for ServoCmd");
+  //       handler_ptr_->HandleResultCmd(request, response);
+  //       if (!response->result) {
+  //         retry_++;
+  //       } else {
+  //         retry_ = 0;
+  //       }
+  //     } else {
+  //       servo_response_msg_.result = false;
+  //       servo_response_msg_.code = (int32_t)MotionCode::kSwitchError;
+  //     }
+  //     return;
+  //   }
+  //   handler_ptr_->HandleServoDataFrame(msg, servo_response_msg_);
+  // } else {
+  //   handler_ptr_->HandleServoEndFrame(msg);
+  //   SetServoResponse();
+  // }
+  handler_ptr_->HandleServoCmd(msg, servo_response_msg_);
 }
 
 /**
