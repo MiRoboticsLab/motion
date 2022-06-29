@@ -178,7 +178,7 @@ void MotionAction::ReadLcm(
   const lcm::ReceiveBuffer *, const std::string &,
   const robot_control_response_lcmt * msg)
 {
-  // TODO
+  // TODO(harvey):
   INFO(
     "bar:%d, mod:%d, gid:%d, sws:%d, fer:%d", msg->order_process_bar, msg->mode, msg->gait_id,
     msg->switch_status, msg->footpos_error);
@@ -227,5 +227,5 @@ void MotionAction::WriteLcm()
     std::this_thread::sleep_for(std::chrono::milliseconds(lcm_publish_duration_));
   }
 }
-}  // motion
-}  // cyberdog
+}  // namespace motion
+}  // namespace cyberdog
