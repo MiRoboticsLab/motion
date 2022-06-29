@@ -15,6 +15,7 @@
 #define MOTION_MANAGER__MOTION_HANDLER_HPP_
 #include <memory>
 #include <thread>
+#include <map>
 #include "rclcpp/rclcpp.hpp"
 #include "motion_action/motion_action.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
@@ -46,16 +47,20 @@ public:
   void UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
   bool CheckMotionResult();
+  bool FeedbackTimeout();
   void ServoDataCheck();
-  void StandBy();
+  void PoseControlDefinitively();
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
-  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg);
+  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
+  void HandleServoCmd(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
   void HandleResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
-  
+  bool CheckPreMotion(int32_t motion_id);
+  bool AllowServoCmd(int32_t motion_id);
+  bool isCommandValid(const MotionResultSrv::Request::SharedPtr request);
 
 public:
   /* 考虑重构的API */
@@ -136,10 +141,10 @@ private:
   std::condition_variable execute_cv_;
   bool is_transitioning_wait_ {false};
   bool is_execute_wait_ {false};
-  std::unordered_map<int32_t, int> min_duration_map_;
+  std::map<int32_t, MotionIdMap> motion_id_map_;
   int32_t wait_id_;
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
-
+  uint8_t retry_ {0}, max_retry_{3};
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

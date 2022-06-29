@@ -26,8 +26,7 @@ public:
   SimMotionClient(const std::string & name)
   {
     node_ptr_ = rclcpp::Node::make_shared(name);
-
-    motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>("motion_result_cmd");
+    motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>(cyberdog::motion::kMotionResultServiceName);
   }
 
   void Run(int argc, char ** argv)
@@ -43,7 +42,8 @@ public:
       FATAL("Cannot parse %s", cmd_preset.c_str());
       exit(-1);
     }
-    GET_TOML_VALUE(value, "motion_id", req->motion_id);
+    // GET_TOML_VALUE(value, "motion_id", req->motion_id);
+    req->motion_id = std::atoi(argv[1]);
     GET_TOML_VALUE(value, "vel_des", req->vel_des);
     GET_TOML_VALUE(value, "rpy_des", req->rpy_des);
     GET_TOML_VALUE(value, "pos_des", req->pos_des);

@@ -22,11 +22,6 @@ namespace cyberdog
 namespace motion
 {
 MotionAction::MotionAction()
-: lcm_publish_channel_("robot_control_cmd"),
-  lcm_subscribe_channel_("robot_control_response"),
-  last_res_mode_(0), last_res_gait_id_(0), last_motion_id_(0),
-  life_count_(0),
-  lcm_cmd_init_(false), ins_init_(false)
 {}
 
 MotionAction::~MotionAction() {}
@@ -42,8 +37,8 @@ void MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
     return;
   }
   robot_control_cmd_lcmt lcm_cmd;
-  lcm_cmd.mode = motion_id_map_.at(msg->motion_id).front();
-  lcm_cmd.gait_id = motion_id_map_.at(msg->motion_id).back();
+  lcm_cmd.mode = motion_id_map_.at(msg->motion_id).map.front();
+  lcm_cmd.gait_id = motion_id_map_.at(msg->motion_id).map.back();
   lcm_cmd.contact = 0;
   lcm_cmd.value = 0;
   lcm_cmd.duration = 0;
@@ -57,7 +52,7 @@ void MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
-  lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+  lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
   lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
@@ -70,7 +65,7 @@ void MotionAction::Execute(const robot_control_cmd_lcmt & lcm)
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm;
   lcm_cmd_.life_count = life_count_++;
-  lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+  lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
   lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
@@ -88,8 +83,8 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
     return;
   }
   robot_control_cmd_lcmt lcm_cmd;
-  lcm_cmd.mode = motion_id_map_.at(request->motion_id).front();
-  lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).back();
+  lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
+  lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
   lcm_cmd.contact = 15;
   lcm_cmd.value = 0;
   lcm_cmd.duration = request->duration;
@@ -103,7 +98,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
-  lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+  lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
   lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
@@ -111,20 +106,32 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
     lcm_cmd_.duration);
 }
 
-bool MotionAction::ParseMotionId()
+bool MotionAction::ParseMotionIdMap()
 {
   std::string motion_id_map_config = ament_index_cpp::get_package_share_directory("motion_action") +
     "/preset/" + "motion_id_map.toml";
-  toml::value value;
-  if (!cyberdog::common::CyberdogToml::ParseFile(motion_id_map_config, value)) {
+  toml::value motion_ids;
+  if (!cyberdog::common::CyberdogToml::ParseFile(motion_id_map_config, motion_ids)) {
     FATAL("Cannot parse %s", motion_id_map_config.c_str());
     return false;
   }
-  for (auto p : value.as_table()) {
-    motion_id_map_.emplace(
-      int32_t(std::stoi(p.first)),
-      std::vector<int8_t>{int8_t(p.second.as_array().front().as_integer()),
-        int8_t(p.second.as_array().back().as_integer())});
+  if (!motion_ids.is_table()) {
+    FATAL("Toml format error");
+    exit(-1);
+  }
+  toml::value values;
+  cyberdog::common::CyberdogToml::Get(motion_ids, "motion_ids", values);
+  std::map<int32_t, MotionIdMap> motion_id_map;
+  for (size_t i = 0; i < values.size(); i++) {
+    auto value = values.at(i);
+    int32_t motion_id;
+    MotionIdMap motion_id_map;
+    GET_TOML_VALUE(value, "motion_id", motion_id);
+    GET_TOML_VALUE(value, "map", motion_id_map.map);
+    GET_TOML_VALUE(value, "pre_motion", motion_id_map.pre_motion);
+    GET_TOML_VALUE(value, "post_motion", motion_id_map.post_motion);
+    GET_TOML_VALUE(value, "min_exec_time", motion_id_map.min_exec_time);
+    motion_id_map_.emplace(motion_id, motion_id_map);
   }
   return true;
 }
@@ -132,14 +139,14 @@ bool MotionAction::ParseMotionId()
 bool MotionAction::Init(
   const std::string & publish_url, const std::string & subscribe_url)
 {
-  if (!ParseMotionId()) {
+  if (!ParseMotionIdMap()) {
     ERROR("Fail to parse MotionID");
     return false;
   }
   lcm_publish_duration_ = 1 / static_cast<float>(kActionLcmPublishFrequency) * 1000;
   lcm_publish_instance_ = std::make_shared<lcm::LCM>(publish_url);
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
-  lcm_subscribe_instance_->subscribe(lcm_subscribe_channel_, &MotionAction::ReadLcm, this);
+  lcm_subscribe_instance_->subscribe(kActionResponseChannel, &MotionAction::ReadLcm, this);
   control_thread_ = std::thread(&MotionAction::WriteLcm, this);
   control_thread_.detach();
   response_thread_ =
@@ -172,7 +179,9 @@ void MotionAction::ReadLcm(
   const robot_control_response_lcmt * msg)
 {
   // TODO
-  INFO("bar:%d, mod:%d, gid:%d, sws:%d", msg->order_process_bar, msg->mode, msg->gait_id, msg->switch_status);
+  INFO(
+    "bar:%d, mod:%d, gid:%d, sws:%d, fer:%d", msg->order_process_bar, msg->mode, msg->gait_id,
+    msg->switch_status, msg->footpos_error);
   protocol::msg::MotionStatus::SharedPtr lcm_res(new protocol::msg::MotionStatus);
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
     last_res_mode_ = msg->mode;
@@ -187,7 +196,7 @@ void MotionAction::ReadLcm(
         // std::cout << (int)msg->mode << ";" << (int)msg->gait_id << std::endl;
         break;
       }
-      if (m->second.front() == msg->mode && m->second.back() == msg->gait_id) {
+      if (m->second.map.front() == msg->mode && m->second.map.back() == msg->gait_id) {
         last_motion_id_ = m->first;
         break;
       }
@@ -213,7 +222,7 @@ void MotionAction::WriteLcm()
   while (lcm_publish_instance_->good()) {
     if (lcm_cmd_init_) {
       std::unique_lock<std::mutex> lk(lcm_write_mutex_);
-      lcm_publish_instance_->publish(lcm_publish_channel_, &lcm_cmd_);
+      lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(lcm_publish_duration_));
   }

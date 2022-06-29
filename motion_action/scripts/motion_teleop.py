@@ -15,7 +15,7 @@
 
 import os
 import select
-import sys, tty, termios
+import sys, tty, termios, getopt
 # from typing import Protocol
 import rclpy
 
@@ -84,7 +84,11 @@ def switch_run():
 def keep_idle():
     return
 
-def main():
+def main(argv):
+    if len(argv) == 1:
+        end = 0
+    else:
+        end = argv[1]
     global settings
     settings = termios.tcgetattr(sys.stdin)
     rclpy.init()
@@ -113,14 +117,13 @@ def main():
       print(msg)
       print(vels(speed, turn))
       while(1):
-          motion_id = 1
+          motion_id = 303
           key = getKey()
           if key in moveBindings.keys():
               x = moveBindings[key][0]
               y = moveBindings[key][2]
               th = moveBindings[key][1]
               count = 0
-              motion_id = 12
           elif key in speedBindings.keys():
               speed = speed * speedBindings[key][0]
               speed_y = speed_y * speedBindings[key][0]
@@ -171,10 +174,6 @@ def main():
           else:
               control_turn = target_turn
 
-          life_count = life_count + 1
-          if life_count > 126:
-            life_count = 0
-          
           cmd = MotionServoCmd()
           cmd.motion_id = motion_id; 
         #   cmd.mode = mode; cmd.gait_id = gait_id; cmd.life_count = life_count + 1
@@ -188,13 +187,15 @@ def main():
         print(e)
 
     finally:
-        cmd = MotionServoCmd()
-        cmd.motion_id = 1
-        # cmd.mode = 3; cmd.gait_id = 0; cmd.life_count = life_count + 1
-        cmd.pos_des.fromlist([0.0, 0.0, 0.3])
-        cmd.vel_des.fromlist([0.0, 0.0, 0.0])
-        pub.publish(cmd)
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+        if end == 'end':
+            cmd = MotionServoCmd()
+            cmd.cmd_type = 2
+            cmd.motion_id = 202
+            # cmd.mode = 3; cmd.gait_id = 0; cmd.life_count = life_count + 1
+            # cmd.pos_des.fromlist([0.0, 0.0, 0.3])
+            # cmd.vel_des.fromlist([0.0, 0.0, 0.0])
+            pub.publish(cmd)
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)

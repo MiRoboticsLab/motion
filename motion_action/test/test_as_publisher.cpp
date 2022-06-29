@@ -26,8 +26,8 @@ public:
   SimMotionPublisher(const std::string & name)
   {
     node_ptr_ = rclcpp::Node::make_shared(name);
-    motion_cmd_pub_ = node_ptr_->create_publisher<protocol::msg::MotionServoCmd>("motion_servo_cmd", rclcpp::SystemDefaultsQoS());
-    moiton_result_queue_pub_ = node_ptr_->create_publisher<std_msgs::msg::Int16>("motion_result_queue", rclcpp::SystemDefaultsQoS());
+    motion_cmd_pub_ = node_ptr_->create_publisher<protocol::msg::MotionServoCmd>(cyberdog::motion::kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS());
+    moiton_result_queue_pub_ = node_ptr_->create_publisher<std_msgs::msg::Int16>(cyberdog::motion::kMotionQueueCommandTopicName, rclcpp::SystemDefaultsQoS());
   }
 
   void Run(char ** argv)
@@ -45,7 +45,8 @@ public:
         FATAL("Cannot parse %s", cmd_preset.c_str());
         exit(-1);
       }
-      GET_TOML_VALUE(value, "motion_id", msg->motion_id);
+      // GET_TOML_VALUE(value, "motion_id", msg->motion_id);
+      msg->motion_id = std::atoi(argv[1]);
       GET_TOML_VALUE(value, "cmd_type", msg->cmd_type);
       GET_TOML_VALUE(value, "vel_des", msg->vel_des);
       GET_TOML_VALUE(value, "rpy_des", msg->rpy_des);

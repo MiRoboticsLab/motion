@@ -21,9 +21,6 @@ namespace cyberdog
 namespace motion
 {
 ElevationBridge::ElevationBridge(const rclcpp::Node::SharedPtr node)
-: map_frame_("map"),
-  odom_frame_("odom_out"),  // NOTE 腿式里程计坐标系
-  base_frame_("base_link")
 {
   node_ = node;
   gridmap_sub_ = node_->create_subscription<grid_map_msgs::msg::GridMap>(
@@ -41,7 +38,7 @@ ElevationBridge::ElevationBridge(const rclcpp::Node::SharedPtr node)
     std::make_shared<rclcpp::Node>(std::string(node_->get_name()) + "_tf_listener"));
   std::thread{[this]() {
       while (lcm_->good()) {
-        lcm_->publish("local_heightmap", &elevation_);
+        lcm_->publish(kBridgeElevationChannel, &elevation_);
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
       }
     }

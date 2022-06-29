@@ -52,16 +52,16 @@ public:
         &SimMotionManager::FeedbackCallback, this,
         std::placeholders::_1));
     motion_cmd_sub_ = node_ptr_->create_subscription<protocol::msg::MotionServoCmd>(
-      "motion_servo_cmd",
+      cyberdog::motion::kMotionServoCommandTopicName,
       rclcpp::SystemDefaultsQoS(),
       std::bind(&SimMotionManager::HandleTestServoCmd, this, std::placeholders::_1));
     motion_result_queue_sub_ = node_ptr_->create_subscription<std_msgs::msg::Int16>(
-      "motion_result_queue",
+      cyberdog::motion::kMotionQueueCommandTopicName,
       rclcpp::SystemDefaultsQoS(),
       std::bind(&SimMotionManager::HandleTestResultQueueCmd, this, std::placeholders::_1));
     motion_result_srv_ =
       node_ptr_->create_service<protocol::srv::MotionResultCmd>(
-      "motion_result_cmd",
+      cyberdog::motion::kMotionResultServiceName,
       std::bind(
         &SimMotionManager::HandleTestResultCmd, this, std::placeholders::_1,
         std::placeholders::_2));
