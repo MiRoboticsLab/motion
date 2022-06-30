@@ -120,7 +120,7 @@ min_exec_time = -1
 [[motion_ids]]
 motion_id = 301
 map  = [11, 1]   
-pre_motion = [111, 201, 202, 211, 212, 301]
+pre_motion = [111, 201, 202, 211, 212, 301, 302, 303, 305]
 post_motion = [0, 101, 111, 201, 202, 211, 212, 301]
 min_exec_time = -1
 
@@ -128,7 +128,7 @@ min_exec_time = -1
 [[motion_ids]]
 motion_id = 302
 map  = [11, 2]   
-pre_motion = [111, 201, 202, 211, 212, 302]
+pre_motion = [111, 201, 202, 211, 212, 301, 302, 303, 305]
 post_motion = [0, 101, 111, 201, 202, 211, 212, 302]
 min_exec_time = -1
 
@@ -136,7 +136,7 @@ min_exec_time = -1
 [[motion_ids]]
 motion_id = 303
 map = [11, 3]  
-pre_motion = [111, 201, 202, 211, 212, 303]
+pre_motion = [111, 201, 202, 211, 212, 301, 302, 303, 305]
 post_motion = [0, 101, 111, 201, 202, 211, 212, 303]
 min_exec_time = -1
 
@@ -152,6 +152,6 @@ min_exec_time = -1
 [[motion_ids]]
 motion_id = 305
 map = [11, 5]   
-pre_motion = [111, 201, 202, 211, 212, 305]
+pre_motion = [111, 201, 202, 211, 212, 301, 302, 303, 305]
 post_motion = [0, 101, 111, 201, 202, 211, 212, 305]
 min_exec_time = -1
