@@ -21,16 +21,13 @@ namespace cyberdog
 namespace motion
 {
 ElevationBridge::ElevationBridge(const rclcpp::Node::SharedPtr node)
-: map_frame_("map"),
-  odom_frame_("odom_out"),  // NOTE 腿式里程计坐标系
-  base_frame_("base_link")
 {
   node_ = node;
   gridmap_sub_ = node_->create_subscription<grid_map_msgs::msg::GridMap>(
     "elevation_map_raw",
     rclcpp::SystemDefaultsQoS(),
     std::bind(&ElevationBridge::GridMapCallback, this, std::placeholders::_1));
-  lcm_ = std::make_shared<lcm::LCM>(BRIDGE_SUBSCRIBE_URL);
+  lcm_ = std::make_shared<lcm::LCM>(kBirdgeSubscribeURL);
   tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
   auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
     node_->get_node_base_interface(),
@@ -41,7 +38,7 @@ ElevationBridge::ElevationBridge(const rclcpp::Node::SharedPtr node)
     std::make_shared<rclcpp::Node>(std::string(node_->get_name()) + "_tf_listener"));
   std::thread{[this]() {
       while (lcm_->good()) {
-        lcm_->publish("local_heightmap", &elevation_);
+        lcm_->publish(kBridgeElevationChannel, &elevation_);
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
       }
     }
@@ -144,6 +141,6 @@ void ElevationBridge::GridMapCallback(const grid_map_msgs::msg::GridMap::SharedP
     }
   }
   /**************************************************************************/
-}  // class ElevationBridge
+}
 }  // namespace motion
 }  // namespace cyberdog

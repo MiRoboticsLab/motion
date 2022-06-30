@@ -21,16 +21,13 @@ namespace cyberdog
 namespace motion
 {
 LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
-: map_frame_("map"),
-  odom_frame_("odom_out"),
-  base_frame_("base_link_leg")
 {
   node_ = node;
   leg_odom_publisher_ = node_->create_publisher<nav_msgs::msg::Odometry>(
     odom_frame_,
     rclcpp::SystemDefaultsQoS());
   tf2_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node_);
-  lcm_ = std::make_shared<lcm::LCM>(BRIDGE_SUBSCRIBE_URL);
+  lcm_ = std::make_shared<lcm::LCM>(kBirdgeSubscribeURL);
   lcm_->subscribe("global_to_robot", &LegOdomPublisher::OdomLCMCabllback, this);
   std::thread{
     [this]() {

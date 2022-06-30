@@ -28,9 +28,9 @@ public:
   SimMotionManager(const std::string & name)
   {
     node_ptr_ = rclcpp::Node::make_shared(name);
-    node_ptr_->declare_parameter("publish_url", cyberdog::motion::ACTION_PUBLISH_URL);
+    node_ptr_->declare_parameter("publish_url", cyberdog::motion::kActionPublishURL);
     node_ptr_->get_parameter("publish_url", publish_url_);
-    node_ptr_->declare_parameter("subscribe_url", cyberdog::motion::ACTION_SUBSCRIBE_URL);
+    node_ptr_->declare_parameter("subscribe_url", cyberdog::motion::kActionSubscibeURL);
     node_ptr_->get_parameter("subscribe_url", subscribe_url);
     node_ptr_->declare_parameter<std::string>("cmd_preset", std::string("8"));
     node_ptr_->get_parameter("cmd_preset", cmd_preset_);
@@ -52,16 +52,16 @@ public:
         &SimMotionManager::FeedbackCallback, this,
         std::placeholders::_1));
     motion_cmd_sub_ = node_ptr_->create_subscription<protocol::msg::MotionServoCmd>(
-      "motion_servo_cmd",
+      cyberdog::motion::kMotionServoCommandTopicName,
       rclcpp::SystemDefaultsQoS(),
       std::bind(&SimMotionManager::HandleTestServoCmd, this, std::placeholders::_1));
     motion_result_queue_sub_ = node_ptr_->create_subscription<std_msgs::msg::Int16>(
-      "motion_result_queue",
+      cyberdog::motion::kMotionQueueCommandTopicName,
       rclcpp::SystemDefaultsQoS(),
       std::bind(&SimMotionManager::HandleTestResultQueueCmd, this, std::placeholders::_1));
     motion_result_srv_ =
       node_ptr_->create_service<protocol::srv::MotionResultCmd>(
-      "motion_result_cmd",
+      cyberdog::motion::kMotionResultServiceName,
       std::bind(
         &SimMotionManager::HandleTestResultCmd, this, std::placeholders::_1,
         std::placeholders::_2));

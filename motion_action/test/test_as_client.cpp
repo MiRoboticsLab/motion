@@ -26,11 +26,10 @@ public:
   SimMotionClient(const std::string & name)
   {
     node_ptr_ = rclcpp::Node::make_shared(name);
-
-    motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>("motion_result_cmd");
+    motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>(cyberdog::motion::kMotionResultServiceName);
   }
 
-  void Run(char ** argv)
+  void Run(int argc, char ** argv)
   {
     if (!motion_result_client_->wait_for_service()) {
       FATAL("Service not avalible");
@@ -43,7 +42,8 @@ public:
       FATAL("Cannot parse %s", cmd_preset.c_str());
       exit(-1);
     }
-    GET_TOML_VALUE(value, "motion_id", req->motion_id);
+    // GET_TOML_VALUE(value, "motion_id", req->motion_id);
+    req->motion_id = std::atoi(argv[1]);
     GET_TOML_VALUE(value, "vel_des", req->vel_des);
     GET_TOML_VALUE(value, "rpy_des", req->rpy_des);
     GET_TOML_VALUE(value, "pos_des", req->pos_des);
@@ -52,6 +52,9 @@ public:
     GET_TOML_VALUE(value, "foot_pose", req->foot_pose);
     GET_TOML_VALUE(value, "step_height", req->step_height);
     GET_TOML_VALUE(value, "duration", req->duration);
+    if(argc > 2) {
+      req->duration = std::atoi(argv[2]);
+    }
     // HandleTestCmd(msg);
     // std::shared_future<protocol::srv::MotionResultCmd::Response::SharedPtr> future_result = motion_result_client_->async_send_request(req);
     auto future_result = motion_result_client_->async_send_request(req);
@@ -64,7 +67,7 @@ public:
       req->foot_pose[1], req->foot_pose[2], req->foot_pose[3], req->foot_pose[4],
       req->foot_pose[5], req->step_height[0], req->step_height[1]);
     
-    if(rclcpp::spin_until_future_complete(node_ptr_, future_result, std::chrono::seconds(5)) != rclcpp::FutureReturnCode::SUCCESS)
+    if(rclcpp::spin_until_future_complete(node_ptr_, future_result, std::chrono::seconds(60)) != rclcpp::FutureReturnCode::SUCCESS)
     {
       FATAL("Service failed");
       return;
@@ -93,6 +96,6 @@ int main(int argc, char ** argv)
   }
   rclcpp::init(argc, argv);
   SimMotionClient smm("test_as_publisher");
-  smm.Run(argv);
+  smm.Run(argc, argv);
   smm.Spin();
 }

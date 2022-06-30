@@ -31,10 +31,22 @@ using MotionResultSrv = protocol::srv::MotionResultCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 
-constexpr uint8_t ACTION_LCM_PUBLISH_FREQUENCY_ = 20;
-constexpr const char * ACTION_PUBLISH_URL = "udpm://239.255.76.67:7671?ttl=255";
-constexpr const char * ACTION_SUBSCRIBE_URL = "udpm://239.255.76.67:7670?ttl=255";
-constexpr const char * BRIDGE_SUBSCRIBE_URL = "udpm://239.255.76.67:7667?ttl=255";
+constexpr uint8_t kActionLcmPublishFrequency = 20;
+constexpr uint8_t kServoDataLostTimesThreshold = 4;
+constexpr uint16_t kTransitioningTimeout = 3000;  // millisecond
+constexpr uint16_t kAcitonLcmReadTimeout = 1000;  // millisecond
+constexpr int kMotorNormal = -2147483648;
+constexpr const char * kActionPublishURL = "udpm://239.255.76.67:7671?ttl=255";
+constexpr const char * kActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=255";
+constexpr const char * kBirdgeSubscribeURL = "udpm://239.255.76.67:7667?ttl=255";
+constexpr const char * kActionControlChannel = "robot_control_cmd";
+constexpr const char * kActionResponseChannel = "robot_control_response";
+constexpr const char * kBridgeImuChannel = "external_imu";
+constexpr const char * kBridgeElevationChannel = "local_heightmap";
+constexpr const char * kMotionServoCommandTopicName = "motion_servo_cmd";
+constexpr const char * kMotionServoResponseTopicName = "motion_servo_response";
+constexpr const char * kMotionResultServiceName = "motion_result_cmd";
+constexpr const char * kMotionQueueCommandTopicName = "motion_queue_cmd";
 
 // a: src, b: des, c: size, d: description
 #define GET_VALUE(a, b, c, d) \
@@ -92,6 +104,17 @@ struct ServoClick
   std::atomic_bool data_ {false};
 };  // struct HeartQueue
 
+enum class MotionID : int32_t
+{
+  kEstop = 0,
+  kGetDown = 101,
+  kRecoveryStand = 111,
+  kForceControlDefinitively = 201,
+  kForceControlRelatively = 202,
+  kPoseControlDefinitively = 211,
+  kPoseControlRelatively = 212
+};  // enmu calss MotionID
+
 /**
  * @brief 运动模型状态记录， 后续考虑重构为Handler状态
  *
@@ -104,13 +127,16 @@ enum class DecisionStatus : uint8_t
 };  // enum class DecisionStatus
 
 // 所有的motion相关code都从300开始，该值为全局架构设计分配
-int32_t constexpr BaseCode = (int32_t)system::ModuleCode::kMotion;
 enum class MotionCode : int32_t
 {
   kOK = 0,
-  kTimeout = BaseCode + 31,
-  kCheckError = BaseCode + 32,
-  kWithoutStart = BaseCode + 33
+  kCommandInvalid = (int32_t)system::ModuleCode::kMotion + 10,
+  kReadLcmTimeout = (int32_t)system::ModuleCode::kMotion + 20,
+  kSwitchError = (int32_t)system::ModuleCode::kMotion + 31,
+  kTransitionTimeout = (int32_t)system::ModuleCode::kMotion + 32,
+  kExecuteTimeout = (int32_t)system::ModuleCode::kMotion + 33,
+  kExecuteError = (int32_t)system::ModuleCode::kMotion + 34,
+  kStateError = (int32_t)system::ModuleCode::kMotion + 40
 };  // enum class MotionCode
 }  // namespace motion
 }  // namespace cyberdog

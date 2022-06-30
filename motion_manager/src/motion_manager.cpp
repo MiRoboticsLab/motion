@@ -17,24 +17,28 @@
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "motion_manager/motion_manager.hpp"
 
-cyberdog::motion::MotionManager::MotionManager(const std::string & name)
+namespace cyberdog
+{
+namespace motion
+{
+MotionManager::MotionManager(const std::string & name)
 : manager::ManagerBase(name),
   name_(name)
 {
   node_ptr_ = rclcpp::Node::make_shared(name_);
 }
 
-cyberdog::motion::MotionManager::~MotionManager()
+MotionManager::~MotionManager()
 {}
 
-void cyberdog::motion::MotionManager::Config()
+void MotionManager::Config()
 {
   INFO("Get info from configure");
   // action_ptr_ = std::make_shared<MotionAction>();
   // handler_ptr_ = std::make_shared<MotionHandler>(motion_servo_pub_);
 }
 
-bool cyberdog::motion::MotionManager::Init()
+bool MotionManager::Init()
 {
   INFO("Init on call");
   if (node_ptr_ == nullptr) {
@@ -43,22 +47,16 @@ bool cyberdog::motion::MotionManager::Init()
   }
 
   motion_servo_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
-    "motion_servo_response", 10);
+    kMotionServoResponseTopicName, 10);
   decision_ptr_ = std::make_shared<MotionDecision>();
   decision_ptr_->Init(motion_servo_pub_);
-  // action_ptr_->Init();
-
-  // action_ptr_->RegisterFeedback(
-  //   std::bind(
-  //     &MotionHandler::Checkout, this->handler_ptr_,
-  //     std::placeholders::_1));
   motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
-    "motion_servo_cmd", rclcpp::SystemDefaultsQoS(),
+    kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS(),
     std::bind(&MotionManager::MotionServoCmdCallback, this, std::placeholders::_1));
 
   motion_result_srv_ =
     node_ptr_->create_service<MotionResultSrv>(
-    "motion_result_cmd",
+    kMotionResultServiceName,
     std::bind(
       &MotionManager::MotionResultCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2));
@@ -67,51 +65,51 @@ bool cyberdog::motion::MotionManager::Init()
   return true;
 }
 
-void cyberdog::motion::MotionManager::Run()
+void MotionManager::Run()
 {
   INFO("Running on...");
   rclcpp::spin(node_ptr_);
   rclcpp::shutdown();
 }
 
-bool cyberdog::motion::MotionManager::SelfCheck()
+bool MotionManager::SelfCheck()
 {
   // check all motions from config
   return true;
 }
 
-bool cyberdog::motion::MotionManager::IsStateValid()
+bool MotionManager::IsStateValid()
 {
   // check state from behavior tree
   return true;
 }
 
-void cyberdog::motion::MotionManager::OnError()
+void MotionManager::OnError()
 {
   INFO("on error");
 }
 
-void cyberdog::motion::MotionManager::OnLowPower()
+void MotionManager::OnLowPower()
 {
   INFO("on lowpower");
 }
 
-void cyberdog::motion::MotionManager::OnSuspend()
+void MotionManager::OnSuspend()
 {
   INFO("on suspend");
 }
 
-void cyberdog::motion::MotionManager::OnProtected()
+void MotionManager::OnProtected()
 {
   INFO("on protect");
 }
 
-void cyberdog::motion::MotionManager::OnActive()
+void MotionManager::OnActive()
 {
   INFO("on active");
 }
 
-void cyberdog::motion::MotionManager::MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr msg)
+void MotionManager::MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr msg)
 {
   if (!IsStateValid()) {
     INFO("motion state invalid with current state");
@@ -121,7 +119,7 @@ void cyberdog::motion::MotionManager::MotionServoCmdCallback(const MotionServoCm
   decision_ptr_->DecideServoCmd(msg);
 }
 
-void cyberdog::motion::MotionManager::MotionResultCmdCallback(
+void MotionManager::MotionResultCmdCallback(
   const MotionResultSrv::Request::SharedPtr request, MotionResultSrv::Response::SharedPtr response)
 {
   INFO("Receive request once:");
@@ -134,3 +132,5 @@ void cyberdog::motion::MotionManager::MotionResultCmdCallback(
 
   decision_ptr_->DecideResultCmd(request, response);
 }
+}  // namespace motion
+}  // namespace cyberdog
