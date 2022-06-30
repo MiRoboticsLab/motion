@@ -196,13 +196,13 @@ void MotionHandler::HandleResultCmd(
     return;
   }
   if (!CheckPreMotion(request->motion_id)) {
-    MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-    MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
-    request->motion_id = (int32_t)MotionID::kRecoveryStand;
+    MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+    MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
+    req->motion_id = (int32_t)MotionID::kRecoveryStand;
     INFO("Trying to be ready for ResultCmd");
-    HandleResultCmd(request, response);
-    if (!response->result) {
-      response->code = (int32_t)MotionCode::kExecuteError;
+    HandleResultCmd(req, res);
+    if (!res->result) {
+      response->code = res->code;
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
       return;
