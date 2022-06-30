@@ -46,6 +46,7 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
 {
   SetServoResponse();
   if (!IsStateValid()) {
+    servo_response_msg_.motion_id = handler_ptr_->GetMotionStatus()->motion_id;
     servo_response_msg_.result = false;
     servo_response_msg_.code = (int32_t)MotionCode::kStateError;
     return;
@@ -89,7 +90,7 @@ void MotionDecision::DecideResultCmd(
   MotionResultSrv::Response::SharedPtr response)
 {
   if (!IsStateValid()) {
-    response->motion_id = -1;
+    response->motion_id = handler_ptr_->GetMotionStatus()->motion_id;
     response->result = false;
     response->code = (int32_t)MotionCode::kStateError;
     return;
