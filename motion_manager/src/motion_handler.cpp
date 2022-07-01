@@ -237,10 +237,15 @@ void MotionHandler::HandleResultCmd(
       response->code = (int32_t)MotionCode::kTransitionTimeout;
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
+      WARN("Transitioning Timeout");
       return;
     }
   }
-  if (is_transitioning_wait_) {check_lk.lock();}
+  if (is_transitioning_wait_) {
+    INFO("Try to relock execute_mutex_");
+    check_lk.lock();
+    INFO("Relock execute_mutex_");
+    }
   is_execute_wait_ = true;
 
   // TODO(harvey): 超时时间按给定duration和每个动作的最小duration之间的较大值计算
