@@ -90,24 +90,23 @@ void MotionHandler::HandleServoCmd(
   const MotionServoCmdMsg::SharedPtr msg,
   MotionServoResponseMsg & res)
 {
+  if(GetWorkStatus() == HandlerStatus::kExecutingResultCmd){
+    res.result = false;
+    res.code = (int32_t)MotionCode::kStateError;
+    return;
+  }
+  SetWorkStatus(HandlerStatus::kExecutingServoCmd);
   if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
     if (!AllowServoCmd(msg->motion_id)) {
-      if (retry_ < max_retry_) {
-        MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-        MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
-        request->motion_id = (int32_t)MotionID::kRecoveryStand;
-        INFO("Trying to be ready for ServoCmd");
-        HandleResultCmd(request, response);
-        if (!response->result) {
-          retry_++;
-        } else {
-          retry_ = 0;
-        }
-      } else {
-        res.result = false;
-        res.code = (int32_t)MotionCode::kSwitchError;
+      MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
+      MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
+      request->motion_id = (int32_t)MotionID::kRecoveryStand;
+      INFO("Trying to be ready for ServoCmd");
+      ExecuteResultCmd(request, response);
+      if(!response->result) {
+        SetWorkStatus(HandlerStatus::kIdle);
+        return;
       }
-      return;
     }
     action_ptr_->Execute(msg);
     TickServoCmd();
@@ -115,6 +114,7 @@ void MotionHandler::HandleServoCmd(
   } else {
     PoseControlDefinitively();
     SetServoNeedCheck(false);
+    SetWorkStatus(HandlerStatus::kIdle);
   }
 }
 
@@ -140,7 +140,7 @@ void MotionHandler::ServoDataCheck()
       PoseControlDefinitively();
       SetServoNeedCheck(false);
       // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
-      // SetWorkStatus(DecisionStatus::kIdle);
+      SetWorkStatus(HandlerStatus::kIdle);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
@@ -179,28 +179,16 @@ bool MotionHandler::FeedbackTimeout()
          std::cv_status::timeout;
 }
 
-/**
- * @brief 执行结果指令
- *
- * @param request
- * @param response
- */
-void MotionHandler::HandleResultCmd(
+void MotionHandler::ExecuteResultCmd(  
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  if (!isCommandValid(request)) {
-    response->code = (int32_t)MotionCode::kCommandInvalid;
-    response->result = false;
-    response->motion_id = motion_status_ptr_->motion_id;
-    return;
-  }
   if (!CheckPreMotion(request->motion_id)) {
     MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
     MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
     req->motion_id = (int32_t)MotionID::kRecoveryStand;
     INFO("Trying to be ready for ResultCmd");
-    HandleResultCmd(req, res);
+    ExecuteResultCmd(req, res);
     if (!res->result) {
       response->code = res->code;
       response->result = false;
@@ -279,6 +267,124 @@ void MotionHandler::HandleResultCmd(
   response->code = (int32_t)MotionCode::kOK;
   response->result = true;
   response->motion_id = motion_status_ptr_->motion_id;
+}
+
+/**
+ * @brief 执行结果指令
+ *
+ * @param request
+ * @param response
+ */
+void MotionHandler::HandleResultCmd(
+  const MotionResultSrv::Request::SharedPtr request,
+  MotionResultSrv::Response::SharedPtr response)
+{
+  if(GetWorkStatus() != HandlerStatus::kIdle) {
+    response->result = false;
+    response->code = (int32_t)MotionCode::kStateError;
+    return;
+  }
+  SetWorkStatus(HandlerStatus::kExecutingResultCmd);
+  if (!isCommandValid(request)) {
+    response->code = (int32_t)MotionCode::kCommandInvalid;
+    response->result = false;
+    response->motion_id = motion_status_ptr_->motion_id;
+    SetWorkStatus(HandlerStatus::kIdle);
+    return;
+  }
+  ExecuteResultCmd(request, response);
+  SetWorkStatus(HandlerStatus::kIdle);
+  // if (!CheckPreMotion(request->motion_id)) {
+  //   MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+  //   MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
+  //   req->motion_id = (int32_t)MotionID::kRecoveryStand;
+  //   INFO("Trying to be ready for ResultCmd");
+  //   HandleResultCmd(req, res);
+  //   if (!res->result) {
+  //     response->code = res->code;
+  //     response->result = false;
+  //     response->motion_id = motion_status_ptr_->motion_id;
+  //     SetWorkStatus(HandlerStatus::kIdle);
+  //     return;
+  //   }
+  // }
+  // action_ptr_->Execute(request);
+  // if (FeedbackTimeout()) {
+  //   response->code = (int32_t)MotionCode::kReadLcmTimeout;
+  //   response->result = false;
+  //   response->motion_id = motion_status_ptr_->motion_id;
+  //   SetWorkStatus(HandlerStatus::kIdle);
+  //   return;
+  // }
+  // std::unique_lock<std::mutex> check_lk(execute_mutex_);
+  // wait_id_ = request->motion_id;
+  // // TODO(harvey):
+  // // INFO("sws:%d", motion_status_ptr_->switch_status);
+  // if (motion_status_ptr_->switch_status == MotionStatusMsg::BAN_TRANS ||
+  //   motion_status_ptr_->switch_status == MotionStatusMsg::EDAMP ||
+  //   motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP ||
+  //   motion_status_ptr_->switch_status == MotionStatusMsg::LIFTED)
+  // {
+  //   response->code = (int32_t)MotionCode::kSwitchError;
+  //   response->result = false;
+  //   response->motion_id = motion_status_ptr_->motion_id;
+  //   SetWorkStatus(HandlerStatus::kIdle);
+  //   return;
+  // }
+  // if (motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING) {
+  //   is_transitioning_wait_ = true;
+  //   if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
+  //     std::cv_status::timeout)
+  //   {
+  //     response->code = (int32_t)MotionCode::kTransitionTimeout;
+  //     response->result = false;
+  //     response->motion_id = motion_status_ptr_->motion_id;
+  //     WARN("Transitioning Timeout");
+  //     SetWorkStatus(HandlerStatus::kIdle);
+  //     return;
+  //   }
+  // }
+  // if (is_transitioning_wait_) {
+  //   INFO("Try to relock execute_mutex_");
+  //   check_lk.lock();
+  //   INFO("Relock execute_mutex_");
+  //   }
+  // is_execute_wait_ = true;
+
+  // // TODO(harvey): 超时时间按给定duration和每个动作的最小duration之间的较大值计算
+  // // auto wait_timeout = duration > min_duration_map_[motion_id] ?
+  // //   duration : min_duration_map_[motion_id];
+  // auto wait_timeout = 0;
+  // auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
+  // // 站立、趴下、作揖、空翻、绝对力控这些动作运控内部设定了固定时间，duration必须为0
+  // if (min_exec_time > 0) {
+  //   wait_timeout = min_exec_time;
+  // } else if (min_exec_time < 0) {  // 增量力控、增量位控、绝对位控、行走duration必须大于0
+  //   wait_timeout = request->duration;
+  // } else {
+  // }
+
+  // if (execute_cv_.wait_for(
+  //     check_lk,
+  //     std::chrono::milliseconds(wait_timeout)) == std::cv_status::timeout)
+  // {
+  //   response->code = (int32_t)MotionCode::kExecuteTimeout;
+  //   response->result = false;
+  //   response->motion_id = motion_status_ptr_->motion_id;
+  //   SetWorkStatus(HandlerStatus::kIdle);
+  //   return;
+  // }
+  // if (!CheckMotionResult()) {
+  //   response->code = (int32_t)MotionCode::kExecuteError;
+  //   response->result = false;
+  //   response->motion_id = motion_status_ptr_->motion_id;
+  //   SetWorkStatus(HandlerStatus::kIdle);
+  //   return;
+  // }
+  // response->code = (int32_t)MotionCode::kOK;
+  // response->result = true;
+  // response->motion_id = motion_status_ptr_->motion_id;
+  // SetWorkStatus(HandlerStatus::kIdle);
 }
 
 /**

@@ -34,7 +34,7 @@ using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 constexpr uint8_t kActionLcmPublishFrequency = 20;
 constexpr uint8_t kServoDataLostTimesThreshold = 4;
 constexpr uint16_t kTransitioningTimeout = 3000;  // millisecond
-constexpr uint16_t kAcitonLcmReadTimeout = 1000;  // millisecond
+constexpr uint16_t kAcitonLcmReadTimeout = 100;  // millisecond
 constexpr int kMotorNormal = -2147483648;
 constexpr const char * kActionPublishURL = "udpm://239.255.76.67:7671?ttl=255";
 constexpr const char * kActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=255";
@@ -115,16 +115,20 @@ enum class MotionID : int32_t
   kPoseControlRelatively = 212
 };  // enmu calss MotionID
 
-/**
- * @brief 运动模型状态记录， 后续考虑重构为Handler状态
- *
- */
 enum class DecisionStatus : uint8_t
 {
   kIdle = 0,
-  kServoStart = 1,
-  kExecuting = 2
+  kExecutingApp = 1,
+  kExecutingAudio = 2,
+  kExecutingVis = 3,
 };  // enum class DecisionStatus
+
+enum class HandlerStatus : uint8_t
+{
+  kIdle = 0,
+  kExecutingServoCmd = 1,
+  kExecutingResultCmd = 2
+};  // enum class HandlerStatus
 
 // 所有的motion相关code都从300开始，该值为全局架构设计分配
 enum class MotionCode : int32_t

@@ -54,6 +54,9 @@ public:
   void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void HandleServoCmd(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
+  void ExecuteResultCmd(  
+  const MotionResultSrv::Request::SharedPtr request,
+  MotionResultSrv::Response::SharedPtr response);
   void HandleResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
@@ -61,7 +64,14 @@ public:
   bool CheckPreMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
   bool isCommandValid(const MotionResultSrv::Request::SharedPtr request);
-
+  inline void SetWorkStatus(const HandlerStatus status) {
+    std::unique_lock<std::mutex> lk(status_mutex_);
+    status_ = status;
+  }
+  inline HandlerStatus GetWorkStatus(){
+    std::unique_lock<std::mutex> lk(status_mutex_);
+    return status_;
+  }
 public:
   /* 考虑重构的API */
   bool IsIdle() {return true;}
@@ -130,21 +140,25 @@ private:
   std::shared_ptr<ServoClick> servo_check_click_;
   std::mutex servo_check_mutex_;
   std::condition_variable servo_check_cv_;
-  bool is_servo_need_check_ {false};
-  int8_t server_check_error_counter_ {0};
 
   /* Execute cmd members */
+  std::mutex status_mutex_;
   std::mutex feedback_mutex_;
   std::mutex execute_mutex_;
   std::condition_variable feedback_cv_;
   std::condition_variable transitioning_cv_;
   std::condition_variable execute_cv_;
+  std::map<int32_t, MotionIdMap> motion_id_map_;
+  MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
+  HandlerStatus status_;
+  int32_t wait_id_;
+  uint8_t retry_ {0}, max_retry_{3};
+  int8_t server_check_error_counter_ {0};
   bool is_transitioning_wait_ {false};
   bool is_execute_wait_ {false};
-  std::map<int32_t, MotionIdMap> motion_id_map_;
-  int32_t wait_id_;
-  MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
-  uint8_t retry_ {0}, max_retry_{3};
+  bool is_servo_need_check_ {false};
+  bool premotion_executing_ {false};
+
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

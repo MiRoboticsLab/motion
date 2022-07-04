@@ -51,7 +51,6 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
     servo_response_msg_.code = (int32_t)MotionCode::kStateError;
     return;
   }
-
   handler_ptr_->HandleServoCmd(msg, servo_response_msg_);
 }
 
@@ -69,10 +68,18 @@ void MotionDecision::ServoResponseThread()
     if (servo_response_pub_ != nullptr) {
       // FIXME(harvey): 伺服指令的运行结果判断机制
       if (!handler_ptr_->FeedbackTimeout()) {
-        INFO("motion_id: %d", handler_ptr_->GetMotionStatus()->motion_id);
         servo_response_msg_.motion_id = handler_ptr_->GetMotionStatus()->motion_id;
         servo_response_msg_.order_process_bar = handler_ptr_->GetMotionStatus()->order_process_bar;
         servo_response_msg_.status = handler_ptr_->GetMotionStatus()->switch_status;
+        servo_response_msg_.result = true;
+        servo_response_msg_.code = (int32_t)MotionCode::kOK;
+        servo_response_pub_->publish(servo_response_msg_);
+      } else {
+        servo_response_msg_.motion_id = -1;
+        servo_response_msg_.order_process_bar = -1;
+        servo_response_msg_.status = -1;
+        servo_response_msg_.result = false;
+        servo_response_msg_.code = (int32_t)MotionCode::kReadLcmTimeout;
         servo_response_pub_->publish(servo_response_msg_);
       }
     }

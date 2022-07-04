@@ -45,6 +45,8 @@ bool MotionManager::Init()
     ERROR("Init failed with nullptr at ros node!");
     return false;
   }
+  executor_.reset(new rclcpp::executors::MultiThreadedExecutor);
+  callback_group_ = node_ptr_->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
   motion_servo_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
     kMotionServoResponseTopicName, 10);
@@ -59,7 +61,7 @@ bool MotionManager::Init()
     kMotionResultServiceName,
     std::bind(
       &MotionManager::MotionResultCmdCallback, this, std::placeholders::_1,
-      std::placeholders::_2));
+      std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
 
 
   return true;
@@ -68,7 +70,9 @@ bool MotionManager::Init()
 void MotionManager::Run()
 {
   INFO("Running on...");
-  rclcpp::spin(node_ptr_);
+  // rclcpp::spin(node_ptr_);
+  executor_->add_node(node_ptr_);
+  executor_->spin();
   rclcpp::shutdown();
 }
 
