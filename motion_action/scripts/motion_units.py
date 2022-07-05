@@ -89,7 +89,7 @@ def roll(theta = 3.14 * 2 / 6):
     client = node.create_client(MotionResultCmd, 'motion_result_cmd')
     req = MotionResultCmd.Request()
     req.motion_id = kMotionID
-    node.get_logger().info(theta)
+    node.get_logger().info("roll: {}".format(theta))
     req.rpy_des.fromlist([theta, 0.0, 0.0])
     req.duration = 1000
     if not client.wait_for_service(5.0):
@@ -113,7 +113,7 @@ def pitch(theta = 3.14 * 2 / 6):
     client = node.create_client(MotionResultCmd, 'motion_result_cmd')
     req = MotionResultCmd.Request()
     req.motion_id = kMotionID
-    node.get_logger().info(theta)
+    node.get_logger().info("pitch: {}".format(theta))
     req.rpy_des.fromlist([0.0, theta, 0.0])
     req.duration = 1000
     if not client.wait_for_service(5.0):
