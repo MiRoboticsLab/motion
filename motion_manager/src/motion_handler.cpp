@@ -113,8 +113,8 @@ void MotionHandler::HandleServoCmd(
     TickServoCmd();
     SetServoNeedCheck(true);
   } else {
-    PoseControlDefinitively();
     SetServoNeedCheck(false);
+    PoseControlDefinitively();
     SetWorkStatus(HandlerStatus::kIdle);
   }
 }
@@ -138,8 +138,8 @@ void MotionHandler::ServoDataCheck()
       WARN("Servo data lost time with %d times", kServoDataLostTimesThreshold);
       // StopServoResponse();
       // SetServoDataLost(); TODO(harvey): 是否通知Decision？
-      PoseControlDefinitively();
       SetServoNeedCheck(false);
+      PoseControlDefinitively();
       // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
       SetWorkStatus(HandlerStatus::kIdle);
     }
@@ -155,9 +155,11 @@ void MotionHandler::ServoDataCheck()
 void MotionHandler::PoseControlDefinitively()
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
+  MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
   request->motion_id = MotionIDMsg::POSECONTROL_DEFINITIVELY;
   request->pos_des = std::vector<float>{0.0, 0.0, 0.2};
-  action_ptr_->Execute(request);
+  // action_ptr_->Execute(request);
+  ExecuteResultCmd(request, response);
 }
 
 bool MotionHandler::CheckMotionResult()
