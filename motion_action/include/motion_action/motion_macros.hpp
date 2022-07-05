@@ -18,6 +18,7 @@
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
+#include "protocol/msg/motion_id.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
 namespace cyberdog
@@ -30,6 +31,7 @@ using LcmResponse = robot_control_response_lcmt;
 using MotionResultSrv = protocol::srv::MotionResultCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
+using MotionIDMsg = protocol::msg::MotionID;
 
 constexpr uint8_t kActionLcmPublishFrequency = 20;
 constexpr uint8_t kServoDataLostTimesThreshold = 4;

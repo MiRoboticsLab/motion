@@ -58,7 +58,7 @@ void MotionHandler::HandleServoDataFrame(
     if (retry_ < max_retry_) {
       MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
       MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
-      request->motion_id = (int32_t)MotionID::kRecoveryStand;
+      request->motion_id = MotionIDMsg::RECOVERYSTAND;
       INFO("Trying to be ready for ServoCmd");
       HandleResultCmd(request, response);
       if (!response->result) {
@@ -100,7 +100,7 @@ void MotionHandler::HandleServoCmd(
     if (!AllowServoCmd(msg->motion_id)) {
       MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
       MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
-      request->motion_id = (int32_t)MotionID::kRecoveryStand;
+      request->motion_id = MotionIDMsg::RECOVERYSTAND;
       INFO("Trying to be ready for ServoCmd");
       ExecuteResultCmd(request, response);
       if(!response->result) {
@@ -154,7 +154,7 @@ void MotionHandler::ServoDataCheck()
 void MotionHandler::PoseControlDefinitively()
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-  request->motion_id = (int32_t)MotionID::kPoseControlDefinitively;
+  request->motion_id = MotionIDMsg::POSECONTROL_DEFINITIVELY;
   request->pos_des = std::vector<float>{0.0, 0.0, 0.2};
   action_ptr_->Execute(request);
 }
@@ -186,7 +186,7 @@ void MotionHandler::ExecuteResultCmd(
   if (!CheckPreMotion(request->motion_id)) {
     MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
     MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
-    req->motion_id = (int32_t)MotionID::kRecoveryStand;
+    req->motion_id = MotionIDMsg::RECOVERYSTAND;
     INFO("Trying to be ready for ResultCmd");
     ExecuteResultCmd(req, res);
     if (!res->result) {
@@ -297,7 +297,7 @@ void MotionHandler::HandleResultCmd(
   // if (!CheckPreMotion(request->motion_id)) {
   //   MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
   //   MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
-  //   req->motion_id = (int32_t)MotionID::kRecoveryStand;
+  //   req->motion_id = MotionIDMsg::RECOVERYSTAND;
   //   INFO("Trying to be ready for ResultCmd");
   //   HandleResultCmd(req, res);
   //   if (!res->result) {
@@ -428,7 +428,7 @@ MotionStatusMsg::SharedPtr MotionHandler::GetMotionStatus()
 
 bool MotionHandler::CheckPreMotion(int32_t motion_id)
 {
-  if (motion_id == (int32_t)MotionID::kRecoveryStand || motion_id == (int32_t)MotionID::kEstop) {
+  if (motion_id == MotionIDMsg::RECOVERYSTAND || motion_id == MotionIDMsg::ESTOP) {
     return true;
   }
   std::vector<int32_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;
