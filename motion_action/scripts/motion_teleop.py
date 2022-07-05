@@ -178,7 +178,7 @@ def main(argv):
           cmd.motion_id = motion_id; 
         #   cmd.mode = mode; cmd.gait_id = gait_id; cmd.life_count = life_count + 1
           cmd.vel_des.fromlist([control_speed, control_speed_y, control_turn])
-          cmd.pos_des.fromlist([0.0, 0.0, 0.3])
+          cmd.pos_des.fromlist([0.0, 0.0, 0.2])
           cmd.step_height.fromlist([0.05, 0.05])
         #   if key in moveBindings.keys():
           pub.publish(cmd)
