@@ -98,6 +98,7 @@ void MotionHandler::HandleServoCmd(
   SetWorkStatus(HandlerStatus::kExecutingServoCmd);
   if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
     if (!AllowServoCmd(msg->motion_id)) {
+      SetServoNeedCheck(false);
       MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
       MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
       request->motion_id = MotionIDMsg::RECOVERYSTAND;
