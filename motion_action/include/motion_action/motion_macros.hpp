@@ -38,7 +38,7 @@ using MotionCodeMsg = protocol::msg::MotionCode;
 constexpr uint8_t kActionLcmPublishFrequency = 20;
 constexpr uint8_t kServoDataLostTimesThreshold = 4;
 constexpr uint16_t kTransitioningTimeout = 3000;  // millisecond
-constexpr uint16_t kAcitonLcmReadTimeout = 100;  // millisecond
+constexpr uint16_t kAcitonLcmReadTimeout = 200;  // millisecond
 constexpr int kMotorNormal = -2147483648;
 constexpr const char * kActionPublishURL = "udpm://239.255.76.67:7671?ttl=255";
 constexpr const char * kActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=255";
