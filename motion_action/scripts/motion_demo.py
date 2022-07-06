@@ -14,19 +14,21 @@
 # limitations under the License.
 
 import motion_units
-loop = 5
+import time
+loop = 1
 count = 0
-while count < 5:
-  motion_units.standup()
+while count < loop:
+  # motion_units.standup()
   # motion_units.roll(3.14*2/24)
+  # time.sleep(2)
   # motion_units.roll(-3.14*2/24)
   # motion_units.pitch(3.14*2/24)
   # motion_units.pitch(-3.14*2/24)
-  # motion_units.yaw(3.14*2/6, 0.1)
+  motion_units.yaw(3.14*2/6, 0.1)
   # motion_units.yaw(-3.14*2/6, 0.1)
-  motion_units.walk(0.1)
-  motion_units.walk(-0.1)
-  motion_units.getdown()
+  # motion_units.walk(0.1)
+  # motion_units.walk(-0.1)
+  # motion_units.getdown()
   count = count + 1
 
 

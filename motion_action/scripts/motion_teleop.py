@@ -22,6 +22,7 @@ import rclpy
 from geometry_msgs.msg import Twist
 # from protocol.msg import MotionCmd
 from protocol.msg import MotionServoCmd
+from protocol.msg import MotionID
 from rclpy.qos import QoSProfile
 
 
@@ -117,7 +118,7 @@ def main(argv):
       print(msg)
       print(vels(speed, turn))
       while(1):
-          motion_id = 303
+          motion_id = MotionID.WALK_ADAPTIVELY
           key = getKey()
           if key in moveBindings.keys():
               x = moveBindings[key][0]
@@ -189,8 +190,8 @@ def main(argv):
     finally:
         if end == 'end':
             cmd = MotionServoCmd()
-            cmd.cmd_type = 2
-            cmd.motion_id = 202
+            cmd.cmd_type = MotionServoCmd.SERVO_END
+            # cmd.motion_id = MotionID.FORCECONTROL_RELATIVEYLY
             # cmd.mode = 3; cmd.gait_id = 0; cmd.life_count = life_count + 1
             # cmd.pos_des.fromlist([0.0, 0.0, 0.3])
             # cmd.vel_des.fromlist([0.0, 0.0, 0.0])

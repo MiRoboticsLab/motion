@@ -68,7 +68,7 @@ void MotionHandler::HandleServoDataFrame(
       }
     } else {
       res.result = false;
-      res.code = (int32_t)MotionCode::kSwitchError;
+      res.code = MotionCodeMsg::MOTION_SWITCH_ERROR;
     }
     return;
   }
@@ -92,7 +92,7 @@ void MotionHandler::HandleServoCmd(
 {
   if(GetWorkStatus() == HandlerStatus::kExecutingResultCmd){
     res.result = false;
-    res.code = (int32_t)MotionCode::kStateError;
+    res.code = MotionCodeMsg::TASK_STATE_ERROR;
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingServoCmd);
@@ -147,11 +147,6 @@ void MotionHandler::ServoDataCheck()
   }
 }
 
-/**
- * @brief 停止运动，让机器人回归站立姿态
- *        后续计划改成调用当前动作的状态机结束动作，而不是写死
- *
- */
 void MotionHandler::PoseControlDefinitively()
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
@@ -201,7 +196,7 @@ void MotionHandler::ExecuteResultCmd(
   }
   action_ptr_->Execute(request);
   if (FeedbackTimeout()) {
-    response->code = (int32_t)MotionCode::kReadLcmTimeout;
+    response->code = MotionCodeMsg::COM_LCM_TIMEOUT;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     return;
@@ -215,7 +210,7 @@ void MotionHandler::ExecuteResultCmd(
     motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP ||
     motion_status_ptr_->switch_status == MotionStatusMsg::LIFTED)
   {
-    response->code = (int32_t)MotionCode::kSwitchError;
+    response->code = MotionCodeMsg::MOTION_SWITCH_ERROR;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     return;
@@ -225,7 +220,7 @@ void MotionHandler::ExecuteResultCmd(
     if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
       std::cv_status::timeout)
     {
-      response->code = (int32_t)MotionCode::kTransitionTimeout;
+      response->code = MotionCodeMsg::MOTION_TRANSITION_TIMEOUT;
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
       WARN("Transitioning Timeout");
@@ -239,9 +234,6 @@ void MotionHandler::ExecuteResultCmd(
     }
   is_execute_wait_ = true;
 
-  // TODO(harvey): 超时时间按给定duration和每个动作的最小duration之间的较大值计算
-  // auto wait_timeout = duration > min_duration_map_[motion_id] ?
-  //   duration : min_duration_map_[motion_id];
   auto wait_timeout = 0;
   auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
   // 站立、趴下、作揖、空翻、绝对力控这些动作运控内部设定了固定时间，duration必须为0
@@ -256,18 +248,18 @@ void MotionHandler::ExecuteResultCmd(
       check_lk,
       std::chrono::milliseconds(wait_timeout)) == std::cv_status::timeout)
   {
-    response->code = (int32_t)MotionCode::kExecuteTimeout;
+    response->code = MotionCodeMsg::MOTION_EXECUTE_TIMEOUT;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     return;
   }
   if (!CheckMotionResult()) {
-    response->code = (int32_t)MotionCode::kExecuteError;
+    response->code = MotionCodeMsg::MOTION_EXECUTE_ERROR;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     return;
   }
-  response->code = (int32_t)MotionCode::kOK;
+  response->code = MotionCodeMsg::OK;
   response->result = true;
   response->motion_id = motion_status_ptr_->motion_id;
 }
@@ -284,12 +276,12 @@ void MotionHandler::HandleResultCmd(
 {
   if(GetWorkStatus() != HandlerStatus::kIdle) {
     response->result = false;
-    response->code = (int32_t)MotionCode::kStateError;
+    response->code = MotionCodeMsg::TASK_STATE_ERROR;
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
   if (!isCommandValid(request)) {
-    response->code = (int32_t)MotionCode::kCommandInvalid;
+    response->code = MotionCodeMsg::COMMAND_INVALID;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     SetWorkStatus(HandlerStatus::kIdle);
@@ -297,97 +289,6 @@ void MotionHandler::HandleResultCmd(
   }
   ExecuteResultCmd(request, response);
   SetWorkStatus(HandlerStatus::kIdle);
-  // if (!CheckPreMotion(request->motion_id)) {
-  //   MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
-  //   MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
-  //   req->motion_id = MotionIDMsg::RECOVERYSTAND;
-  //   INFO("Trying to be ready for ResultCmd");
-  //   HandleResultCmd(req, res);
-  //   if (!res->result) {
-  //     response->code = res->code;
-  //     response->result = false;
-  //     response->motion_id = motion_status_ptr_->motion_id;
-  //     SetWorkStatus(HandlerStatus::kIdle);
-  //     return;
-  //   }
-  // }
-  // action_ptr_->Execute(request);
-  // if (FeedbackTimeout()) {
-  //   response->code = (int32_t)MotionCode::kReadLcmTimeout;
-  //   response->result = false;
-  //   response->motion_id = motion_status_ptr_->motion_id;
-  //   SetWorkStatus(HandlerStatus::kIdle);
-  //   return;
-  // }
-  // std::unique_lock<std::mutex> check_lk(execute_mutex_);
-  // wait_id_ = request->motion_id;
-  // // TODO(harvey):
-  // // INFO("sws:%d", motion_status_ptr_->switch_status);
-  // if (motion_status_ptr_->switch_status == MotionStatusMsg::BAN_TRANS ||
-  //   motion_status_ptr_->switch_status == MotionStatusMsg::EDAMP ||
-  //   motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP ||
-  //   motion_status_ptr_->switch_status == MotionStatusMsg::LIFTED)
-  // {
-  //   response->code = (int32_t)MotionCode::kSwitchError;
-  //   response->result = false;
-  //   response->motion_id = motion_status_ptr_->motion_id;
-  //   SetWorkStatus(HandlerStatus::kIdle);
-  //   return;
-  // }
-  // if (motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING) {
-  //   is_transitioning_wait_ = true;
-  //   if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
-  //     std::cv_status::timeout)
-  //   {
-  //     response->code = (int32_t)MotionCode::kTransitionTimeout;
-  //     response->result = false;
-  //     response->motion_id = motion_status_ptr_->motion_id;
-  //     WARN("Transitioning Timeout");
-  //     SetWorkStatus(HandlerStatus::kIdle);
-  //     return;
-  //   }
-  // }
-  // if (is_transitioning_wait_) {
-  //   INFO("Try to relock execute_mutex_");
-  //   check_lk.lock();
-  //   INFO("Relock execute_mutex_");
-  //   }
-  // is_execute_wait_ = true;
-
-  // // TODO(harvey): 超时时间按给定duration和每个动作的最小duration之间的较大值计算
-  // // auto wait_timeout = duration > min_duration_map_[motion_id] ?
-  // //   duration : min_duration_map_[motion_id];
-  // auto wait_timeout = 0;
-  // auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
-  // // 站立、趴下、作揖、空翻、绝对力控这些动作运控内部设定了固定时间，duration必须为0
-  // if (min_exec_time > 0) {
-  //   wait_timeout = min_exec_time;
-  // } else if (min_exec_time < 0) {  // 增量力控、增量位控、绝对位控、行走duration必须大于0
-  //   wait_timeout = request->duration;
-  // } else {
-  // }
-
-  // if (execute_cv_.wait_for(
-  //     check_lk,
-  //     std::chrono::milliseconds(wait_timeout)) == std::cv_status::timeout)
-  // {
-  //   response->code = (int32_t)MotionCode::kExecuteTimeout;
-  //   response->result = false;
-  //   response->motion_id = motion_status_ptr_->motion_id;
-  //   SetWorkStatus(HandlerStatus::kIdle);
-  //   return;
-  // }
-  // if (!CheckMotionResult()) {
-  //   response->code = (int32_t)MotionCode::kExecuteError;
-  //   response->result = false;
-  //   response->motion_id = motion_status_ptr_->motion_id;
-  //   SetWorkStatus(HandlerStatus::kIdle);
-  //   return;
-  // }
-  // response->code = (int32_t)MotionCode::kOK;
-  // response->result = true;
-  // response->motion_id = motion_status_ptr_->motion_id;
-  // SetWorkStatus(HandlerStatus::kIdle);
 }
 
 /**

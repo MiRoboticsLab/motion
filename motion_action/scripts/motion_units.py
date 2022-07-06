@@ -17,10 +17,11 @@ import sys, time
 import rclpy
 from protocol.srv import MotionResultCmd
 from protocol.msg import MotionServoCmd
+from protocol.msg import MotionID
 from rclpy.qos import QoSProfile
 
 def standup():
-    kMotionID = 111
+    kMotionID = MotionID.RECOVERYSTAND
     rclpy.init()
     node = rclpy.create_node('motion')
     client = node.create_client(MotionResultCmd, 'motion_result_cmd')
@@ -41,7 +42,7 @@ def standup():
     rclpy.shutdown()
 
 def getdown():
-    kMotionID = 101
+    kMotionID = MotionID.GETDOWN
     rclpy.init()
     node = rclpy.create_node('motion')
     client = node.create_client(MotionResultCmd, 'motion_result_cmd')
@@ -62,7 +63,7 @@ def getdown():
     rclpy.shutdown()
 
 def walk(x = 0.1, y = 0.0, duration = 10):
-    kMotionID = 303
+    kMotionID = MotionID.WALK_ADAPTIVELY
     kDataFrame = 1
     kEndFrame = 2
     rclpy.init()
@@ -76,20 +77,20 @@ def walk(x = 0.1, y = 0.0, duration = 10):
     begin = time.time()
     while(time.time() < begin + duration):
         pub.publish(servo_cmd)
-        node.get_logger().info("walking: {} {}".format(x, y))
+        node.get_logger().info("walking: {:.2f} {:.2f}".format(x, y))
         time.sleep(0.05)
     servo_cmd.cmd_type = kEndFrame
     pub.publish(servo_cmd)
     rclpy.shutdown()
 
 def roll(theta = 3.14 * 2 / 6):
-    kMotionID = 202
+    kMotionID = MotionID.FORCECONTROL_RELATIVEYLY
     rclpy.init()
     node = rclpy.create_node('motion')
     client = node.create_client(MotionResultCmd, 'motion_result_cmd')
     req = MotionResultCmd.Request()
     req.motion_id = kMotionID
-    node.get_logger().info("roll: {}".format(theta))
+    node.get_logger().info("roll: {:.2f}".format(theta))
     req.rpy_des.fromlist([theta, 0.0, 0.0])
     req.duration = 1000
     if not client.wait_for_service(5.0):
@@ -107,13 +108,13 @@ def roll(theta = 3.14 * 2 / 6):
     rclpy.shutdown()
 
 def pitch(theta = 3.14 * 2 / 6):
-    kMotionID = 202
+    kMotionID = MotionID.FORCECONTROL_RELATIVEYLY
     rclpy.init()
     node = rclpy.create_node('motion')
     client = node.create_client(MotionResultCmd, 'motion_result_cmd')
     req = MotionResultCmd.Request()
     req.motion_id = kMotionID
-    node.get_logger().info("pitch: {}".format(theta))
+    node.get_logger().info("pitch: {:.2f}".format(theta))
     req.rpy_des.fromlist([0.0, theta, 0.0])
     req.duration = 1000
     if not client.wait_for_service(5.0):
@@ -131,17 +132,15 @@ def pitch(theta = 3.14 * 2 / 6):
     rclpy.shutdown()
 
 def yaw(theta = 3.14 * 2 / 6, omega = 0.1):
+    kMotionID = MotionID.WALK_ADAPTIVELY
+    rclpy.init()
+    node = rclpy.create_node('motion')
     if omega < 0:
         node.get_logger().info("Omega should to be positive")
     omega = omega if theta > 0 else (-1 * omega)
     duration = abs(theta / omega)
-    node.get_logger().info(duration)
-    kMotionID = 303
-    kDataFrame = 1
-    kEndFrame = 2
-    rclpy.init()
+    node.get_logger().info("Walk for {:.2f}s".format(duration))
     qos = QoSProfile(depth=10)
-    node = rclpy.create_node('motion')
     pub = node.create_publisher(MotionServoCmd, 'motion_servo_cmd', qos)
     servo_cmd = MotionServoCmd()
     servo_cmd.motion_id = kMotionID
@@ -151,6 +150,6 @@ def yaw(theta = 3.14 * 2 / 6, omega = 0.1):
     while(time.time() < begin + duration):
         pub.publish(servo_cmd)
         time.sleep(0.05)
-    servo_cmd.cmd_type = kEndFrame
+    servo_cmd.cmd_type = MotionServoCmd.SERVO_END
     pub.publish(servo_cmd)
     rclpy.shutdown()
