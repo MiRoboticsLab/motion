@@ -108,6 +108,7 @@ void MotionHandler::HandleServoCmd(
         SetWorkStatus(HandlerStatus::kIdle);
         return;
       }
+      pre_motion_checked_ = true;
     }
     action_ptr_->Execute(msg);
     TickServoCmd();
@@ -116,6 +117,7 @@ void MotionHandler::HandleServoCmd(
     SetServoNeedCheck(false);
     PoseControlDefinitively();
     SetWorkStatus(HandlerStatus::kIdle);
+    pre_motion_checked_ = false;
   }
 }
 
@@ -142,6 +144,7 @@ void MotionHandler::ServoDataCheck()
       PoseControlDefinitively();
       // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
       SetWorkStatus(HandlerStatus::kIdle);
+      pre_motion_checked_ = false;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
@@ -344,6 +347,7 @@ bool MotionHandler::CheckPreMotion(int32_t motion_id)
 bool MotionHandler::AllowServoCmd(int32_t motion_id)
 {
   // TODO(harvey): 判断当前状态是否能够行走
+  if(pre_motion_checked_) return true;
   return CheckPreMotion(motion_id);
 }
 
