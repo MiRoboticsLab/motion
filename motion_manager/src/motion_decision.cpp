@@ -38,6 +38,7 @@ bool MotionDecision::Init(
   }
   servo_response_pub_ = servo_response_pub;
   servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponseThread, this));
+  servo_response_thread_.detach();
   ResetServoResponseMsg();
   return true;
 }
