@@ -227,6 +227,7 @@ void MotionHandler::ExecuteResultCmd(
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
       WARN("Transitioning Timeout");
+      is_transitioning_wait_ = false;
       return;
     }
   }
