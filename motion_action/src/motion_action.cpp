@@ -193,7 +193,6 @@ void MotionAction::ReadLcm(
           "Get unkown response about motion_id, mode: %d, gait_id: %d!",
           static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));
         last_motion_id_ = -1;
-        // std::cout << (int)msg->mode << ";" << (int)msg->gait_id << std::endl;
         break;
       }
       if (m->second.map.front() == msg->mode && m->second.map.back() == msg->gait_id) {

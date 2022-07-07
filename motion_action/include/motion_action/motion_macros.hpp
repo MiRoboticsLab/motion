@@ -18,6 +18,8 @@
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
+#include "protocol/msg/motion_id.hpp"
+#include "protocol/msg/motion_code.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
 namespace cyberdog
@@ -30,11 +32,13 @@ using LcmResponse = robot_control_response_lcmt;
 using MotionResultSrv = protocol::srv::MotionResultCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
+using MotionIDMsg = protocol::msg::MotionID;
+using MotionCodeMsg = protocol::msg::MotionCode;
 
 constexpr uint8_t kActionLcmPublishFrequency = 20;
 constexpr uint8_t kServoDataLostTimesThreshold = 4;
 constexpr uint16_t kTransitioningTimeout = 3000;  // millisecond
-constexpr uint16_t kAcitonLcmReadTimeout = 1000;  // millisecond
+constexpr uint16_t kAcitonLcmReadTimeout = 200;  // millisecond
 constexpr int kMotorNormal = -2147483648;
 constexpr const char * kActionPublishURL = "udpm://239.255.76.67:7671?ttl=255";
 constexpr const char * kActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=255";
@@ -115,16 +119,20 @@ enum class MotionID : int32_t
   kPoseControlRelatively = 212
 };  // enmu calss MotionID
 
-/**
- * @brief 运动模型状态记录， 后续考虑重构为Handler状态
- *
- */
 enum class DecisionStatus : uint8_t
 {
   kIdle = 0,
-  kServoStart = 1,
-  kExecuting = 2
+  kExecutingApp = 1,
+  kExecutingAudio = 2,
+  kExecutingVis = 3,
 };  // enum class DecisionStatus
+
+enum class HandlerStatus : uint8_t
+{
+  kIdle = 0,
+  kExecutingServoCmd = 1,
+  kExecutingResultCmd = 2
+};  // enum class HandlerStatus
 
 // 所有的motion相关code都从300开始，该值为全局架构设计分配
 enum class MotionCode : int32_t

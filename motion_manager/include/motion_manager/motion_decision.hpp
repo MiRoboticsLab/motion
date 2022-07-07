@@ -134,7 +134,7 @@ private:
   inline void ResetServoResponseMsg()
   {
     servo_response_msg_.result = true;
-    servo_response_msg_.code = (int32_t)MotionCode::kOK;
+    servo_response_msg_.code = MotionCodeMsg::OK;
   }
 
 private:
