@@ -37,23 +37,31 @@ set(dependencies
 
 include_directories(include)
 
-add_executable(${PROJECT_NAME}
-  src/main.cpp
+add_executable(elevation_bridge
   src/elevation_bridge.cpp
+)
+target_link_libraries(elevation_bridge lcm)
+ament_target_dependencies(elevation_bridge ${dependencies})
+
+add_executable(imu_bridge
+  src/imu_bridge.cpp
+)
+target_link_libraries(imu_bridge lcm)
+ament_target_dependencies(imu_bridge ${dependencies})
+
+add_executable(odom_out_publisher
   src/odom_out_publisher.cpp
 )
-target_link_libraries(${PROJECT_NAME} lcm)
-ament_target_dependencies(${PROJECT_NAME} ${dependencies})
+target_link_libraries(odom_out_publisher lcm)
+ament_target_dependencies(odom_out_publisher ${dependencies})
+
 
 add_executable(as_controller
-  test/as_controller.cpp)
+  test/as_controller.cpp
+)
 target_link_libraries(as_controller lcm)
 ament_target_dependencies(as_controller ${dependencies})
 
-add_executable(imu_bridge
-  src/imu_bridge.cpp)
-target_link_libraries(imu_bridge lcm)
-ament_target_dependencies(imu_bridge ${dependencies})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -67,7 +75,10 @@ if(BUILD_TESTING)
 endif()
 
 install(TARGETS
-  ${PROJECT_NAME} as_controller imu_bridge
+  elevation_bridge
+  imu_bridge
+  odom_out_publisher
+  as_controller
   DESTINATION lib/${PROJECT_NAME}
 )
 ament_export_dependencies(${dependencies})

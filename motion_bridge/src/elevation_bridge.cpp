@@ -144,3 +144,12 @@ void ElevationBridge::GridMapCallback(const grid_map_msgs::msg::GridMap::SharedP
 }
 }  // namespace motion
 }  // namespace cyberdog
+
+int main(int argc, char const * argv[])
+{
+  rclcpp::init(argc, argv);
+  rclcpp::Node::SharedPtr node(new rclcpp::Node("elevation_bridge"));
+  cyberdog::motion::ElevationBridge eb(node);
+  eb.Spin();
+  return 0;
+}
