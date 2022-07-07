@@ -90,7 +90,7 @@ void MotionHandler::HandleServoCmd(
   const MotionServoCmdMsg::SharedPtr msg,
   MotionServoResponseMsg & res)
 {
-  if(GetWorkStatus() == HandlerStatus::kExecutingResultCmd){
+  if (GetWorkStatus() == HandlerStatus::kExecutingResultCmd) {
     res.result = false;
     res.code = MotionCodeMsg::TASK_STATE_ERROR;
     return;
@@ -104,7 +104,7 @@ void MotionHandler::HandleServoCmd(
       request->motion_id = MotionIDMsg::RECOVERYSTAND;
       INFO("Trying to be ready for ServoCmd");
       ExecuteResultCmd(request, response);
-      if(!response->result) {
+      if (!response->result) {
         SetWorkStatus(HandlerStatus::kIdle);
         return;
       }
@@ -180,7 +180,7 @@ bool MotionHandler::FeedbackTimeout()
          std::cv_status::timeout;
 }
 
-void MotionHandler::ExecuteResultCmd(  
+void MotionHandler::ExecuteResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
@@ -235,7 +235,7 @@ void MotionHandler::ExecuteResultCmd(
     INFO("Try to relock execute_mutex_");
     check_lk.lock();
     INFO("Relock execute_mutex_");
-    }
+  }
   is_execute_wait_ = true;
 
   auto wait_timeout = 0;
@@ -278,7 +278,7 @@ void MotionHandler::HandleResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  if(GetWorkStatus() != HandlerStatus::kIdle) {
+  if (GetWorkStatus() != HandlerStatus::kIdle) {
     response->result = false;
     response->code = MotionCodeMsg::TASK_STATE_ERROR;
     return;
@@ -348,7 +348,7 @@ bool MotionHandler::CheckPreMotion(int32_t motion_id)
 bool MotionHandler::AllowServoCmd(int32_t motion_id)
 {
   // TODO(harvey): 判断当前状态是否能够行走
-  if(pre_motion_checked_) return true;
+  if (pre_motion_checked_) {return true;}
   return CheckPreMotion(motion_id);
 }
 

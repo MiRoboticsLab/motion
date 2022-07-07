@@ -54,9 +54,9 @@ public:
   void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void HandleServoCmd(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
-  void ExecuteResultCmd(  
-  const MotionResultSrv::Request::SharedPtr request,
-  MotionResultSrv::Response::SharedPtr response);
+  void ExecuteResultCmd(
+    const MotionResultSrv::Request::SharedPtr request,
+    MotionResultSrv::Response::SharedPtr response);
   void HandleResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
@@ -64,14 +64,17 @@ public:
   bool CheckPreMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
   bool isCommandValid(const MotionResultSrv::Request::SharedPtr request);
-  inline void SetWorkStatus(const HandlerStatus status) {
+  inline void SetWorkStatus(const HandlerStatus status)
+  {
     std::unique_lock<std::mutex> lk(status_mutex_);
     status_ = status;
   }
-  inline HandlerStatus GetWorkStatus(){
+  inline HandlerStatus GetWorkStatus()
+  {
     std::unique_lock<std::mutex> lk(status_mutex_);
     return status_;
   }
+
 public:
   /* 考虑重构的API */
   bool IsIdle() {return true;}
