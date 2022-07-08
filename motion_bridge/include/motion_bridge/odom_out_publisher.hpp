@@ -34,11 +34,11 @@ namespace cyberdog
 namespace motion
 {
 
-class LegOdomPublisher
+class OdomOutPublisher
 {
 public:
-  explicit LegOdomPublisher(const rclcpp::Node::SharedPtr node);
-  ~LegOdomPublisher() {}
+  explicit OdomOutPublisher(const rclcpp::Node::SharedPtr node);
+  ~OdomOutPublisher() {}
   void Spin();
 
 private:
@@ -55,7 +55,7 @@ private:
   std::condition_variable cv_;
   std::mutex mutex_;
   bool ready_publish_;
-};  // class LegOdomPublisher
+};  // class OdomOutPublisher
 }  // namespace motion
 }  // namespace cyberdog
 #endif  // MOTION_BRIDGE__ODOM_OUT_PUBLISHER_HPP_

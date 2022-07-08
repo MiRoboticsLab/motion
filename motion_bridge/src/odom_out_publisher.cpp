@@ -20,7 +20,7 @@ namespace cyberdog
 {
 namespace motion
 {
-LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
+OdomOutPublisher::OdomOutPublisher(const rclcpp::Node::SharedPtr node)
 {
   node_ = node;
   leg_odom_publisher_ = node_->create_publisher<nav_msgs::msg::Odometry>(
@@ -28,7 +28,7 @@ LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
     rclcpp::SystemDefaultsQoS());
   tf2_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node_);
   lcm_ = std::make_shared<lcm::LCM>(kBirdgeSubscribeURL);
-  lcm_->subscribe("global_to_robot", &LegOdomPublisher::OdomLCMCabllback, this);
+  lcm_->subscribe("global_to_robot", &OdomOutPublisher::OdomLCMCabllback, this);
   std::thread{
     [this]() {
       while (rclcpp::ok()) {
@@ -60,7 +60,7 @@ LegOdomPublisher::LegOdomPublisher(const rclcpp::Node::SharedPtr node)
   }.detach();
 }
 
-void LegOdomPublisher::OdomLCMCabllback(
+void OdomOutPublisher::OdomLCMCabllback(
   const lcm::ReceiveBuffer *, const std::string &,
   const localization_lcmt * msg)
 {
@@ -84,7 +84,7 @@ void LegOdomPublisher::OdomLCMCabllback(
   odom_.twist.twist.angular.z = msg->omegaBody[2];
 }
 
-void LegOdomPublisher::Spin()
+void OdomOutPublisher::Spin()
 {
   rclcpp::spin(node_);
   rclcpp::shutdown();
@@ -92,3 +92,12 @@ void LegOdomPublisher::Spin()
 
 }  // namespace motion
 }  // namespace cyberdog
+
+int main(int argc, char const * argv[])
+{
+  rclcpp::init(argc, argv);
+  rclcpp::Node::SharedPtr node(new rclcpp::Node("leg_odom_publisher"));
+  cyberdog::motion::OdomOutPublisher lop(node);
+  lop.Spin();
+  return 0;
+}

@@ -35,6 +35,7 @@ bool MotionHandler::Init()
   }
   servo_check_click_ = std::make_shared<ServoClick>();
   servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
+  servo_data_check_thread_.detach();
   action_ptr_->RegisterFeedback(
     std::bind(&MotionHandler::UpdateMotionStatus, this, std::placeholders::_1));
   motion_status_ptr_.reset(new MotionStatusMsg);
