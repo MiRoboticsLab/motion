@@ -14,6 +14,7 @@
 #ifndef MOTION_ACTION__MOTION_MACROS_HPP_
 #define MOTION_ACTION__MOTION_MACROS_HPP_
 #include <algorithm>
+#include <atomic>
 #include "cyberdog_system/robot_code.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
