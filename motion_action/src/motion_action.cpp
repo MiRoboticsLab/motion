@@ -186,18 +186,22 @@ void MotionAction::ReadLcm(
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
     last_res_mode_ = msg->mode;
     last_res_gait_id_ = msg->gait_id;
-    for (auto m = motion_id_map_.begin(); ; m++) {
-      if (m == motion_id_map_.end()) {
-        DEBUG_EXPRESSION(
-          lcm_cmd_init_,
-          "Get unkown response about motion_id, mode: %d, gait_id: %d!",
-          static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));
-        last_motion_id_ = -1;
-        break;
-      }
-      if (m->second.map.front() == msg->mode && m->second.map.back() == msg->gait_id) {
-        last_motion_id_ = m->first;
-        break;
+    if (msg->mode == 0) {
+      last_motion_id_ = MotionIDMsg::ESTOP;
+    } else {
+      for (auto m = motion_id_map_.begin(); ; m++) {
+        if (m == motion_id_map_.end()) {
+          DEBUG_EXPRESSION(
+            lcm_cmd_init_,
+            "Get unkown response about motion_id, mode: %d, gait_id: %d!",
+            static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));
+          last_motion_id_ = -1;
+          break;
+        }
+        if (m->second.map.front() == msg->mode && m->second.map.back() == msg->gait_id) {
+          last_motion_id_ = m->first;
+          break;
+        }
       }
     }
   }
