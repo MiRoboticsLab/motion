@@ -279,7 +279,7 @@ void MotionHandler::HandleResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  if (GetWorkStatus() != HandlerStatus::kIdle) {
+  if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
     response->result = false;
     response->code = MotionCodeMsg::TASK_STATE_ERROR;
     return;
