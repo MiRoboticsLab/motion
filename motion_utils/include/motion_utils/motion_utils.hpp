@@ -35,26 +35,108 @@
 #include "cyberdog_common/cyberdog_toml.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "ament_index_cpp/get_package_prefix.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 
 namespace cyberdog
 {
 namespace motion
 {
 
+class OdomHelper
+{
+public:
+  explicit OdomHelper(rclcpp::Node::SharedPtr node)
+  {
+    node_ = node;
+    odom_sub_ = node_->create_subscription<nav_msgs::msg::Odometry>(
+      kBridgeOdomTopicName,
+      rclcpp::SystemDefaultsQoS(),
+      std::bind(&OdomHelper::HandleOdomCallback, this, std::placeholders::_1));
+    odom_.reset(new nav_msgs::msg::Odometry);
+    std::thread{
+      [this]() {rclcpp::spin(node_);}
+    }.detach();
+  }
+  ~OdomHelper() {}
+  double GetDistance()
+  {
+    return distance_;
+  }
+  bool SetStartPoint()
+  {
+    std::unique_lock<std::mutex> lk(odom_msg_mutex_);
+    odom_waiting_ = true;
+    if (cv_.wait_for(lk, std::chrono::milliseconds(1000)) == std::cv_status::timeout) {
+      ERROR("Wait for odom timeout");
+      odom_waiting_ = false;
+      return false;
+    }
+    odom_waiting_ = false;
+    last_x_ = odom_->pose.pose.position.x;
+    last_y_ = odom_->pose.pose.position.y;
+    distance_ = 0;
+    start_point_set_ = true;
+    return true;
+  }
+  void Reset()
+  {
+    start_point_set_ = false;
+    odom_waiting_ = false;
+  }
+  void Spin()
+  {
+    rclcpp::spin(node_);
+  }
+
+private:
+  void HandleOdomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
+  {
+    if (odom_waiting_) {cv_.notify_one();}
+    odom_ = msg;
+    if (!start_point_set_) {return;}
+    auto delta_x = odom_->pose.pose.position.x - last_x_;
+    auto delta_y = odom_->pose.pose.position.y - last_y_;
+    distance_ += sqrt(delta_x * delta_x + delta_y * delta_y);
+    last_x_ = odom_->pose.pose.position.x;
+    last_y_ = odom_->pose.pose.position.y;
+  }
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+  nav_msgs::msg::Odometry::SharedPtr odom_;
+  std::mutex odom_msg_mutex_;
+  std::condition_variable cv_;
+  double distance_{0};
+  double last_x_{0}, last_y_{0};
+  bool start_point_set_{false}, odom_waiting_{false};
+};  // class OdomHelper
+
 class MotionUtils final
 {
 public:
-  MotionUtils();
+  static MotionUtils & GetMotionUtils()
+  {
+    static MotionUtils mu_;
+    return mu_;
+  }
   ~MotionUtils();
 
 public:
-  bool ExecuteWalkDuration(MotionServoCmdMsg::SharedPtr msg, float duration);
-  bool ExecuteWalkDistance(float vel_x, float vel_y, float distance);
+  bool ExecuteWalkDuration(int duration, MotionServoCmdMsg::SharedPtr msg);
+  bool ExecuteWalkDuration(int duration, float vel_x = 0.0, float vel_y = 0.0, float omega = 0.0);
+  bool ExecuteWalkDistance(double distance, MotionServoCmdMsg::SharedPtr msg);
+  bool ExecuteWalkDistance(
+    double distance, float vel_x = 0.0, float vel_y = 0.0,
+    float omega = 0.0);
 
 private:
+  MotionUtils();
+  MotionUtils(const MotionUtils &) = delete;
+  MotionUtils & operator=(const MotionUtils &) = delete;
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::Publisher<MotionServoCmdMsg>::SharedPtr servo_cmd_pub_;
 
 private:
-
+  std::shared_ptr<OdomHelper> odom_helper_;
   LOGGER_MINOR_INSTANCE("MotionUtils");
 };  // class MotionUtils
 }  // namespace motion

@@ -23,13 +23,56 @@ namespace motion
 {
 
 MotionUtils::MotionUtils()
-{}
+{
+  node_ = rclcpp::Node::SharedPtr(new rclcpp::Node("motion_utils"));
+
+  servo_cmd_pub_ = node_->create_publisher<MotionServoCmdMsg>(
+    kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS());
+
+  odom_helper_.reset(new OdomHelper(node_));
+}
 
 MotionUtils::~MotionUtils() {}
 
-bool MotionUtils::ExecuteWalkDuration(MotionServoCmdMsg::SharedPtr msg, float duration)
+bool MotionUtils::ExecuteWalkDuration(int duration, MotionServoCmdMsg::SharedPtr msg)
 {
-  
+  auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(duration);
+  while (rclcpp::ok() && std::chrono::system_clock::now() < deadline) {
+    servo_cmd_pub_->publish(*msg);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  return true;
 }
+
+bool MotionUtils::ExecuteWalkDuration(int duration, float x_vel, float y_vel, float omega)
+{
+  MotionServoCmdMsg::SharedPtr msg(new MotionServoCmdMsg);
+  msg->motion_id = MotionIDMsg::WALK_ADAPTIVELY;
+  msg->vel_des = std::vector<float>{x_vel, y_vel, omega};
+  msg->step_height = std::vector<float>{0.05, 0.05};
+  return ExecuteWalkDuration(duration, msg);
+}
+
+
+bool MotionUtils::ExecuteWalkDistance(double distance, MotionServoCmdMsg::SharedPtr msg)
+{
+  odom_helper_->SetStartPoint();
+  while (rclcpp::ok() && odom_helper_->GetDistance() < distance * distance) {
+    servo_cmd_pub_->publish(*msg);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  odom_helper_->Reset();
+  return true;
+}
+
+bool MotionUtils::ExecuteWalkDistance(double distance, float x_vel, float y_vel, float omega)
+{
+  MotionServoCmdMsg::SharedPtr msg(new MotionServoCmdMsg);
+  msg->motion_id = MotionIDMsg::WALK_ADAPTIVELY;
+  msg->vel_des = std::vector<float>{x_vel, y_vel, omega};
+  msg->step_height = std::vector<float>{0.05, 0.05};
+  return ExecuteWalkDistance(distance, msg);
+}
+
 }  // namespace motion
 }  // namespace cyberdog

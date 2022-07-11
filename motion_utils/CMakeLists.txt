@@ -21,51 +21,34 @@ find_package(rclpy REQUIRED)
 find_package(protocol REQUIRED)
 find_package(cyberdog_system REQUIRED)
 find_package(cyberdog_debug REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(cyberdog_common)
-find_package(lcm REQUIRED)
 
 include_directories(include)
 
-add_library(${PROJECT_NAME} SHARED src/motion_action.cpp)
-target_link_libraries(${PROJECT_NAME} lcm)
+add_library(${PROJECT_NAME} SHARED src/motion_utils.cpp)
+# target_link_libraries(${PROJECT_NAME} lcm)
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   protocol
   cyberdog_system
   cyberdog_common
   cyberdog_debug
+  nav_msgs
 )
 
-add_executable(test_as_manager test/test_as_manager.cpp)
-target_link_libraries(test_as_manager ${PROJECT_NAME} lcm)
-ament_target_dependencies(test_as_manager lcm cyberdog_common cyberdog_debug)
-
-add_executable(test_as_controller test/test_as_controller.cpp)
-target_link_libraries(test_as_controller ${PROJECT_NAME} lcm)
-ament_target_dependencies(test_as_controller lcm cyberdog_common cyberdog_debug)
-
-add_executable(test_as_publisher test/test_as_publisher.cpp)
-target_link_libraries(test_as_publisher ${PROJECT_NAME} lcm)
-ament_target_dependencies(test_as_publisher lcm cyberdog_common cyberdog_debug)
-
-add_executable(test_as_client test/test_as_client.cpp)
-target_link_libraries(test_as_client ${PROJECT_NAME} lcm)
-ament_target_dependencies(test_as_client lcm cyberdog_common cyberdog_debug)
+add_executable(motion_utils_test test/motion_utils_test.cpp)
+target_link_libraries(motion_utils_test ${PROJECT_NAME})
+ament_target_dependencies(motion_utils_test lcm cyberdog_common cyberdog_debug)
 
 install(
   DIRECTORY include/
   DESTINATION include
 )
-install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
-)
-install(
-  DIRECTORY preset
-  DESTINATION share/${PROJECT_NAME}
-)
+
 install(TARGETS
-  ${PROJECT_NAME} test_as_manager test_as_controller test_as_publisher test_as_client
+  ${PROJECT_NAME}
+  motion_utils_test
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
@@ -91,5 +74,5 @@ ament_export_include_directories(
 ament_export_libraries(
   ${PROJECT_NAME}
 )
-ament_export_dependencies(lcm cyberdog_common cyberdog_debug)
+ament_export_dependencies(cyberdog_common cyberdog_debug)
 ament_package()
