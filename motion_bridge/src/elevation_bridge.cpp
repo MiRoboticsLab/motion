@@ -27,7 +27,7 @@ ElevationBridge::ElevationBridge(const rclcpp::Node::SharedPtr node)
     "elevation_map_raw",
     rclcpp::SystemDefaultsQoS(),
     std::bind(&ElevationBridge::GridMapCallback, this, std::placeholders::_1));
-  lcm_ = std::make_shared<lcm::LCM>(kBirdgeSubscribeURL);
+  lcm_ = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
   tf2_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
   auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
     node_->get_node_base_interface(),
@@ -38,7 +38,7 @@ ElevationBridge::ElevationBridge(const rclcpp::Node::SharedPtr node)
     std::make_shared<rclcpp::Node>(std::string(node_->get_name()) + "_tf_listener"));
   std::thread{[this]() {
       while (lcm_->good()) {
-        lcm_->publish(kBridgeElevationChannel, &elevation_);
+        lcm_->publish(kLCMBridgeElevationChannel, &elevation_);
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
       }
     }

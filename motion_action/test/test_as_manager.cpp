@@ -28,9 +28,9 @@ public:
   SimMotionManager(const std::string & name)
   {
     node_ptr_ = rclcpp::Node::make_shared(name);
-    node_ptr_->declare_parameter("publish_url", cyberdog::motion::kActionPublishURL);
+    node_ptr_->declare_parameter("publish_url", cyberdog::motion::kLCMActionPublishURL);
     node_ptr_->get_parameter("publish_url", publish_url_);
-    node_ptr_->declare_parameter("subscribe_url", cyberdog::motion::kActionSubscibeURL);
+    node_ptr_->declare_parameter("subscribe_url", cyberdog::motion::kLCMActionSubscibeURL);
     node_ptr_->get_parameter("subscribe_url", subscribe_url);
     node_ptr_->declare_parameter<std::string>("cmd_preset", std::string("8"));
     node_ptr_->get_parameter("cmd_preset", cmd_preset_);

@@ -52,7 +52,7 @@ void MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
-  lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
+  lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
   lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
@@ -65,7 +65,7 @@ void MotionAction::Execute(const robot_control_cmd_lcmt & lcm)
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm;
   lcm_cmd_.life_count = life_count_++;
-  lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
+  lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
   lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
@@ -98,7 +98,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
   lcm_cmd_ = lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
-  lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
+  lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
   lk.unlock();
   lcm_cmd_init_ = true;
   INFO(
@@ -146,7 +146,7 @@ bool MotionAction::Init(
   lcm_publish_duration_ = 1 / static_cast<float>(kActionLcmPublishFrequency) * 1000;
   lcm_publish_instance_ = std::make_shared<lcm::LCM>(publish_url);
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
-  lcm_subscribe_instance_->subscribe(kActionResponseChannel, &MotionAction::ReadLcm, this);
+  lcm_subscribe_instance_->subscribe(kLCMActionResponseChannel, &MotionAction::ReadLcm, this);
   control_thread_ = std::thread(&MotionAction::WriteLcm, this);
   control_thread_.detach();
   response_thread_ =
@@ -225,7 +225,7 @@ void MotionAction::WriteLcm()
   while (lcm_publish_instance_->good()) {
     if (lcm_cmd_init_) {
       std::unique_lock<std::mutex> lk(lcm_write_mutex_);
-      lcm_publish_instance_->publish(kActionControlChannel, &lcm_cmd_);
+      lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(lcm_publish_duration_));
   }
