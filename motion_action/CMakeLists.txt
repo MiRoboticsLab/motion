@@ -65,10 +65,10 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 install(TARGETS
-  ${PROJECT_NAME} 
-  manager_test 
-  controller_test 
-  publisher_test 
+  ${PROJECT_NAME}
+  manager_test
+  controller_test
+  publisher_test
   client_test
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
