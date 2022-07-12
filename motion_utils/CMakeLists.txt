@@ -23,6 +23,7 @@ find_package(cyberdog_system REQUIRED)
 find_package(cyberdog_debug REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(cyberdog_common)
+find_package(motion_manager)
 
 include_directories(include)
 

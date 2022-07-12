@@ -53,9 +53,6 @@ public:
       rclcpp::SystemDefaultsQoS(),
       std::bind(&OdomHelper::HandleOdomCallback, this, std::placeholders::_1));
     odom_.reset(new nav_msgs::msg::Odometry);
-    std::thread{
-      [this]() {rclcpp::spin(node_);}
-    }.detach();
   }
   ~OdomHelper() {}
   double GetDistance()
@@ -82,10 +79,6 @@ public:
   {
     start_point_set_ = false;
     odom_waiting_ = false;
-  }
-  void Spin()
-  {
-    rclcpp::spin(node_);
   }
 
 private:
@@ -132,11 +125,20 @@ private:
   MotionUtils();
   MotionUtils(const MotionUtils &) = delete;
   MotionUtils & operator=(const MotionUtils &) = delete;
+  void HandleMotionStatusCallback(const MotionStatusMsg::SharedPtr msg)
+  {
+    motion_status_ = msg;
+    if (motion_status_waiting_) {motion_status_cv_.notify_one();}
+  }
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<MotionServoCmdMsg>::SharedPtr servo_cmd_pub_;
+  rclcpp::Subscription<MotionStatusMsg>::SharedPtr motion_status_sub_;
   rclcpp::Client<MotionResultSrv>::SharedPtr result_cmd_client_;
-private:
+  MotionStatusMsg::SharedPtr motion_status_;
   std::shared_ptr<OdomHelper> odom_helper_;
+  std::mutex motion_status_mutex_;
+  std::condition_variable motion_status_cv_;
+  bool motion_status_waiting_{false};
   LOGGER_MINOR_INSTANCE("MotionUtils");
 };  // class MotionUtils
 }  // namespace motion
