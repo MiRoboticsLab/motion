@@ -50,7 +50,7 @@ bool MotionManager::Init()
 
   motion_servo_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
     kMotionServoResponseTopicName, 10);
-  motion_status_pub_= node_ptr_->create_publisher<MotionStatusMsg>(
+  motion_status_pub_ = node_ptr_->create_publisher<MotionStatusMsg>(
     kMotionStatusTopicName, 10);
   decision_ptr_ = std::make_shared<MotionDecision>();
   decision_ptr_->Init(motion_servo_pub_, motion_status_pub_);

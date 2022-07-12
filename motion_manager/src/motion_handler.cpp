@@ -43,8 +43,8 @@ bool MotionHandler::Init(rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_st
   motion_status_ptr_->motor_error.resize(12);
   motion_id_map_ = action_ptr_->GetMotionIdMap();
   std::thread{
-    [this](){
-      while(rclcpp::ok()) {
+    [this]() {
+      while (rclcpp::ok()) {
         motion_status_pub_->publish(*motion_status_ptr_);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
