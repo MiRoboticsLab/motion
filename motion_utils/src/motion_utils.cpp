@@ -28,7 +28,7 @@ MotionUtils::MotionUtils()
 
   servo_cmd_pub_ = node_->create_publisher<MotionServoCmdMsg>(
     kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS());
-
+  result_cmd_client_ = node_->create_client<MotionResultSrv>(kMotionResultServiceName);
   odom_helper_.reset(new OdomHelper(node_));
 }
 
@@ -36,6 +36,15 @@ MotionUtils::~MotionUtils() {}
 
 bool MotionUtils::ExecuteWalkDuration(int duration, MotionServoCmdMsg::SharedPtr msg)
 {
+  MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+  MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
+  req->motion_id = MotionIDMsg::RECOVERYSTAND;
+  auto future = result_cmd_client_->async_send_request(req);
+  auto status = future.wait_for(std::chrono::milliseconds(5000));
+  if(status != std::future_status::ready) {
+    ERROR("Result cmd RecoveryStand error");
+    return false;
+  }
   auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(duration);
   while (rclcpp::ok() && std::chrono::system_clock::now() < deadline) {
     servo_cmd_pub_->publish(*msg);

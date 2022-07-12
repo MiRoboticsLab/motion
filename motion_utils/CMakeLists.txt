@@ -37,9 +37,13 @@ ament_target_dependencies(${PROJECT_NAME}
   nav_msgs
 )
 
-add_executable(motion_utils_test test/motion_utils_test.cpp)
-target_link_libraries(motion_utils_test ${PROJECT_NAME})
-ament_target_dependencies(motion_utils_test lcm cyberdog_common cyberdog_debug)
+add_executable(distance_test test/distance_test.cpp)
+target_link_libraries(distance_test ${PROJECT_NAME})
+ament_target_dependencies(distance_test lcm cyberdog_common cyberdog_debug)
+
+add_executable(duration_test test/duration_test.cpp)
+target_link_libraries(duration_test ${PROJECT_NAME})
+ament_target_dependencies(duration_test lcm cyberdog_common cyberdog_debug)
 
 install(
   DIRECTORY include/
@@ -48,7 +52,8 @@ install(
 
 install(TARGETS
   ${PROJECT_NAME}
-  motion_utils_test
+  distance_test
+  duration_test
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )

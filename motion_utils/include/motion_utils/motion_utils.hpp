@@ -134,7 +134,7 @@ private:
   MotionUtils & operator=(const MotionUtils &) = delete;
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<MotionServoCmdMsg>::SharedPtr servo_cmd_pub_;
-
+  rclcpp::Client<MotionResultSrv>::SharedPtr result_cmd_client_;
 private:
   std::shared_ptr<OdomHelper> odom_helper_;
   LOGGER_MINOR_INSTANCE("MotionUtils");
