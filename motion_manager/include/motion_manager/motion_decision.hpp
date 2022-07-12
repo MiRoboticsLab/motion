@@ -38,7 +38,8 @@ public:
   ~MotionDecision();
 
   void Config();
-  bool Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub);
+  bool Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub,
+    rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub);
 
 public:
   void DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg);
