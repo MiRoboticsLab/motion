@@ -114,9 +114,41 @@ public:
   ~MotionUtils();
 
 public:
+  /**
+   * @brief 控制机器人按照特定的时间和完整的伺服指令行走
+   *
+   * @param duration 行走时间, 单位ms
+   * @param msg 伺服指令
+   * @return true: 无异常, false: 异常退出
+   */
   bool ExecuteWalkDuration(int duration, MotionServoCmdMsg::SharedPtr msg);
+  /**
+   * @brief 控制机器人按照特定的时间和速度, 以自变频步态(motion_id: 303)行走
+   *
+   * @param duration 行走时间, 单位ms
+   * @param vel_x x方向的速度, 单位m/s
+   * @param vel_y y方向的速度, 单位m/s
+   * @param omega 角速度, 单位rad/s
+   * @return true: 无异常, false: 异常退出
+   */
   bool ExecuteWalkDuration(int duration, float vel_x = 0.0, float vel_y = 0.0, float omega = 0.0);
+  /**
+   * @brief 控制机器人按照完整的伺服指令行走特定的距离
+   *
+   * @param distance 行走距离, 单位m
+   * @param msg 伺服指令
+   * @return true: 无异常, false: 异常退出
+   */
   bool ExecuteWalkDistance(double distance, MotionServoCmdMsg::SharedPtr msg);
+  /**
+   * @brief 控制机器人按照特定的速度, 以自变频步态(motion_id: 303)行走特定的距离
+   *
+   * @param distance 行走距离, 单位m
+   * @param vel_x x方向的速度, 单位m/s
+   * @param vel_y y方向的速度, 单位m/s
+   * @param omega 角速度，单位rad/s
+   * @return true: 无异常, false: 异常退出
+   */
   bool ExecuteWalkDistance(
     double distance, float vel_x = 0.0, float vel_y = 0.0,
     float omega = 0.0);
