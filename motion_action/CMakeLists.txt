@@ -36,21 +36,21 @@ ament_target_dependencies(${PROJECT_NAME}
   cyberdog_debug
 )
 
-add_executable(test_as_manager test/test_as_manager.cpp)
-target_link_libraries(test_as_manager ${PROJECT_NAME} lcm)
-ament_target_dependencies(test_as_manager lcm cyberdog_common cyberdog_debug)
+add_executable(manager_test test/manager_test.cpp)
+target_link_libraries(manager_test ${PROJECT_NAME} lcm)
+ament_target_dependencies(manager_test lcm cyberdog_common cyberdog_debug)
 
-add_executable(test_as_controller test/test_as_controller.cpp)
-target_link_libraries(test_as_controller ${PROJECT_NAME} lcm)
-ament_target_dependencies(test_as_controller lcm cyberdog_common cyberdog_debug)
+add_executable(controller_test test/controller_test.cpp)
+target_link_libraries(controller_test ${PROJECT_NAME} lcm)
+ament_target_dependencies(controller_test lcm cyberdog_common cyberdog_debug)
 
-add_executable(test_as_publisher test/test_as_publisher.cpp)
-target_link_libraries(test_as_publisher ${PROJECT_NAME} lcm)
-ament_target_dependencies(test_as_publisher lcm cyberdog_common cyberdog_debug)
+add_executable(publisher_test test/publisher_test.cpp)
+target_link_libraries(publisher_test ${PROJECT_NAME} lcm)
+ament_target_dependencies(publisher_test lcm cyberdog_common cyberdog_debug)
 
-add_executable(test_as_client test/test_as_client.cpp)
-target_link_libraries(test_as_client ${PROJECT_NAME} lcm)
-ament_target_dependencies(test_as_client lcm cyberdog_common cyberdog_debug)
+add_executable(client_test test/client_test.cpp)
+target_link_libraries(client_test ${PROJECT_NAME} lcm)
+ament_target_dependencies(client_test lcm cyberdog_common cyberdog_debug)
 
 install(
   DIRECTORY include/
@@ -65,7 +65,11 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 install(TARGETS
-  ${PROJECT_NAME} test_as_manager test_as_controller test_as_publisher test_as_client
+  ${PROJECT_NAME} 
+  manager_test 
+  controller_test 
+  publisher_test 
+  client_test
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
