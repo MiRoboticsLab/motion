@@ -24,8 +24,8 @@ ImuBridge::ImuBridge(const rclcpp::Node::SharedPtr node)
 {
   node_ = node;
   imu_pub_ = node->create_publisher<sensor_msgs::msg::Imu>("imu", rclcpp::SystemDefaultsQoS());
-  lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(kBirdgeSubscribeURL);
-  lcm_subscribe_instance_->subscribe(kBridgeImuChannel, &ImuBridge::ReadLcm, this);
+  lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
+  lcm_subscribe_instance_->subscribe(kLCMBridgeImuChannel, &ImuBridge::ReadLcm, this);
   imu_ros_data_.reset(new sensor_msgs::msg::Imu);
 
   lcm_handle_thread_ =

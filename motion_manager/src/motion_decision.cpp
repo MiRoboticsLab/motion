@@ -29,10 +29,11 @@ MotionDecision::~MotionDecision() {}
 void MotionDecision::Config() {}
 
 bool MotionDecision::Init(
-  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub)
+  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub,
+  rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub)
 {
   handler_ptr_ = std::make_shared<MotionHandler>();
-  if (!handler_ptr_->Init()) {
+  if (!handler_ptr_->Init(motion_status_pub)) {
     ERROR("Fail to initialize MotionHandler");
     return false;
   }

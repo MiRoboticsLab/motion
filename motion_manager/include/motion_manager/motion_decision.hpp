@@ -38,7 +38,9 @@ public:
   ~MotionDecision();
 
   void Config();
-  bool Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub);
+  bool Init(
+    rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub,
+    rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub);
 
 public:
   void DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg);
@@ -69,16 +71,8 @@ private:
   void ServoEnd(const MotionServoCmdMsg::SharedPtr msg);
   void Update(MotionStatusMsg::SharedPtr motion_status_ptr);
   bool WaitHandlingResult(int32_t motion_id, int32_t duration, int32_t & code);
-  // void ServoDataCheck();
   void StopMotion();
   void ServoResponseThread();
-  // bool AllowServoCmd(int16_t motion_id);
-  /**
-   * @brief 设置工作状态
-   *        后续考虑改成Handler持有的status，并且放在macros里面
-   *
-   * @param status_code
-   */
   inline void SetWorkStatus(DecisionStatus status_code)
   {
     std::unique_lock<std::mutex> lk(status_mutex_);
@@ -148,7 +142,6 @@ private:
   common::MsgQueue<int> servo_response_queue_;
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub_;
   MotionServoResponseMsg servo_response_msg_;
-  // uint8_t retry_ {0}, max_retry_{3};
 };  // class MotionDecision
 }  // namespace motion
 }  // namespace cyberdog

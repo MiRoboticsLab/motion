@@ -76,8 +76,8 @@ public:
   void Execute(const robot_control_cmd_lcmt & lcm);
   void RegisterFeedback(std::function<void(MotionStatusMsg::SharedPtr)> feedback);
   bool Init(
-    const std::string & publish_url = kActionPublishURL,
-    const std::string & subscribe_url = kActionSubscibeURL);
+    const std::string & publish_url = kLCMActionPublishURL,
+    const std::string & subscribe_url = kLCMActionSubscibeURL);
   bool SelfCheck();
   std::map<int32_t, MotionIdMap> GetMotionIdMap() {return motion_id_map_;}
 

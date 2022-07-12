@@ -24,11 +24,11 @@ OdomOutPublisher::OdomOutPublisher(const rclcpp::Node::SharedPtr node)
 {
   node_ = node;
   leg_odom_publisher_ = node_->create_publisher<nav_msgs::msg::Odometry>(
-    odom_frame_,
+    kBridgeOdomTopicName,
     rclcpp::SystemDefaultsQoS());
   tf2_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node_);
-  lcm_ = std::make_shared<lcm::LCM>(kBirdgeSubscribeURL);
-  lcm_->subscribe("global_to_robot", &OdomOutPublisher::OdomLCMCabllback, this);
+  lcm_ = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
+  lcm_->subscribe(kLCMBridgeOdomChannel, &OdomOutPublisher::OdomLCMCabllback, this);
   std::thread{
     [this]() {
       while (rclcpp::ok()) {

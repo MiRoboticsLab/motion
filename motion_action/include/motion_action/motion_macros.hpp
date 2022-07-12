@@ -41,18 +41,20 @@ constexpr uint8_t kServoDataLostTimesThreshold = 4;
 constexpr uint16_t kTransitioningTimeout = 3000;  // millisecond
 constexpr uint16_t kAcitonLcmReadTimeout = 200;  // millisecond
 constexpr int kMotorNormal = -2147483648;
-constexpr const char * kActionPublishURL = "udpm://239.255.76.67:7671?ttl=255";
-constexpr const char * kActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=255";
-constexpr const char * kBirdgeSubscribeURL = "udpm://239.255.76.67:7667?ttl=255";
-constexpr const char * kActionControlChannel = "robot_control_cmd";
-constexpr const char * kActionResponseChannel = "robot_control_response";
-constexpr const char * kBridgeImuChannel = "external_imu";
-constexpr const char * kBridgeElevationChannel = "local_heightmap";
+constexpr const char * kLCMActionPublishURL = "udpm://239.255.76.67:7671?ttl=255";
+constexpr const char * kLCMActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=255";
+constexpr const char * kLCMBirdgeSubscribeURL = "udpm://239.255.76.67:7667?ttl=255";
+constexpr const char * kLCMActionControlChannel = "robot_control_cmd";
+constexpr const char * kLCMActionResponseChannel = "robot_control_response";
+constexpr const char * kLCMBridgeImuChannel = "external_imu";
+constexpr const char * kLCMBridgeElevationChannel = "local_heightmap";
+constexpr const char * kLCMBridgeOdomChannel = "global_to_robot";
 constexpr const char * kMotionServoCommandTopicName = "motion_servo_cmd";
 constexpr const char * kMotionServoResponseTopicName = "motion_servo_response";
 constexpr const char * kMotionResultServiceName = "motion_result_cmd";
 constexpr const char * kMotionQueueCommandTopicName = "motion_queue_cmd";
-
+constexpr const char * kBridgeOdomTopicName = "odom_out";
+constexpr const char * kMotionStatusTopicName = "motion_stauts";
 // a: src, b: des, c: size, d: description
 #define GET_VALUE(a, b, c, d) \
   if (a.size() != c) { \

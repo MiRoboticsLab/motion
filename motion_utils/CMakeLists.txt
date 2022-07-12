@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(motion_action)
+project(motion_utils)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -21,55 +21,40 @@ find_package(rclpy REQUIRED)
 find_package(protocol REQUIRED)
 find_package(cyberdog_system REQUIRED)
 find_package(cyberdog_debug REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(cyberdog_common)
-find_package(lcm REQUIRED)
+find_package(motion_manager)
 
 include_directories(include)
 
-add_library(${PROJECT_NAME} SHARED src/motion_action.cpp)
-target_link_libraries(${PROJECT_NAME} lcm)
+add_library(${PROJECT_NAME} SHARED src/motion_utils.cpp)
+# target_link_libraries(${PROJECT_NAME} lcm)
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   protocol
   cyberdog_system
   cyberdog_common
   cyberdog_debug
+  nav_msgs
 )
 
-add_executable(manager_test test/manager_test.cpp)
-target_link_libraries(manager_test ${PROJECT_NAME} lcm)
-ament_target_dependencies(manager_test lcm cyberdog_common cyberdog_debug)
+add_executable(distance_test test/distance_test.cpp)
+target_link_libraries(distance_test ${PROJECT_NAME})
+ament_target_dependencies(distance_test lcm cyberdog_common cyberdog_debug)
 
-add_executable(controller_test test/controller_test.cpp)
-target_link_libraries(controller_test ${PROJECT_NAME} lcm)
-ament_target_dependencies(controller_test lcm cyberdog_common cyberdog_debug)
-
-add_executable(publisher_test test/publisher_test.cpp)
-target_link_libraries(publisher_test ${PROJECT_NAME} lcm)
-ament_target_dependencies(publisher_test lcm cyberdog_common cyberdog_debug)
-
-add_executable(client_test test/client_test.cpp)
-target_link_libraries(client_test ${PROJECT_NAME} lcm)
-ament_target_dependencies(client_test lcm cyberdog_common cyberdog_debug)
+add_executable(duration_test test/duration_test.cpp)
+target_link_libraries(duration_test ${PROJECT_NAME})
+ament_target_dependencies(duration_test lcm cyberdog_common cyberdog_debug)
 
 install(
   DIRECTORY include/
   DESTINATION include
 )
-install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
-)
-install(
-  DIRECTORY preset
-  DESTINATION share/${PROJECT_NAME}
-)
+
 install(TARGETS
-  ${PROJECT_NAME} 
-  manager_test 
-  controller_test 
-  publisher_test 
-  client_test
+  ${PROJECT_NAME}
+  distance_test
+  duration_test
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
@@ -95,5 +80,5 @@ ament_export_include_directories(
 ament_export_libraries(
   ${PROJECT_NAME}
 )
-ament_export_dependencies(lcm cyberdog_common cyberdog_debug)
+ament_export_dependencies(cyberdog_common cyberdog_debug)
 ament_package()

@@ -43,7 +43,7 @@ public:
 public:
   /* recv api */
   // void ServoResponse();
-  bool Init();
+  bool Init(rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub);
   void UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
   bool CheckMotionResult();
@@ -135,6 +135,7 @@ private:
   }
 
   /* ros members */
+  rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub_ {nullptr};
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
   std::thread servo_response_thread_;
