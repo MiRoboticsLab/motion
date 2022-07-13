@@ -49,6 +49,7 @@ constexpr const char * kLCMActionResponseChannel = "robot_control_response";
 constexpr const char * kLCMBridgeImuChannel = "external_imu";
 constexpr const char * kLCMBridgeElevationChannel = "local_heightmap";
 constexpr const char * kLCMBridgeOdomChannel = "global_to_robot";
+constexpr const char * kLCMBridgeFileChannel = "custom_motion";
 constexpr const char * kMotionServoCommandTopicName = "motion_servo_cmd";
 constexpr const char * kMotionServoResponseTopicName = "motion_servo_response";
 constexpr const char * kMotionResultServiceName = "motion_result_cmd";
