@@ -33,18 +33,16 @@ FileBridge::FileBridge(const rclcpp::Node::SharedPtr node)
   // }.detach();
   std::ifstream file("/home/harvey/Downloads/user_gait_01.toml");
   std::string s;
-  while(getline(file, s)) {
+  while (getline(file, s)) {
     INFO("%s", s.c_str());
     file_.data += s + "\n";
   }
   lcm_->publish(kLCMBridgeFileChannel, &file_);
-
 }
 
 void FileBridge::Spin()
 {
 }
-
 
 
 void FileBridge::HandleFileBridgeCallback()
