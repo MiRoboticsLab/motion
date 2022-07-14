@@ -13,9 +13,13 @@
 // limitations under the License.
 #ifndef MOTION_MANAGER__MOTION_HANDLER_HPP_
 #define MOTION_MANAGER__MOTION_HANDLER_HPP_
+#include <sys/time.h>
+#include <sys/dir.h>
+#include <sys/stat.h>
 #include <memory>
 #include <thread>
 #include <map>
+#include <string>
 #include "rclcpp/rclcpp.hpp"
 #include "motion_action/motion_action.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
@@ -85,11 +89,7 @@ public:
   }
 
 private:
-  /**
-   * @brief 伺服指令检测功能开关
-   *
-   * @param check_flag true: 打开检测功能; false: 关闭
-   */
+  void WriteTomlLog(const robot_control_cmd_lcmt & cmd);
   inline void SetServoNeedCheck(bool check_flag)
   {
     std::unique_lock<std::mutex> lk(servo_check_mutex_);
@@ -101,13 +101,6 @@ private:
       is_servo_need_check_ = check_flag;
     }
   }
-
-  /**
-   * @brief 等待伺服检测开关打开
-   *        1. 如果已经打开，则忽略；
-   *        2. 如果已经关闭，则挂起当前线程；
-   *
-   */
   inline void WaitServoNeedCheck()
   {
     std::unique_lock<std::mutex> lk(servo_check_mutex_);
@@ -115,23 +108,23 @@ private:
       servo_check_cv_.wait(lk);
     }
   }
-
-  /**
-   * @brief 入队一条伺服检测信号
-   *
-   */
   inline void TickServoCmd()
   {
     servo_check_click_->Tick();
   }
-
-  /**
-   * @brief 出队一条伺服检测信号
-   *
-   */
   inline bool TockServoCmd()
   {
     return servo_check_click_->Tock();
+  }
+
+  std::string GetTime()
+  {
+    struct timeval tv;
+    char buf[64];
+    gettimeofday(&tv, NULL);
+    strftime(buf, sizeof(buf) - 1, "%Y%m%d-%H%M%S", localtime(&tv.tv_sec));
+    std::string s(buf);
+    return s;
   }
 
   /* ros members */
@@ -155,6 +148,8 @@ private:
   std::map<int32_t, MotionIdMap> motion_id_map_;
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
   HandlerStatus status_;
+  std::ofstream toml_;
+  std::string toml_log_dir_;
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
   int8_t server_check_error_counter_ {0};

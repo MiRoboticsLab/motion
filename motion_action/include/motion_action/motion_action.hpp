@@ -75,6 +75,7 @@ public:
   void Execute(const MotionResultSrv::Request::SharedPtr request);
   void Execute(const robot_control_cmd_lcmt & lcm);
   void RegisterFeedback(std::function<void(MotionStatusMsg::SharedPtr)> feedback);
+  void RegisterTomlLog(std::function<void(const robot_control_cmd_lcmt &)> toml_log);
   bool Init(
     const std::string & publish_url = kLCMActionPublishURL,
     const std::string & subscribe_url = kLCMActionSubscibeURL);
@@ -91,6 +92,7 @@ private:
 private:
   std::thread control_thread_, response_thread_;
   std::function<void(MotionStatusMsg::SharedPtr)> feedback_func_;
+  std::function<void(const robot_control_cmd_lcmt &)> toml_log_func_;
   std::shared_ptr<lcm::LCM> lcm_publish_instance_, lcm_subscribe_instance_;
   std::mutex lcm_write_mutex_;
   robot_control_cmd_lcmt lcm_cmd_;
