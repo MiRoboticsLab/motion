@@ -16,6 +16,7 @@
 #include <memory>
 #include <map>
 #include <vector>
+#include <fstream>
 
 namespace cyberdog
 {
@@ -104,6 +105,9 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
   INFO(
     "ResultCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
     lcm_cmd_.duration);
+  if (toml_log_func_) {
+    toml_log_func_(lcm_cmd_);
+  }
 }
 
 bool MotionAction::ParseMotionIdMap()
@@ -172,6 +176,12 @@ void MotionAction::RegisterFeedback(
   std::function<void(MotionStatusMsg::SharedPtr)> feedback)
 {
   feedback_func_ = feedback;
+}
+
+void MotionAction::RegisterTomlLog(
+  std::function<void(const robot_control_cmd_lcmt &)> toml_log)
+{
+  toml_log_func_ = toml_log;
 }
 
 void MotionAction::ReadLcm(

@@ -55,6 +55,11 @@ add_executable(odom_out_publisher
 target_link_libraries(odom_out_publisher lcm)
 ament_target_dependencies(odom_out_publisher ${dependencies})
 
+add_executable(file_bridge
+  src/file_bridge.cpp
+)
+target_link_libraries(file_bridge lcm)
+ament_target_dependencies(file_bridge ${dependencies})
 
 add_executable(as_controller
   test/as_controller.cpp
@@ -62,6 +67,11 @@ add_executable(as_controller
 target_link_libraries(as_controller lcm)
 ament_target_dependencies(as_controller ${dependencies})
 
+add_executable(as_controller_file
+  test/as_controller_file.cpp
+)
+target_link_libraries(as_controller_file lcm)
+ament_target_dependencies(as_controller_file ${dependencies})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -78,7 +88,9 @@ install(TARGETS
   elevation_bridge
   imu_bridge
   odom_out_publisher
+  file_bridge
   as_controller
+  as_controller_file
   DESTINATION lib/${PROJECT_NAME}
 )
 ament_export_dependencies(${dependencies})

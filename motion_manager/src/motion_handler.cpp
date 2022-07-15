@@ -13,6 +13,7 @@
 // limitations under the License.
 #include <memory>
 #include <vector>
+#include <string>
 #include "motion_manager/motion_handler.hpp"
 
 namespace cyberdog
@@ -39,6 +40,14 @@ bool MotionHandler::Init(rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_st
   servo_data_check_thread_.detach();
   action_ptr_->RegisterFeedback(
     std::bind(&MotionHandler::UpdateMotionStatus, this, std::placeholders::_1));
+  action_ptr_->RegisterTomlLog(
+    std::bind(&MotionHandler::WriteTomlLog, this, std::placeholders::_1));
+  toml_log_dir_ = getenv("HOME") + std::string("/TomlLog/");
+  if (access(toml_log_dir_.c_str(), 0) != 0) {
+    if (mkdir(toml_log_dir_.c_str(), 0777) != 0) {
+      INFO("Cannot create TomlLog directory");
+    }
+  }
   motion_status_ptr_.reset(new MotionStatusMsg);
   motion_status_ptr_->motor_error.resize(12);
   motion_id_map_ = action_ptr_->GetMotionIdMap();
@@ -301,7 +310,13 @@ void MotionHandler::HandleResultCmd(
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
+  toml_.open(
+    getenv("HOME") + std::string("/TomlLog/") + GetTime() + "-" +
+    std::to_string(request->motion_id) + ".toml");
+  toml_.setf(std::ios::fixed, std::ios::floatfield);
+  toml_.precision(3);
   ExecuteResultCmd(request, response);
+  toml_.close();
   SetWorkStatus(HandlerStatus::kIdle);
 }
 
@@ -380,5 +395,29 @@ bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr req
   return true;
 }
 
+void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
+{
+  toml_ << "[[step]]\n";
+  toml_ << "mode = " << int(cmd.mode) << "\n";
+  toml_ << "gait_id = " << int(cmd.gait_id) << "\n";
+  toml_ << "contact = " << int(cmd.contact) << "\n";
+  toml_ << "life_count = " << int(cmd.life_count) << "\n";
+  toml_ << "vel_des = [" << cmd.vel_des[0] << ", " << cmd.vel_des[1] << ", " << cmd.vel_des[2] <<
+    "]\n";
+  toml_ << "rpy_des = [" << cmd.rpy_des[0] << ", " << cmd.rpy_des[1] << ", " << cmd.rpy_des[2] <<
+    "]\n";
+  toml_ << "pos_des = [" << cmd.pos_des[0] << ", " << cmd.pos_des[1] << ", " << cmd.pos_des[2] <<
+    "]\n";
+  toml_ << "acc_des = [" << cmd.acc_des[0] << ", " << cmd.acc_des[1] << ", " << cmd.acc_des[2] <<
+    ", " << cmd.acc_des[3] << ", " << cmd.acc_des[4] << ", " << cmd.acc_des[5] << "]\n";
+  toml_ << "ctrl_point = [" << cmd.ctrl_point[0] << ", " << cmd.ctrl_point[1] << ", " <<
+    cmd.ctrl_point[2] << "]\n";
+  toml_ << "foot_pose = [" << cmd.foot_pose[0] << ", " << cmd.foot_pose[1] << ", " <<
+    cmd.foot_pose[2] << "]\n";
+  toml_ << "step_height = [" << cmd.step_height[0] << ", " << cmd.step_height[1] << "]\n";
+  toml_ << "value = " << cmd.value << "\n";
+  toml_ << "duration = " << cmd.duration << "\n";
+  toml_ << "\n";
+}
 }  // namespace motion
 }  // namespace cyberdog
