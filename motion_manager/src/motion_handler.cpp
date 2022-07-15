@@ -311,7 +311,7 @@ void MotionHandler::HandleResultCmd(
     return;
   }
   toml_.open(
-    getenv("HOME") + std::string("/TomlLog/") + GetTime() + "-" +
+    getenv("HOME") + std::string("/TomlLog/") + getCurrentTime() + "-" +
     std::to_string(request->motion_id) + ".toml");
   toml_.setf(std::ios::fixed, std::ios::floatfield);
   toml_.precision(3);
@@ -397,6 +397,7 @@ bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr req
 
 void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
 {
+  toml_ << "# " + GetCurrentTime() << "\n";
   toml_ << "[[step]]\n";
   toml_ << "mode = " << int(cmd.mode) << "\n";
   toml_ << "gait_id = " << int(cmd.gait_id) << "\n";
