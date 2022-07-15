@@ -311,7 +311,7 @@ void MotionHandler::HandleResultCmd(
     return;
   }
   toml_.open(
-    getenv("HOME") + std::string("/TomlLog/") + getCurrentTime() + "-" +
+    getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-" +
     std::to_string(request->motion_id) + ".toml");
   toml_.setf(std::ios::fixed, std::ios::floatfield);
   toml_.precision(3);
