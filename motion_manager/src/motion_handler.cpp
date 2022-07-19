@@ -140,12 +140,6 @@ void MotionHandler::HandleServoCmd(
   }
 }
 
-
-/**
- * @brief 检测伺服指令的下发间隔是否符合要求
- *        1. 运行在死循环线程中，通过waitServoNeedCheck进行线程挂起与唤醒操作
- *
- */
 void MotionHandler::ServoDataCheck()
 {
   while (true) {
@@ -339,6 +333,7 @@ void MotionHandler::HandleQueueCmd(
   //   SetWorkStatus(HandlerStatus::kIdle);
   //   return;
   // }
+  (void)response;
   toml_.open(
     getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-queue" + ".toml");
   toml_.setf(std::ios::fixed, std::ios::floatfield);

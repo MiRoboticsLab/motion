@@ -64,7 +64,7 @@ bool MotionManager::Init()
     std::bind(
       &MotionManager::MotionResultCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
-  motion_queue_srv_ = 
+  motion_queue_srv_ =
     node_ptr_->create_service<MotionQueueSrv>(
     kMotionQueueServiceName,
     std::bind(
@@ -153,7 +153,6 @@ void MotionManager::MotionQueueCmdCallback(
     return;
   }
   decision_ptr_->DecideQueueCmd(request, response);
-
 }
 
 }  // namespace motion

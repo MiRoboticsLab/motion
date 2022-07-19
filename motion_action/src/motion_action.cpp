@@ -119,7 +119,7 @@ void MotionAction::Execute(const MotionQueueSrv::Request::SharedPtr request)
   if (motion_id_map_.empty()) {
     return;
   }
-  for(auto cmd : request->cmds) {
+  for (auto cmd : request->cmds) {
     robot_control_cmd_lcmt lcm_cmd;
     lcm_cmd.mode = cmd.mode;
     lcm_cmd.gait_id = cmd.gait_id;
