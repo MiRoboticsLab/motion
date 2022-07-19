@@ -174,7 +174,7 @@ void MotionHandler::PoseControlDefinitively()
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
   MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
   request->motion_id = MotionIDMsg::POSECONTROL_DEFINITIVELY;
-  request->pos_des = std::vector<float>{0.0, 0.0, 0.2};
+  request->pos_des = std::vector<float>{0.0, 0.0, 0.225};
   request->duration = 200;
   // action_ptr_->Execute(request);
   ExecuteResultCmd(request, response);
