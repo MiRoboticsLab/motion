@@ -151,6 +151,14 @@ bool MotionAction::Init(
   lcm_publish_instance_ = std::make_shared<lcm::LCM>(publish_url);
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
   lcm_subscribe_instance_->subscribe(kLCMActionResponseChannel, &MotionAction::ReadLcm, this);
+  if (!lcm_subscribe_instance_->good()) {
+    ERROR("MotionAction read lcm initialized error");
+    return false;
+  }
+  if (!lcm_publish_instance_->good()) {
+    ERROR("MotionAction write lcm initialized error");
+    return false;
+  }
   control_thread_ = std::thread(&MotionAction::WriteLcm, this);
   control_thread_.detach();
   response_thread_ =
