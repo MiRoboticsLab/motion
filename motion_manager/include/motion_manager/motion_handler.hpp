@@ -65,6 +65,9 @@ public:
   void HandleResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
+  void HandleQueueCmd(
+    const MotionQueueSrv::Request::SharedPtr request,
+    MotionQueueSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
   bool CheckPreMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);

@@ -288,12 +288,6 @@ void MotionHandler::ExecuteResultCmd(
   response->motion_id = motion_status_ptr_->motion_id;
 }
 
-/**
- * @brief 执行结果指令
- *
- * @param request
- * @param response
- */
 void MotionHandler::HandleResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
@@ -328,11 +322,32 @@ void MotionHandler::HandleResultCmd(
   SetWorkStatus(HandlerStatus::kIdle);
 }
 
-/**
- * @brief Inelegant code
- *
- * @param motion_status_ptr
- */
+void MotionHandler::HandleQueueCmd(
+  const MotionQueueSrv::Request::SharedPtr request,
+  MotionQueueSrv::Response::SharedPtr response)
+{
+  // if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
+  //   response->result = false;
+  //   response->code = MotionCodeMsg::TASK_STATE_ERROR;
+  //   return;
+  // }
+  // SetWorkStatus(HandlerStatus::kExecutingResultCmd);
+  // if (!isCommandValid(request)) {
+  //   response->code = MotionCodeMsg::COMMAND_INVALID;
+  //   response->result = false;
+  //   response->motion_id = motion_status_ptr_->motion_id;
+  //   SetWorkStatus(HandlerStatus::kIdle);
+  //   return;
+  // }
+  toml_.open(
+    getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-queue" + ".toml");
+  toml_.setf(std::ios::fixed, std::ios::floatfield);
+  toml_.precision(3);
+  action_ptr_->Execute(request);
+  toml_.close();
+  SetWorkStatus(HandlerStatus::kIdle);
+}
+
 void MotionHandler::UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr)
 {
   feedback_cv_.notify_one();
