@@ -133,9 +133,7 @@ void MotionManager::MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr ms
 void MotionManager::MotionResultCmdCallback(
   const MotionResultSrv::Request::SharedPtr request, MotionResultSrv::Response::SharedPtr response)
 {
-  INFO("Receive request once:");
-  INFO("\tmotion_id: %d", request->motion_id);
-
+  INFO("Receive ResultCmd with motion_id: %d", request->motion_id);
   if (!IsStateValid()) {
     INFO("State invalid with current state");
     return;
@@ -145,9 +143,10 @@ void MotionManager::MotionResultCmdCallback(
 }
 
 void MotionManager::MotionQueueCmdCallback(
-  const MotionQueueCustomSrv::Request::SharedPtr request, MotionQueueCustomSrv::Response::SharedPtr response)
+  const MotionQueueCustomSrv::Request::SharedPtr request,
+  MotionQueueCustomSrv::Response::SharedPtr response)
 {
-  INFO("Receive queue once:");
+  INFO("Receive QueueCmd");
   if (!IsStateValid()) {
     INFO("State invalid with current state");
     return;

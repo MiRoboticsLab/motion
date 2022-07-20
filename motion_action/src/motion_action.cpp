@@ -146,6 +146,7 @@ void MotionAction::Execute(const MotionQueueCustomSrv::Request::SharedPtr reques
     if (toml_log_func_) {
       toml_log_func_(lcm_cmd_);
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
 
