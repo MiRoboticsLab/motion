@@ -73,6 +73,7 @@ public:
 public:
   void Execute(const MotionServoCmdMsg::SharedPtr msg);
   void Execute(const MotionResultSrv::Request::SharedPtr request);
+  void Execute(const MotionQueueCustomSrv::Request::SharedPtr request);
   void Execute(const robot_control_cmd_lcmt & lcm);
   void RegisterFeedback(std::function<void(MotionStatusMsg::SharedPtr)> feedback);
   void RegisterTomlLog(std::function<void(const robot_control_cmd_lcmt &)> toml_log);

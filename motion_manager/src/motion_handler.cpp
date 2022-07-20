@@ -140,12 +140,6 @@ void MotionHandler::HandleServoCmd(
   }
 }
 
-
-/**
- * @brief 检测伺服指令的下发间隔是否符合要求
- *        1. 运行在死循环线程中，通过waitServoNeedCheck进行线程挂起与唤醒操作
- *
- */
 void MotionHandler::ServoDataCheck()
 {
   while (true) {
@@ -288,12 +282,6 @@ void MotionHandler::ExecuteResultCmd(
   response->motion_id = motion_status_ptr_->motion_id;
 }
 
-/**
- * @brief 执行结果指令
- *
- * @param request
- * @param response
- */
 void MotionHandler::HandleResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
@@ -302,6 +290,13 @@ void MotionHandler::HandleResultCmd(
     response->result = false;
     response->code = MotionCodeMsg::TASK_STATE_ERROR;
     return;
+  }
+  for (auto motor : motion_status_ptr_->motor_error) {
+    if (motor != 0 && motor != kMotorNormal) {
+      response->result = false;
+      response->code = MotionCodeMsg::HW_MOTOR_OFFLINE;
+      return;
+    }
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
   if (!isCommandValid(request)) {
@@ -321,11 +316,33 @@ void MotionHandler::HandleResultCmd(
   SetWorkStatus(HandlerStatus::kIdle);
 }
 
-/**
- * @brief Inelegant code
- *
- * @param motion_status_ptr
- */
+void MotionHandler::HandleQueueCmd(
+  const MotionQueueCustomSrv::Request::SharedPtr request,
+  MotionQueueCustomSrv::Response::SharedPtr response)
+{
+  // if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
+  //   response->result = false;
+  //   response->code = MotionCodeMsg::TASK_STATE_ERROR;
+  //   return;
+  // }
+  // SetWorkStatus(HandlerStatus::kExecutingResultCmd);
+  // if (!isCommandValid(request)) {
+  //   response->code = MotionCodeMsg::COMMAND_INVALID;
+  //   response->result = false;
+  //   response->motion_id = motion_status_ptr_->motion_id;
+  //   SetWorkStatus(HandlerStatus::kIdle);
+  //   return;
+  // }
+  (void)response;
+  toml_.open(
+    getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-queue" + ".toml");
+  toml_.setf(std::ios::fixed, std::ios::floatfield);
+  toml_.precision(3);
+  action_ptr_->Execute(request);
+  toml_.close();
+  SetWorkStatus(HandlerStatus::kIdle);
+}
+
 void MotionHandler::UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr)
 {
   feedback_cv_.notify_one();

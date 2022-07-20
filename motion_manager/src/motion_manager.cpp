@@ -54,17 +54,22 @@ bool MotionManager::Init()
     kMotionStatusTopicName, 10);
   decision_ptr_ = std::make_shared<MotionDecision>();
   decision_ptr_->Init(motion_servo_pub_, motion_status_pub_);
+
   motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
     kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS(),
     std::bind(&MotionManager::MotionServoCmdCallback, this, std::placeholders::_1));
-
   motion_result_srv_ =
     node_ptr_->create_service<MotionResultSrv>(
     kMotionResultServiceName,
     std::bind(
       &MotionManager::MotionResultCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
-
+  motion_queue_srv_ =
+    node_ptr_->create_service<MotionQueueCustomSrv>(
+    kMotionQueueServiceName,
+    std::bind(
+      &MotionManager::MotionQueueCmdCallback, this, std::placeholders::_1,
+      std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
 
   return true;
 }
@@ -128,9 +133,7 @@ void MotionManager::MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr ms
 void MotionManager::MotionResultCmdCallback(
   const MotionResultSrv::Request::SharedPtr request, MotionResultSrv::Response::SharedPtr response)
 {
-  INFO("Receive request once:");
-  INFO("\tmotion_id: %d", request->motion_id);
-
+  INFO("Receive ResultCmd with motion_id: %d", request->motion_id);
   if (!IsStateValid()) {
     INFO("State invalid with current state");
     return;
@@ -138,5 +141,18 @@ void MotionManager::MotionResultCmdCallback(
 
   decision_ptr_->DecideResultCmd(request, response);
 }
+
+void MotionManager::MotionQueueCmdCallback(
+  const MotionQueueCustomSrv::Request::SharedPtr request,
+  MotionQueueCustomSrv::Response::SharedPtr response)
+{
+  INFO("Receive QueueCmd");
+  if (!IsStateValid()) {
+    INFO("State invalid with current state");
+    return;
+  }
+  decision_ptr_->DecideQueueCmd(request, response);
+}
+
 }  // namespace motion
 }  // namespace cyberdog

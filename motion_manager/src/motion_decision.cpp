@@ -109,5 +109,27 @@ void MotionDecision::DecideResultCmd(
   }
   handler_ptr_->HandleResultCmd(request, response);
 }
+
+
+/**
+ * @brief 执行结果指令
+ *
+ * @param request
+ * @param response
+ */
+void MotionDecision::DecideQueueCmd(
+  const MotionQueueCustomSrv::Request::SharedPtr request,
+  MotionQueueCustomSrv::Response::SharedPtr response)
+{
+  if (!IsStateValid()) {
+    response->result = false;
+    return;
+  }
+  if (!IsModeValid()) {
+    return;
+  }
+  handler_ptr_->HandleQueueCmd(request, response);
+}
+
 }  // namespace motion
 }  // namespace cyberdog

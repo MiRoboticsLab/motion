@@ -46,26 +46,29 @@ public:
   ~MotionHandler();
 
 public:
-  /* recv api */
-  // void ServoResponse();
   bool Init(rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub);
-  void UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr);
-  bool CheckMotionID(int32_t motion_id);
-  bool CheckMotionResult();
-  bool FeedbackTimeout();
-  void ServoDataCheck();
-  void PoseControlDefinitively();
-  void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
-  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void HandleServoCmd(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
-  void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
   void ExecuteResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
   void HandleResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
+  void HandleQueueCmd(
+    const MotionQueueCustomSrv::Request::SharedPtr request,
+    MotionQueueCustomSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
+  bool FeedbackTimeout();
+
+private:
+  void UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr);
+  bool CheckMotionID(int32_t motion_id);
+  bool CheckMotionResult();
+  void ServoDataCheck();
+  void PoseControlDefinitively();
+  void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
+  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
+  void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
   bool CheckPreMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
   bool isCommandValid(const MotionResultSrv::Request::SharedPtr request);
@@ -79,17 +82,6 @@ public:
     std::unique_lock<std::mutex> lk(status_mutex_);
     return status_;
   }
-
-public:
-  /* 考虑重构的API */
-  bool IsIdle() {return true;}
-
-  bool Wait4TargetMotionID(int32_t /*motion_id*/)
-  {
-    return true;
-  }
-
-private:
   void WriteTomlLog(const robot_control_cmd_lcmt & cmd);
   inline void SetServoNeedCheck(bool check_flag)
   {

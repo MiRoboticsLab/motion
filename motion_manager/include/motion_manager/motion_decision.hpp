@@ -44,10 +44,12 @@ public:
 
 public:
   void DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg);
-
   void DecideResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
+  void DecideQueueCmd(
+    const MotionQueueCustomSrv::Request::SharedPtr request,
+    MotionQueueCustomSrv::Response::SharedPtr response);
 
   inline void SetMode(uint8_t mode)
   {

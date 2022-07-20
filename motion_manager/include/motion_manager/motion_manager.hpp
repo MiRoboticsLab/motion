@@ -58,6 +58,9 @@ private:
   void MotionResultCmdCallback(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
+  void MotionQueueCmdCallback(
+    const MotionQueueCustomSrv::Request::SharedPtr request,
+    MotionQueueCustomSrv::Response::SharedPtr response);
 
 private:
   std::string name_;
@@ -68,6 +71,7 @@ private:
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr motion_servo_pub_ {nullptr};
   rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub_ {nullptr};
   rclcpp::Service<MotionResultSrv>::SharedPtr motion_result_srv_ {nullptr};
+  rclcpp::Service<MotionQueueCustomSrv>::SharedPtr motion_queue_srv_ {nullptr};
   rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::CallbackGroup::SharedPtr callback_group_{nullptr};
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};

@@ -110,6 +110,46 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
   }
 }
 
+void MotionAction::Execute(const MotionQueueCustomSrv::Request::SharedPtr request)
+{
+  if (!ins_init_) {
+    ERROR("MotionAction has not been initialized when execute QueueSrv");
+    return;
+  }
+  if (motion_id_map_.empty()) {
+    return;
+  }
+  for (auto cmd : request->cmds) {
+    robot_control_cmd_lcmt lcm_cmd;
+    lcm_cmd.mode = cmd.mode;
+    lcm_cmd.gait_id = cmd.gait_id;
+    // lcm_cmd.life_count = life_count_++;
+    lcm_cmd.contact = cmd.contact;
+    GET_VALUE(cmd.step_height, lcm_cmd.step_height, 2, "step_height");
+    GET_VALUE(cmd.vel_des, lcm_cmd.vel_des, 3, "vel_des");
+    GET_VALUE(cmd.rpy_des, lcm_cmd.rpy_des, 3, "rpy_des");
+    GET_VALUE(cmd.pos_des, lcm_cmd.pos_des, 3, "pos_des");
+    GET_VALUE(cmd.ctrl_point, lcm_cmd.ctrl_point, 3, "ctrl_point");
+    GET_VALUE(cmd.acc_des, lcm_cmd.acc_des, 6, "acc_des");
+    GET_VALUE(cmd.foot_pose, lcm_cmd.foot_pose, 6, "foot_pose");
+    lcm_cmd.value = cmd.value;
+    lcm_cmd.duration = cmd.duration;
+    std::unique_lock<std::mutex> lk(lcm_write_mutex_);
+    lcm_cmd_ = lcm_cmd;
+    lcm_cmd_.life_count = life_count_++;
+    lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
+    lk.unlock();
+    lcm_cmd_init_ = true;
+    INFO(
+      "CustomCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
+      lcm_cmd_.duration);
+    if (toml_log_func_) {
+      toml_log_func_(lcm_cmd_);
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+}
+
 bool MotionAction::ParseMotionIdMap()
 {
   std::string motion_id_map_config = ament_index_cpp::get_package_share_directory("motion_action") +
