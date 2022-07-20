@@ -55,8 +55,8 @@ public:
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
   void HandleQueueCmd(
-    const MotionQueueSrv::Request::SharedPtr request,
-    MotionQueueSrv::Response::SharedPtr response);
+    const MotionQueueCustomSrv::Request::SharedPtr request,
+    MotionQueueCustomSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
   bool FeedbackTimeout();
 

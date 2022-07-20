@@ -48,8 +48,8 @@ public:
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
   void DecideQueueCmd(
-    const MotionQueueSrv::Request::SharedPtr request,
-    MotionQueueSrv::Response::SharedPtr response);
+    const MotionQueueCustomSrv::Request::SharedPtr request,
+    MotionQueueCustomSrv::Response::SharedPtr response);
 
   inline void SetMode(uint8_t mode)
   {

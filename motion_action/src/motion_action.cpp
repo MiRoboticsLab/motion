@@ -110,7 +110,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
   }
 }
 
-void MotionAction::Execute(const MotionQueueSrv::Request::SharedPtr request)
+void MotionAction::Execute(const MotionQueueCustomSrv::Request::SharedPtr request)
 {
   if (!ins_init_) {
     ERROR("MotionAction has not been initialized when execute QueueSrv");

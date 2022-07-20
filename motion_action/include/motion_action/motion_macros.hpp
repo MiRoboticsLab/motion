@@ -23,7 +23,7 @@
 #include "protocol/msg/motion_code.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
-#include "protocol/srv/motion_queue_cmd.hpp"
+#include "protocol/srv/motion_queue_custom_cmd.hpp"
 namespace cyberdog
 {
 namespace motion
@@ -32,7 +32,7 @@ namespace motion
 using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
 using LcmResponse = robot_control_response_lcmt;
 using MotionResultSrv = protocol::srv::MotionResultCmd;
-using MotionQueueSrv = protocol::srv::MotionQueueCmd;
+using MotionQueueCustomSrv = protocol::srv::MotionQueueCustomCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 using MotionIDMsg = protocol::msg::MotionID;

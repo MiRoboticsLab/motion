@@ -118,8 +118,8 @@ void MotionDecision::DecideResultCmd(
  * @param response
  */
 void MotionDecision::DecideQueueCmd(
-  const MotionQueueSrv::Request::SharedPtr request,
-  MotionQueueSrv::Response::SharedPtr response)
+  const MotionQueueCustomSrv::Request::SharedPtr request,
+  MotionQueueCustomSrv::Response::SharedPtr response)
 {
   if (!IsStateValid()) {
     response->result = false;

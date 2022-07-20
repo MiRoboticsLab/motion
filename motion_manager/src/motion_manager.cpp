@@ -65,7 +65,7 @@ bool MotionManager::Init()
       &MotionManager::MotionResultCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
   motion_queue_srv_ =
-    node_ptr_->create_service<MotionQueueSrv>(
+    node_ptr_->create_service<MotionQueueCustomSrv>(
     kMotionQueueServiceName,
     std::bind(
       &MotionManager::MotionQueueCmdCallback, this, std::placeholders::_1,
@@ -145,7 +145,7 @@ void MotionManager::MotionResultCmdCallback(
 }
 
 void MotionManager::MotionQueueCmdCallback(
-  const MotionQueueSrv::Request::SharedPtr request, MotionQueueSrv::Response::SharedPtr response)
+  const MotionQueueCustomSrv::Request::SharedPtr request, MotionQueueCustomSrv::Response::SharedPtr response)
 {
   INFO("Receive queue once:");
   if (!IsStateValid()) {

@@ -317,8 +317,8 @@ void MotionHandler::HandleResultCmd(
 }
 
 void MotionHandler::HandleQueueCmd(
-  const MotionQueueSrv::Request::SharedPtr request,
-  MotionQueueSrv::Response::SharedPtr response)
+  const MotionQueueCustomSrv::Request::SharedPtr request,
+  MotionQueueCustomSrv::Response::SharedPtr response)
 {
   // if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
   //   response->result = false;
