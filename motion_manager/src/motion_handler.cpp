@@ -303,6 +303,13 @@ void MotionHandler::HandleResultCmd(
     response->code = MotionCodeMsg::TASK_STATE_ERROR;
     return;
   }
+  for (auto motor : motion_status_ptr_->motor_error) {
+    if (motor != 0 && motor != kMotorNormal) {
+      response->result = false;
+      response->code = MotionCodeMsg::HW_MOTOR_OFFLINE;
+      return;
+    }
+  }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
   if (!isCommandValid(request)) {
     response->code = MotionCodeMsg::COMMAND_INVALID;
