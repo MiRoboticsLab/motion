@@ -58,7 +58,7 @@ constexpr const char * kMotionResultServiceName = "motion_result_cmd";
 constexpr const char * kMotionQueueServiceName = "motion_queue_cmd";
 constexpr const char * kMotionQueueCommandTopicName = "motion_queue_cmd_test";
 constexpr const char * kBridgeOdomTopicName = "odom_out";
-constexpr const char * kMotionStatusTopicName = "motion_stauts";
+constexpr const char * kMotionStatusTopicName = "motion_status";
 // a: src, b: des, c: size, d: description
 #define GET_VALUE(a, b, c, d) \
   if (a.size() != c) { \

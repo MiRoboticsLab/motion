@@ -27,6 +27,17 @@ public:
     node_ptr_ = rclcpp::Node::make_shared(name);
     motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>(cyberdog::motion::kMotionResultServiceName);
     motion_queue_client_ = node_ptr_->create_client<protocol::srv::MotionQueueCustomCmd>(cyberdog::motion::kMotionQueueServiceName);
+    map_.emplace(protocol::msg::MotionCode::OK, "OK");
+    map_.emplace(protocol::msg::MotionCode::HW_LOW_BATTERY, "HW_LOW_BATTERY");
+    map_.emplace(protocol::msg::MotionCode::HW_MOTOR_OFFLINE, "HW_MOTOR_OFFLINE");
+    map_.emplace(protocol::msg::MotionCode::COM_LCM_TIMEOUT, "COM_LCM_TIMEOUT");
+    map_.emplace(protocol::msg::MotionCode::MOTION_SWITCH_ERROR, "MOTION_SWITCH_ERROR");
+    map_.emplace(protocol::msg::MotionCode::MOTION_TRANSITION_TIMEOUT, "MOTION_TRANSITION_TIMEOUT");
+    map_.emplace(protocol::msg::MotionCode::MOTION_EXECUTE_TIMEOUT, "MOTION_EXECUTE_TIMEOUT");
+    map_.emplace(protocol::msg::MotionCode::MOTION_EXECUTE_ERROR, "MOTION_EXECUTE_ERROR");
+    map_.emplace(protocol::msg::MotionCode::COMMAND_INVALID, "COMMAND_INVALID");
+    map_.emplace(protocol::msg::MotionCode::TASK_MODE_ERROR, "TASK_MODE_ERROR");
+    map_.emplace(protocol::msg::MotionCode::TASK_STATE_ERROR, "TASK_STATE_ERROR");
   }
 
   void Run(int argc, char ** argv)
@@ -88,7 +99,7 @@ private:
       FATAL("Service failed");
       return;
     }
-    INFO("MotionClient get res:\n motion_id: %d result: %d code: %d", future_result.get()->motion_id, future_result.get()->result, future_result.get()->code);
+    INFO("MotionClient get res:\n motion_id: %d result: %d code: %d, %s", future_result.get()->motion_id, future_result.get()->result, future_result.get()->code, map_[future_result.get()->code].c_str());
   }
 
   void HandleQueueCustomCmd(int argc, char **argv){
@@ -116,6 +127,7 @@ private:
       GET_TOML_VALUE(value, "life_count", msg.life_count);
       GET_TOML_VALUE(value, "value", msg.value);
       GET_TOML_VALUE(value, "duration", msg.duration);
+      GET_TOML_VALUE(value, "vel_des", msg.vel_des);
       GET_TOML_VALUE(value, "rpy_des", msg.rpy_des);
       GET_TOML_VALUE(value, "pos_des", msg.pos_des);
       GET_TOML_VALUE(value, "acc_des", msg.acc_des);
@@ -145,6 +157,7 @@ private:
   rclcpp::Node::SharedPtr node_ptr_;
   rclcpp::Client<protocol::srv::MotionResultCmd>::SharedPtr motion_result_client_{nullptr};
   rclcpp::Client<protocol::srv::MotionQueueCustomCmd>::SharedPtr motion_queue_client_{nullptr};
+  std::unordered_map<int, std::string> map_;
   std::string cmd_preset_;
   LOGGER_MINOR_INSTANCE("SimMotionClient");
 };
