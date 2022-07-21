@@ -127,6 +127,7 @@ private:
       GET_TOML_VALUE(value, "life_count", msg.life_count);
       GET_TOML_VALUE(value, "value", msg.value);
       GET_TOML_VALUE(value, "duration", msg.duration);
+      GET_TOML_VALUE(value, "vel_des", msg.vel_des);
       GET_TOML_VALUE(value, "rpy_des", msg.rpy_des);
       GET_TOML_VALUE(value, "pos_des", msg.pos_des);
       GET_TOML_VALUE(value, "acc_des", msg.acc_des);

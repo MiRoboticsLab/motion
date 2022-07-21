@@ -421,21 +421,41 @@ void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
   toml_ << "gait_id = " << int(cmd.gait_id) << "\n";
   toml_ << "contact = " << int(cmd.contact) << "\n";
   toml_ << "life_count = " << int(cmd.life_count) << "\n";
-  toml_ << "vel_des = [" << cmd.vel_des[0] << ", " << cmd.vel_des[1] << ", " << cmd.vel_des[2] <<
-    "]\n";
-  toml_ << "rpy_des = [" << cmd.rpy_des[0] << ", " << cmd.rpy_des[1] << ", " << cmd.rpy_des[2] <<
-    "]\n";
-  toml_ << "pos_des = [" << cmd.pos_des[0] << ", " << cmd.pos_des[1] << ", " << cmd.pos_des[2] <<
-    "]\n";
-  toml_ << "acc_des = [" << cmd.acc_des[0] << ", " << cmd.acc_des[1] << ", " << cmd.acc_des[2] <<
-    ", " << cmd.acc_des[3] << ", " << cmd.acc_des[4] << ", " << cmd.acc_des[5] << "]\n";
-  toml_ << "ctrl_point = [" << cmd.ctrl_point[0] << ", " << cmd.ctrl_point[1] << ", " <<
-    cmd.ctrl_point[2] << "]\n";
-  toml_ << "foot_pose = [" << cmd.foot_pose[0] << ", " << cmd.foot_pose[1] << ", " <<
-    cmd.foot_pose[2] << "]\n";
-  toml_ << "step_height = [" << cmd.step_height[0] << ", " << cmd.step_height[1] << "]\n";
   toml_ << "value = " << cmd.value << "\n";
   toml_ << "duration = " << cmd.duration << "\n";
+  toml_ << "vel_des = [ "
+    << cmd.vel_des[0] << ", " 
+    << cmd.vel_des[1] << ", " 
+    << cmd.vel_des[2] << ",]\n";
+  toml_ << "rpy_des = [ " 
+    << cmd.rpy_des[0] << ", " 
+    << cmd.rpy_des[1] << ", " 
+    << cmd.rpy_des[2] << ",]\n";
+  toml_ << "pos_des = [ "
+    << cmd.pos_des[0] << ", " 
+    << cmd.pos_des[1] << ", " 
+    << cmd.pos_des[2] << ",]\n";
+  toml_ << "acc_des = [ " 
+    << cmd.acc_des[0] << ", " 
+    << cmd.acc_des[1] << ", " 
+    << cmd.acc_des[2] << ", " 
+    << cmd.acc_des[3] << ", " 
+    << cmd.acc_des[4] << ", " 
+    << cmd.acc_des[5] << ",]\n";
+  toml_ << "ctrl_point = [ " 
+    << cmd.ctrl_point[0] << ", " 
+    << cmd.ctrl_point[1] << ", " 
+    << cmd.ctrl_point[2] << ",]\n";
+  toml_ << "foot_pose = [ " 
+    << cmd.foot_pose[0] << ", " 
+    << cmd.foot_pose[1] << ", " 
+    << cmd.foot_pose[2] << ", " 
+    << cmd.foot_pose[3] << ", " 
+    << cmd.foot_pose[4] << ", " 
+    << cmd.foot_pose[5] << ",]\n";
+  toml_ << "step_height = [ " 
+    << cmd.step_height[0] << ", " 
+    << cmd.step_height[1] << ",]\n";
   toml_ << "\n";
 }
 }  // namespace motion
