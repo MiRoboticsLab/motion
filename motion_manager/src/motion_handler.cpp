@@ -257,7 +257,7 @@ void MotionHandler::ExecuteResultCmd(
   }
   if (is_transitioning_wait_) {
     INFO("Try to relock execute_mutex_");
-    // check_lk.lock(); 
+    // check_lk.lock();
     INFO("Relock execute_mutex_");
   }
   is_execute_wait_ = true;
