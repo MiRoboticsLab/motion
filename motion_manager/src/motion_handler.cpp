@@ -365,7 +365,7 @@ void MotionHandler::UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_
   }
   if (is_execute_wait_ &&
     motion_status_ptr_->motion_id == wait_id_ &&
-    motion_status_ptr_->order_process_bar == 100)
+    motion_status_ptr_->order_process_bar > 95)
   {
     execute_cv_.notify_one();
     is_execute_wait_ = false;
