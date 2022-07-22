@@ -234,6 +234,7 @@ void MotionHandler::ExecuteResultCmd(
   }
   if (motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING) {
     is_transitioning_wait_ = true;
+    WARN("Transitioning waiting");
     if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
       std::cv_status::timeout)
     {
@@ -247,7 +248,7 @@ void MotionHandler::ExecuteResultCmd(
   }
   if (is_transitioning_wait_) {
     INFO("Try to relock execute_mutex_");
-    check_lk.lock();
+    // check_lk.lock(); 
     INFO("Relock execute_mutex_");
   }
   is_execute_wait_ = true;
