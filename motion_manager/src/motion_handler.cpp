@@ -101,7 +101,7 @@ void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
 {
   // action_ptr_->Execute(msg);
   (void) msg;
-  PoseControlDefinitively();
+  WalkStand();
   SetServoNeedCheck(false);
 }
 
@@ -134,7 +134,7 @@ void MotionHandler::HandleServoCmd(
     SetServoNeedCheck(true);
   } else {
     SetServoNeedCheck(false);
-    PoseControlDefinitively();
+    WalkStand();
     SetWorkStatus(HandlerStatus::kIdle);
     pre_motion_checked_ = false;
   }
@@ -154,7 +154,7 @@ void MotionHandler::ServoDataCheck()
       // StopServoResponse();
       // SetServoDataLost(); TODO(harvey): 是否通知Decision？
       SetServoNeedCheck(false);
-      PoseControlDefinitively();
+      WalkStand();
       // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
       SetWorkStatus(HandlerStatus::kIdle);
       pre_motion_checked_ = false;
@@ -170,6 +170,15 @@ void MotionHandler::PoseControlDefinitively()
   request->motion_id = MotionIDMsg::POSECONTROL_DEFINITIVELY;
   request->pos_des = std::vector<float>{0.0, 0.0, 0.225};
   request->duration = 200;
+  // action_ptr_->Execute(request);
+  ExecuteResultCmd(request, response);
+}
+
+void MotionHandler::WalkStand()
+{
+  MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
+  MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
+  request->motion_id = MotionIDMsg::WALK_STAND;
   // action_ptr_->Execute(request);
   ExecuteResultCmd(request, response);
 }
