@@ -66,6 +66,7 @@ private:
   bool CheckMotionResult();
   void ServoDataCheck();
   void PoseControlDefinitively();
+  void WalkStand();
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
   void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);

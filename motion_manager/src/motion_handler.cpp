@@ -101,7 +101,7 @@ void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
 {
   // action_ptr_->Execute(msg);
   (void) msg;
-  PoseControlDefinitively();
+  WalkStand();
   SetServoNeedCheck(false);
 }
 
@@ -134,7 +134,7 @@ void MotionHandler::HandleServoCmd(
     SetServoNeedCheck(true);
   } else {
     SetServoNeedCheck(false);
-    PoseControlDefinitively();
+    WalkStand();
     SetWorkStatus(HandlerStatus::kIdle);
     pre_motion_checked_ = false;
   }
@@ -154,7 +154,7 @@ void MotionHandler::ServoDataCheck()
       // StopServoResponse();
       // SetServoDataLost(); TODO(harvey): 是否通知Decision？
       SetServoNeedCheck(false);
-      PoseControlDefinitively();
+      WalkStand();
       // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
       SetWorkStatus(HandlerStatus::kIdle);
       pre_motion_checked_ = false;
@@ -170,6 +170,15 @@ void MotionHandler::PoseControlDefinitively()
   request->motion_id = MotionIDMsg::POSECONTROL_DEFINITIVELY;
   request->pos_des = std::vector<float>{0.0, 0.0, 0.225};
   request->duration = 200;
+  // action_ptr_->Execute(request);
+  ExecuteResultCmd(request, response);
+}
+
+void MotionHandler::WalkStand()
+{
+  MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
+  MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
+  request->motion_id = MotionIDMsg::WALK_STAND;
   // action_ptr_->Execute(request);
   ExecuteResultCmd(request, response);
 }
@@ -234,6 +243,7 @@ void MotionHandler::ExecuteResultCmd(
   }
   if (motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING) {
     is_transitioning_wait_ = true;
+    WARN("Transitioning waiting");
     if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
       std::cv_status::timeout)
     {
@@ -247,7 +257,7 @@ void MotionHandler::ExecuteResultCmd(
   }
   if (is_transitioning_wait_) {
     INFO("Try to relock execute_mutex_");
-    check_lk.lock();
+    // check_lk.lock();
     INFO("Relock execute_mutex_");
   }
   is_execute_wait_ = true;
@@ -365,7 +375,7 @@ void MotionHandler::UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_
   }
   if (is_execute_wait_ &&
     motion_status_ptr_->motion_id == wait_id_ &&
-    motion_status_ptr_->order_process_bar == 100)
+    motion_status_ptr_->order_process_bar > 95)
   {
     execute_cv_.notify_one();
     is_execute_wait_ = false;
