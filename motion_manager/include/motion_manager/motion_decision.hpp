@@ -57,9 +57,17 @@ public:
   }
 
 private:
+  inline bool IsStateValid(int32_t motion_id)
+  {
+    if (estop_) {
+      return motion_id == MotionIDMsg::ESTOP ||
+             motion_id == MotionIDMsg::RECOVERYSTAND;
+    }
+    return true;
+  }
   inline bool IsStateValid()
   {
-    return true;
+    return estop_;
   }
 
   inline bool IsModeValid()
@@ -144,6 +152,7 @@ private:
   common::MsgQueue<int> servo_response_queue_;
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub_;
   MotionServoResponseMsg servo_response_msg_;
+  bool estop_ {false};
 };  // class MotionDecision
 }  // namespace motion
 }  // namespace cyberdog
