@@ -100,11 +100,11 @@ def roll(theta = 3.14 * 2 / 6, duration = 1000):
         node.get_logger().info("MotionManager service is not ready")
         sys.exit()
     future = client.call_async(req)
-    # rclpy.spin_until_future_complete(node, future, timeout_sec= 10)
-    # if future.result() is not None:
-    #     node.get_logger().info("Motion roll code: {}".format(future.result().code))
-    # else:
-    #     node.get_logger().info("MotionManager service error")
+#    rclpy.spin_until_future_complete(node, future, timeout_sec= 10)
+#    if future.result() is not None:
+#        node.get_logger().info("Motion roll code: {}".format(future.result().code))
+#    else:
+#        node.get_logger().info("MotionManager service error")
     rclpy.shutdown()
 
 def pitch(theta = 3.14 * 2 / 6, duration = 1000):
@@ -124,11 +124,11 @@ def pitch(theta = 3.14 * 2 / 6, duration = 1000):
         node.get_logger().info("MotionManager service is not ready")
         sys.exit()
     future = client.call_async(req)
-    # rclpy.spin_until_future_complete(node, future, timeout_sec= 10)
-    # if future.result() is not None:
-    #     node.get_logger().info("Motion pitch code: {}".format(future.result().code))
-    # else:
-    #     node.get_logger().info("MotionManager service error")
+#    rclpy.spin_until_future_complete(node, future, timeout_sec= 10)
+#    if future.result() is not None:
+#        node.get_logger().info("Motion pitch code: {}".format(future.result().code))
+#    else:
+#        node.get_logger().info("MotionManager service error")
     rclpy.shutdown()
 
 def yaw(theta = 3.14 * 2 / 6, duration = 1000):
@@ -148,9 +148,32 @@ def yaw(theta = 3.14 * 2 / 6, duration = 1000):
         node.get_logger().info("MotionManager service is not ready")
         sys.exit()
     future = client.call_async(req)
-    # rclpy.spin_until_future_complete(node, future, timeout_sec= 10)
-    # if future.result() is not None:
-    #     node.get_logger().info("Motion yaw code: {}".format(future.result().code))
-    # else:
-    #     node.get_logger().info("MotionManager service error")
+    rclpy.spin_until_future_complete(node, future, timeout_sec= 10)
+#    if future.result() is not None:
+#        node.get_logger().info("Motion yaw code: {}".format(future.result().code))
+#    else:
+#        node.get_logger().info("MotionManager service error")
     rclpy.shutdown()
+
+# def yaw(theta = 3.14 * 2 / 6, omega = 0.1):
+#     kMotionID = MotionID.WALK_ADAPTIVELY
+#     rclpy.init()
+#     node = rclpy.create_node('motion')
+#     if omega < 0:
+#         node.get_logger().info("Omega should to be positive")
+#     omega = omega if theta > 0 else (-1 * omega)
+#     duration = abs(theta / omega)
+#     node.get_logger().info("Walk for {:.2f}s".format(duration))
+#     qos = QoSProfile(depth=10)
+#     pub = node.create_publisher(MotionServoCmd, 'motion_servo_cmd', qos)
+#     servo_cmd = MotionServoCmd()
+#     servo_cmd.motion_id = kMotionID
+#     servo_cmd.step_height.fromlist([0.05, 0.05])
+#     servo_cmd.vel_des.fromlist([0.0, 0.0, omega])
+#     begin = time.time()
+#     while(time.time() < begin + duration):
+#         pub.publish(servo_cmd)
+#         time.sleep(0.05)
+#     servo_cmd.cmd_type = MotionServoCmd.SERVO_END
+#     pub.publish(servo_cmd)
+#     rclpy.shutdown()
