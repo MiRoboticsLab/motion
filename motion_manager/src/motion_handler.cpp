@@ -125,6 +125,8 @@ void MotionHandler::HandleServoCmd(
       ExecuteResultCmd(request, response);
       if (!response->result) {
         SetWorkStatus(HandlerStatus::kIdle);
+        res.result = false;
+        res.code = response->code;
         return;
       }
       pre_motion_checked_ = true;
@@ -138,6 +140,8 @@ void MotionHandler::HandleServoCmd(
     SetWorkStatus(HandlerStatus::kIdle);
     pre_motion_checked_ = false;
   }
+  res.result = true;
+  res.code = MotionCodeMsg::OK;
 }
 
 void MotionHandler::ServoDataCheck()

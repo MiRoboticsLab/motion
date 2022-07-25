@@ -73,8 +73,6 @@ void MotionDecision::ServoResponseThread()
         servo_response_msg_.motion_id = handler_ptr_->GetMotionStatus()->motion_id;
         servo_response_msg_.order_process_bar = handler_ptr_->GetMotionStatus()->order_process_bar;
         servo_response_msg_.status = handler_ptr_->GetMotionStatus()->switch_status;
-        servo_response_msg_.result = true;
-        servo_response_msg_.code = MotionCodeMsg::OK;
         servo_response_pub_->publish(servo_response_msg_);
       } else {
         servo_response_msg_.motion_id = -1;
