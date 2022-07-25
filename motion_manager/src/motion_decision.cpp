@@ -47,7 +47,7 @@ bool MotionDecision::Init(
 void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
 {
   SetServoResponse();
-  if (!IsStateValid()) {
+  if (!IsStateValid(msg->motion_id)) {
     servo_response_msg_.motion_id = handler_ptr_->GetMotionStatus()->motion_id;
     servo_response_msg_.result = false;
     servo_response_msg_.code = MotionCodeMsg::TASK_STATE_ERROR;
@@ -98,7 +98,7 @@ void MotionDecision::DecideResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  if (!IsStateValid()) {
+  if (!IsStateValid(request->motion_id)) {
     response->motion_id = handler_ptr_->GetMotionStatus()->motion_id;
     response->result = false;
     response->code = MotionCodeMsg::TASK_STATE_ERROR;
@@ -107,6 +107,7 @@ void MotionDecision::DecideResultCmd(
   if (!IsModeValid()) {
     return;
   }
+  estop_ = request->motion_id == MotionIDMsg::ESTOP;
   handler_ptr_->HandleResultCmd(request, response);
 }
 
