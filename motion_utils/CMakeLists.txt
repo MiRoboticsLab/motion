@@ -63,7 +63,13 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/servo_delay_statistics.py
+  scripts/head_tof_pcl_publisher.py
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
