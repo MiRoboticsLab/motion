@@ -126,7 +126,34 @@ class MinimalSubscriber(Node):
         right_points = np.vstack((np.asarray(x_array),np.asarray(y_array),np.asarray(z_array))).T
         points = np.array([[]]*3).T
         for row in range(0,8):
-            tmp_points = np.concatenate((left_points[row*8:(row*8+8), :], right_points[row*8:(row*8+8), :]), axis=0)
+            left_tmp_points = np.array([[]]*3).T
+            right_tmp_points = np.array([[]]*3).T
+            for col in range(0,8):
+                #  Raw:
+                #  *  *  *  *  *  * 55 63   *  *  *  *  *  *  *  0  
+                #  *  *  *  *  *  *  * 62   *  *  *  *  *  *  *  1 
+                #  *  *  *  *  *  *  *  *   *  *  *  *  *  *  *  2 
+                #  *  *  *  *  *  *  *  *   *  *  *  *  *  *  *  * 
+                #  *  *  *  *  *  *  *  *   *  *  *  *  *  *  *  * 
+                #  2  *  *  *  *  *  *  *   *  *  *  *  *  *  *  * 
+                #  1  *  *  *  *  *  * 57  62  *  *  *  *  *  *  * 
+                #  0  *  *  *  *  *  * 56  63 55  *  *  *  *  *  7 
+                #                           
+                #                        | x
+                #                   y    |
+                #                    ————   
+                # Concatenated:  
+                #  *  *  *  *  *  *  *  *   *  *  *  *  *  *  * 127  
+                #  *  *  *  *  *  *  *  *   *  *  *  *  *  *  *  1 
+                #  *  *  *  *  *  *  *  *   *  *  *  *  *  *  *  2 
+                #  *  *  *  *  *  *  *  *   *  *  *  *  *  *  *  * 
+                #  *  *  *  *  *  *  *  *   *  *  *  *  *  *  *  * 
+                #  *  *  *  *  *  *  *  *   *  *  *  *  *  *  *  * 
+                # 16  *  *  *  *  *  *  *   *  *  *  *  *  *  * 31 
+                #  0  1  2  *  *  *  *  7   8  9  *  *  *  *  * 15               
+                left_tmp_points = np.concatenate((left_tmp_points, left_points[[col*8+row], :]), axis=0)
+                right_tmp_points  = np.concatenate((right_tmp_points, right_points[[(8-col)*8-1-row], :]), axis=0)
+            tmp_points = np.concatenate((left_tmp_points, right_tmp_points), axis=0)
             points = np.concatenate((points, tmp_points), axis=0)
         pcd = point_cloud(points, "robot")
         self.head_pcd_publisher.publish(pcd)
