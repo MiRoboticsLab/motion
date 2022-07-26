@@ -124,7 +124,10 @@ class MinimalSubscriber(Node):
             y_array[idx] = round(r_array[idx]*sin_array_scale[7-int(idx/8)]/math.sqrt(r2_array[idx]),4)
             x_array[idx], y_array[idx], z_array[idx] = np.dot(right_R, np.array([x_array[idx], y_array[idx], z_array[idx]])) + right_t
         right_points = np.vstack((np.asarray(x_array),np.asarray(y_array),np.asarray(z_array))).T
-        points = np.concatenate((left_points, right_points), axis=0)
+        points = np.array([[]]*3).T
+        for row in range(0,8):
+            tmp_points = np.concatenate((left_points[row*8:(row*8+8), :], right_points[row*8:(row*8+8), :]), axis=0)
+            points = np.concatenate((points, tmp_points), axis=0)
         pcd = point_cloud(points, "robot")
         self.head_pcd_publisher.publish(pcd)
         return
