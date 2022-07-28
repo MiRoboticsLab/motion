@@ -22,6 +22,9 @@ find_package(protocol REQUIRED)
 find_package(cyberdog_system REQUIRED)
 find_package(cyberdog_debug REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(PCL REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(cyberdog_common)
 find_package(motion_manager)
 
@@ -46,6 +49,10 @@ add_executable(duration_test test/duration_test.cpp)
 target_link_libraries(duration_test ${PROJECT_NAME})
 ament_target_dependencies(duration_test lcm cyberdog_common cyberdog_debug)
 
+add_executable(stair_search test/stair_search.cpp)
+target_link_libraries(stair_search ${PROJECT_NAME} ${PCL_LIBRARIES})
+ament_target_dependencies(stair_search cyberdog_common cyberdog_debug PCL visualization_msgs)
+
 install(
   DIRECTORY include/
   DESTINATION include
@@ -55,6 +62,7 @@ install(TARGETS
   ${PROJECT_NAME}
   distance_test
   duration_test
+  stair_search
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
