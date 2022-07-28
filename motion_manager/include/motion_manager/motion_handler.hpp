@@ -21,6 +21,7 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include <vector>
 #include "rclcpp/rclcpp.hpp"
 #include "motion_action/motion_action.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
@@ -66,7 +67,7 @@ private:
   bool CheckMotionResult();
   void ServoDataCheck();
   void PoseControlDefinitively();
-  void WalkStand();
+  void WalkStand(std::vector<float> step_height);
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
   void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
@@ -153,6 +154,7 @@ private:
   HandlerStatus status_;
   std::ofstream toml_;
   std::string toml_log_dir_;
+  std::vector<float> servo_step_height_ {0.05, 0.05};
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
   int8_t server_check_error_counter_ {0};
