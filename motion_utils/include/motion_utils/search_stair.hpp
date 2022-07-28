@@ -56,6 +56,17 @@ namespace motion
 {
 class StairSearch
 {
+
+enum class State
+{
+  IDLE,
+  BLIND_FORWARD,
+  TURN_LEFT,
+  TURN_RIGHT,
+  APPROACH,
+  FINISH
+};
+
 public:
   StairSearch(rclcpp::Node::SharedPtr node);
   void Spin()
@@ -124,6 +135,7 @@ private:
   // double leaf_size_;
   // double max_ground_height_;
   // // double MeanK, Stddev;
+  State state_;
   double radius_;
   double min_slope_, max_slope_;
   // double max_pc_height_;
@@ -132,6 +144,7 @@ private:
   int min_neighbors_;
   int method_type_;
   bool apply_norms_segmentation_{false};
+  bool trigger_{false};
 };  // calss StairSearch
 }  // motion
 }  // cyberdog
