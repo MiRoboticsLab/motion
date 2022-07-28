@@ -11,26 +11,24 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "motion_utils/search_stair.hpp"
-
-#define CAMERA_ROTATED 0.785
+#include "motion_utils/stair_perception.hpp"
 
 namespace cyberdog
 {
 namespace motion
 {
-StairSearch::StairSearch(rclcpp::Node::SharedPtr node)
+
+StairPerception::StairPerception(rclcpp::Node::SharedPtr node)
 {
   node_ = node;
-  method_type_ =  node_->declare_parameter("mothod_type", pcl::SAC_RANSAC);
+  method_type_ = node_->declare_parameter("mothod_type", pcl::SAC_RANSAC);
 
   pc_raw_.reset(new pcl::PointCloud<pcl::PointXYZ>);
   pc_vg_filtered_.reset(new pcl::PointCloud<pcl::PointXYZ>);
   pc_tmp_.reset(new pcl::PointCloud<pcl::PointXYZ>);
   pc_norms_.reset(new pcl::PointCloud<pcl::Normal>);
 
-  if(apply_norms_segmentation_)
-  {
+  if (apply_norms_segmentation_) {
     seg_norms_.setOptimizeCoefficients(true);
     // seg_.setModelType(pcl::SACMODEL_PLANE);
     seg_norms_.setModelType(pcl::SACMODEL_NORMAL_PLANE);
@@ -38,9 +36,7 @@ StairSearch::StairSearch(rclcpp::Node::SharedPtr node)
     seg_norms_.setMethodType(method_type_);
     seg_norms_.setMaxIterations(1000);
     seg_norms_.setDistanceThreshold(0.02);
-  }
-  else
-  {
+  } else {
     seg_points_.setOptimizeCoefficients(true);
     seg_points_.setModelType(pcl::SACMODEL_PLANE);
     seg_points_.setMethodType(method_type_);
@@ -51,14 +47,18 @@ StairSearch::StairSearch(rclcpp::Node::SharedPtr node)
   ro_filter_.setRadiusSearch(0.05);
   ro_filter_.setMinNeighborsInRadius(5);
 
-  pcl_sub_ = node_->create_subscription<sensor_msgs::msg::PointCloud2>("head_pc", rclcpp::SystemDefaultsQoS(), std::bind(&StairSearch::HandlePointCloud, this, std::placeholders::_1));
+  pcl_sub_ = node_->create_subscription<sensor_msgs::msg::PointCloud2>(
+    "head_pc",
+    rclcpp::SystemDefaultsQoS(),
+    std::bind(&StairPerception::HandlePointCloud, this, std::placeholders::_1));
   pc_ro_filtered_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("ro_filtered", 1);
-  // dynamic_reconfigure::Server<robot_state_aggregator::GroundSegmentationConfig>::CallbackType cb = 
-  //   boost::bind(&StairSearch::HandleDynamicReconfigCallback, this, _1, _2);
+  // dynamic_reconfigure::Server<robot_state_aggregator::GroundSegmentationConfig>::CallbackType cb =
+  //   boost::bind(&StairPerception::HandleDynamicReconfigCallback, this, _1, _2);
   // dync_server_.setCallback(cb);
 
   pc_planes_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("points_planes", 1);
-  plane_norms_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>("plane_norms", 1);
+  plane_norms_pub_ =
+    node_->create_publisher<visualization_msgs::msg::MarkerArray>("plane_norms", 1);
   planes_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>("planes_model", 1);
   centroids_pub_ = node_->create_publisher<geometry_msgs::msg::PoseArray>("centroids", 1);
   SetMarkers();
@@ -66,7 +66,7 @@ StairSearch::StairSearch(rclcpp::Node::SharedPtr node)
   trigger_ = true;
 }
 
-void StairSearch::SetMarkers()
+void StairPerception::SetMarkers()
 {
   norm_.header.frame_id = norms_frame_;
   norm_.ns = "norm";
@@ -97,21 +97,22 @@ void StairSearch::SetMarkers()
   plane_.scale.z = 0.001;
 }
 
-void StairSearch::Tick(std::string marker)
+void StairPerception::Tick(std::string marker)
 {
   // ROS_DEBUG("now: %.2f, stamp: %.2f", ros::Time::now().toSec()*1000, stamp_.toSec()*1000);
   // ROS_DEBUG("%s costs %.2fms", marker.c_str(), (ros::Time::now()-stamp_).toSec()*1000);
   // stamp_ = ros::Time::now();
 }
 
-float StairSearch::CaculateSlope(geometry_msgs::msg::PointStamped &end)
+float StairPerception::CaculateSlope(geometry_msgs::msg::PointStamped & end)
 {
-  if (end.point.x < -0.1)
+  if (end.point.x < -0.1) {
     return -1.0;
-  return acos(abs(end.point.z))/M_PI*180.0;
+  }
+  return acos(abs(end.point.z)) / M_PI * 180.0;
 }
 
-// void StairSearch::HandleDynamicReconfigCallback(const robot_state_aggregator::GroundSegmentationConfig &config, int level)
+// void StairPerception::HandleDynamicReconfigCallback(const robot_state_aggregator::GroundSegmentationConfig &config, int level)
 // {
 //   if(leaf_size_ != config.leaf_size)
 //   {
@@ -133,15 +134,15 @@ float StairSearch::CaculateSlope(geometry_msgs::msg::PointStamped &end)
 //     ro_filter_.setRadiusSearch(radius_);
 //   }
 //   if (min_neighbors_ != config.min_neighbors)
-//   { 
+//   {
 //     min_neighbors_ = config.min_neighbors;
 //     ROS_INFO("min neighbors reconfigured: %d", min_neighbors_);
 //     ro_filter_.setMinNeighborsInRadius(min_neighbors_);
 //   }
-  
+
 // }
 
-void StairSearch::HandlePointCloud(const sensor_msgs::msg::PointCloud2 &msg)
+void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg)
 {
   INFO("----------------");
   pcl::fromROSMsg(msg, *pc_raw_);
@@ -154,18 +155,17 @@ void StairSearch::HandlePointCloud(const sensor_msgs::msg::PointCloud2 &msg)
   int right_point_size = 0;
   int dead_zone = 5, correction = -2;
 
-  for(auto point : pc_vg_filtered_->points){
-    if(point.y > 0){
+  for (auto point : pc_vg_filtered_->points) {
+    if (point.y > 0) {
       left_point_size++;
     } else {
       right_point_size++;
     }
   }
   int diff = left_point_size - right_point_size;
-  switch (state_)
-  {
+  switch (state_) {
     case State::IDLE:
-      if(trigger_){
+      if (trigger_) {
         state_ = State::BLIND_FORWARD;
         trigger_ = false;
         INFO("Launch!");
@@ -173,11 +173,11 @@ void StairSearch::HandlePointCloud(const sensor_msgs::msg::PointCloud2 &msg)
       break;
 
     case State::BLIND_FORWARD:
-      if(total_points_size < 20) {
+      if (total_points_size < 20) {
         INFO("Points size %ld < threshold, stair not found, Blind Forward", total_points_size);
         break;
       }
-      if(diff < -dead_zone + correction) {
+      if (diff < -dead_zone + correction) {
         INFO("Turn right: %d", diff);
         state_ = State::TURN_RIGHT;
       } else if (diff > dead_zone + correction) {
@@ -190,7 +190,7 @@ void StairSearch::HandlePointCloud(const sensor_msgs::msg::PointCloud2 &msg)
       break;
 
     case State::TURN_LEFT:
-      if(diff <= dead_zone + correction) {
+      if (diff <= dead_zone + correction) {
         INFO("Finish turning left: %d", diff);
         state_ = State::APPROACH;
       }
@@ -198,7 +198,7 @@ void StairSearch::HandlePointCloud(const sensor_msgs::msg::PointCloud2 &msg)
       break;
 
     case State::TURN_RIGHT:
-      if(diff >= -dead_zone + correction) {
+      if (diff >= -dead_zone + correction) {
         INFO("Finish turning right: %d", diff);
         state_ = State::APPROACH;
       }
@@ -206,7 +206,7 @@ void StairSearch::HandlePointCloud(const sensor_msgs::msg::PointCloud2 &msg)
       break;
 
     case State::APPROACH:
-      if(total_points_size > 100) {
+      if (total_points_size > 100) {
         INFO("Stop: %d", total_points_size);
         state_ = State::IDLE;
       }
@@ -218,13 +218,4 @@ void StairSearch::HandlePointCloud(const sensor_msgs::msg::PointCloud2 &msg)
   }
 }
 }
-}
-
-int main(int argc, char **argv)
-{
-  rclcpp::init(argc, argv);
-  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("stair_search");
-  cyberdog::motion::StairSearch ss(node);
-  ss.Spin();
-  rclcpp::shutdown();
 }
