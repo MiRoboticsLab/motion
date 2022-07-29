@@ -73,7 +73,7 @@ private:
 
   pcl::RadiusOutlierRemoval<pcl::PointXYZ> ro_filter_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr pc_raw_;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_vg_filtered_;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_filtered_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr pc_tmp_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr pc_ro_filtered_;
 

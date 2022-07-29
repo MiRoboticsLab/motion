@@ -24,6 +24,7 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   servo_cmd_pub_ = node_->create_publisher<MotionServoCmdMsg>(kMotionServoCommandTopicName, 1);
   stair_perception_ = std::make_shared<StairPerception>(node);
   stair_perception_->Launch();
+  std::thread{&StairAlign::Loop, this}.detach();
 }
 
 void StairAlign::Loop()

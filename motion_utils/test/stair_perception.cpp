@@ -24,7 +24,7 @@ StairPerception::StairPerception(rclcpp::Node::SharedPtr node)
   method_type_ = node_->declare_parameter("mothod_type", pcl::SAC_RANSAC);
 
   pc_raw_.reset(new pcl::PointCloud<pcl::PointXYZ>);
-  pc_vg_filtered_.reset(new pcl::PointCloud<pcl::PointXYZ>);
+  pc_filtered_.reset(new pcl::PointCloud<pcl::PointXYZ>);
   pc_tmp_.reset(new pcl::PointCloud<pcl::PointXYZ>);
   pc_norms_.reset(new pcl::PointCloud<pcl::Normal>);
 
@@ -147,15 +147,15 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
   INFO("----------------");
   pcl::fromROSMsg(msg, *pc_raw_);
   ro_filter_.setInputCloud(pc_raw_);
-  ro_filter_.filter(*pc_vg_filtered_);
-  pcl::toROSMsg(*pc_vg_filtered_, pc_vg_filtered_ros_);
+  ro_filter_.filter(*pc_filtered_);
+  pcl::toROSMsg(*pc_filtered_, pc_vg_filtered_ros_);
   pc_ro_filtered_pub_->publish(pc_vg_filtered_ros_);
-  int total_points_size = pc_vg_filtered_->size();
+  int total_points_size = pc_filtered_->size();
   int left_point_size = 0;
   int right_point_size = 0;
   int dead_zone = 5, correction = -2;
 
-  for (auto point : pc_vg_filtered_->points) {
+  for (auto point : pc_filtered_->points) {
     if (point.y > 0) {
       left_point_size++;
     } else {
