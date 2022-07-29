@@ -24,6 +24,8 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   servo_cmd_pub_ = node_->create_publisher<MotionServoCmdMsg>(kMotionServoCommandTopicName, 1);
   stair_perception_ = std::make_shared<StairPerception>(node);
   stair_perception_->Launch();
+  servo_cmd_.motion_id = MotionIDMsg::WALK_ADAPTIVELY;
+  servo_cmd_.step_height = std::vector<float>{0.05, 0.05};
   std::thread{&StairAlign::Loop, this}.detach();
 }
 
