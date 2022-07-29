@@ -101,7 +101,7 @@ void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
 {
   // action_ptr_->Execute(msg);
   (void) msg;
-  WalkStand(msg->step_height);
+  WalkStand(msg);
   SetServoNeedCheck(false);
 }
 
@@ -131,13 +131,13 @@ void MotionHandler::HandleServoCmd(
       }
       pre_motion_checked_ = true;
     }
-    servo_step_height_ = msg->step_height;
+    last_servo_cmd_ = msg;
     action_ptr_->Execute(msg);
     TickServoCmd();
     SetServoNeedCheck(true);
   } else {
     SetServoNeedCheck(false);
-    WalkStand(servo_step_height_);
+    WalkStand(last_servo_cmd_);
     SetWorkStatus(HandlerStatus::kIdle);
     pre_motion_checked_ = false;
   }
@@ -159,7 +159,7 @@ void MotionHandler::ServoDataCheck()
       // StopServoResponse();
       // SetServoDataLost(); TODO(harvey): 是否通知Decision？
       SetServoNeedCheck(false);
-      WalkStand(servo_step_height_);
+      WalkStand(last_servo_cmd_);
       // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
       SetWorkStatus(HandlerStatus::kIdle);
       pre_motion_checked_ = false;
@@ -179,14 +179,18 @@ void MotionHandler::PoseControlDefinitively()
   ExecuteResultCmd(request, response);
 }
 
-void MotionHandler::WalkStand(std::vector<float> step_height)
+void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr last_servo_cmd)
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-  MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
+  request->motion_id = last_servo_cmd->motion_id;
+  request->step_height = last_servo_cmd->step_height;
+  request->duration = 500;
+  CreateTomlLog(request->motion_id);
+  action_ptr_->Execute(request);
   request->motion_id = MotionIDMsg::WALK_STAND;
-  request->step_height = step_height;
-  // action_ptr_->Execute(request);
-  ExecuteResultCmd(request, response);
+  action_ptr_->Execute(request);
+  CloseTomlLog();
+  // ExecuteResultCmd(request, response);
 }
 
 bool MotionHandler::CheckMotionResult()
@@ -323,13 +327,9 @@ void MotionHandler::HandleResultCmd(
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
-  toml_.open(
-    getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-" +
-    std::to_string(request->motion_id) + ".toml");
-  toml_.setf(std::ios::fixed, std::ios::floatfield);
-  toml_.precision(3);
+  CreateTomlLog(request->motion_id);
   ExecuteResultCmd(request, response);
-  toml_.close();
+  CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
 }
 
@@ -351,12 +351,9 @@ void MotionHandler::HandleQueueCmd(
   //   return;
   // }
   (void)response;
-  toml_.open(
-    getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-queue" + ".toml");
-  toml_.setf(std::ios::fixed, std::ios::floatfield);
-  toml_.precision(3);
+  CreateTomlLog("queue");
   action_ptr_->Execute(request);
-  toml_.close();
+  CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
 }
 
@@ -400,6 +397,9 @@ bool MotionHandler::CheckPreMotion(int32_t motion_id)
     return true;
   }
   std::vector<int32_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;
+  if (motion_status_ptr_->motion_id == -1) {
+    return false;
+  }
   int32_t current_mode = 
     motion_id_map_.find(motion_status_ptr_->motion_id)->second.map.front();
   return std::find(

@@ -67,7 +67,7 @@ private:
   bool CheckMotionResult();
   void ServoDataCheck();
   void PoseControlDefinitively();
-  void WalkStand(std::vector<float> step_height);
+  void WalkStand(const MotionServoCmdMsg::SharedPtr last_servo_cmd);
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
   void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
@@ -112,7 +112,7 @@ private:
     return servo_check_click_->Tock();
   }
 
-  std::string GetCurrentTime()
+  inline std::string GetCurrentTime()
   {
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -129,6 +129,26 @@ private:
       tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, ms);
     timestamp_str[std::min(wsize, MAX_BUFFER_SIZE - 1)] = '\0';
     return std::string(timestamp_str);
+  }
+
+  inline void CreateTomlLog(int32_t motion_id){
+    toml_.open(
+      getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-"
+      + std::to_string(motion_id) + ".toml");
+    toml_.setf(std::ios::fixed, std::ios::floatfield);
+    toml_.precision(3);
+  }
+
+  inline void CreateTomlLog(std::string motion_id){
+    toml_.open(
+      getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-"
+      + motion_id + ".toml");
+    toml_.setf(std::ios::fixed, std::ios::floatfield);
+    toml_.precision(3);
+  }
+
+  inline void CloseTomlLog(){
+    toml_.close();
   }
 
   /* ros members */
@@ -150,11 +170,11 @@ private:
   std::condition_variable transitioning_cv_;
   std::condition_variable execute_cv_;
   std::map<int32_t, MotionIdMap> motion_id_map_;
+  MotionServoCmdMsg::SharedPtr last_servo_cmd_ {nullptr};
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
   HandlerStatus status_;
   std::ofstream toml_;
   std::string toml_log_dir_;
-  std::vector<float> servo_step_height_ {0.05, 0.05};
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
   int8_t server_check_error_counter_ {0};
