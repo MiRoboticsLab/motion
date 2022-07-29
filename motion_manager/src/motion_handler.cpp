@@ -400,9 +400,11 @@ bool MotionHandler::CheckPreMotion(int32_t motion_id)
     return true;
   }
   std::vector<int32_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;
+  int32_t current_mode = 
+    motion_id_map_.find(motion_status_ptr_->motion_id)->second.map.front();
   return std::find(
     pre_motion.begin(), pre_motion.end(),
-    motion_status_ptr_->motion_id) != pre_motion.end();
+    current_mode) != pre_motion.end();
 }
 
 bool MotionHandler::AllowServoCmd(int32_t motion_id)

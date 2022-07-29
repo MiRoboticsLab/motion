@@ -6,8 +6,8 @@
 [[motion_ids]]
 motion_id = 0     
 map = [0, 0]     
-pre_motion = [0, 101, 111, 112, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
-post_motion = [0, 101, 111, 211, 212]
+pre_motion = [0, 7, 12, 5, 64, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = 1000
 
 ###################################################################
@@ -18,8 +18,8 @@ min_exec_time = 1000
 [[motion_ids]]
 motion_id = 101
 map = [7, 0]    
-pre_motion = [0, 101, 111, 112, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
-post_motion = [0, 101, 111]
+pre_motion = [0, 7, 12, 5, 64, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = 5000
 
 # 高阻尼趴下
@@ -33,24 +33,24 @@ min_exec_time = 5000
 [[motion_ids]]
 motion_id = 111
 map  = [12, 0]   
-pre_motion = [0, 101, 111, 112, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
-post_motion = [0, 101, 111, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
+pre_motion = [0, 7, 12, 5, 64, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = 5000
 
 # 恢复站立， duration必须为0
 [[motion_ids]]
 motion_id = 112
 map  = [11, 1]   
-pre_motion = [0, 101, 111, 112, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
-post_motion = [0, 101, 111, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
+pre_motion = [0, 7, 12, 5, 64, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = 5000
 
 # 后空翻， duration必须为0
 [[motion_ids]]
 motion_id = 121
 map  = [5, 0]   
-pre_motion = [111, 201, 202, 211, 212]
-post_motion = [0, 111, 201, 202]
+pre_motion = [12, 3, 21]
+post_motion = [0, 12]
 min_exec_time = 8000
 
 # 前空翻
@@ -64,24 +64,25 @@ min_exec_time = 8000
 [[motion_ids]]
 motion_id = 123
 map  = [64, 0]   
-pre_motion = [111, 211, 212]
-post_motion = [0, 101, 111]
+pre_motion = [12, 21]
+post_motion = [0, 12]
 min_exec_time = 10000
 
 # 向左侧躺下后恢复站立（向左打滚一圈）， duration必须为0
 [[motion_ids]]
 motion_id = 124
 map  = [12, 17]   
-pre_motion = [101, 111, 112, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
-post_motion = [0, 101, 111, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
+pre_motion = [7, 12, 5, 64, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = 8000
+
 
 # 遛狗, duration 不需要用户设置，必须为0
 [[motion_ids]]
 motion_id = 125
 map = [11, 4]   
-pre_motion = [111, 201, 202, 211, 212, 304]
-post_motion = [0, 101, 111, 201, 202, 211, 212, 304]
+pre_motion = [12, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = 1000
 
 ###################################################################
@@ -92,32 +93,32 @@ min_exec_time = 1000
 [[motion_ids]]
 motion_id = 201
 map = [3, 0]    
-pre_motion = [111, 112, 121, 201, 202, 211, 212, 301, 302, 303, 304, 305]
-post_motion = [101, 111, 121, 201, 202, 301, 302, 303, 304, 305]
+pre_motion = [12, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = 5000
 
 # 增量力控姿态,保证崎岖地面能够站立，增量力控, duration控制站立速度，duration必须大于0
 [[motion_ids]]
 motion_id = 202
 map = [3, 3]    
-pre_motion = [111, 112, 121, 201, 202, 211, 212, 301, 302, 303, 304, 305]
-post_motion = [101, 111, 121, 201, 202, 301, 302, 303, 304, 305]
+pre_motion = [12, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = -1
 
 # 位控姿态-绝对姿态，需要给定姿态，duration控制站立的速度，duration必须大于0
 [[motion_ids]]
 motion_id = 211
 map = [21, 5]   
-pre_motion = [111, 112, 201, 202, 211, 212, 301, 302, 303, 304, 305]
-post_motion = [0, 101, 111, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
+pre_motion = [12, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = -1
 
 # 位控姿态-相对姿态, duration控制站立的速度，duration必须大于0
 [[motion_ids]]
 motion_id = 212
 map = [21, 0]   
-pre_motion = [111, 112, 201, 202, 211, 212, 301, 302, 303, 304, 305]
-post_motion = [0, 101, 111, 121, 123, 124, 201, 202, 211, 212, 301, 302, 303, 304, 305]
+pre_motion = [12, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = -1
 
 ###################################################################
@@ -128,24 +129,24 @@ min_exec_time = -1
 [[motion_ids]]
 motion_id = 301
 map  = [11, 7]   
-pre_motion = [111, 112, 201, 202, 211, 212, 301, 302, 303, 305]
-post_motion = [0, 101, 111, 201, 202, 211, 212, 301]
+pre_motion = [12, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = -1
 
 # 四足小跳
 [[motion_ids]]
 motion_id = 302
 map  = [11, 2]   
-pre_motion = [111, 112, 201, 202, 211, 212, 301, 302, 303, 305]
-post_motion = [0, 101, 111, 201, 202, 211, 212, 302]
+pre_motion = [12, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = -1
 
 # 自变频行走
 [[motion_ids]]
 motion_id = 303
 map = [11, 3]  
-pre_motion = [111, 112, 201, 202, 211, 212, 301, 302, 303, 305]
-post_motion = [0, 101, 111, 201, 202, 211, 212, 303]
+pre_motion = [12, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = -1
 
 # # 遛狗
@@ -160,6 +161,6 @@ min_exec_time = -1
 [[motion_ids]]
 motion_id = 305
 map = [11, 5]   
-pre_motion = [111, 112, 201, 202, 211, 212, 301, 302, 303, 305]
-post_motion = [0, 101, 111, 201, 202, 211, 212, 305]
+pre_motion = [12, 3, 21, 11]
+post_motion = [0, 12]
 min_exec_time = -1
