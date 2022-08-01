@@ -41,7 +41,7 @@ void MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
   lcm_cmd.mode = motion_id_map_.at(msg->motion_id).map.front();
   lcm_cmd.gait_id = motion_id_map_.at(msg->motion_id).map.back();
   lcm_cmd.contact = 0;
-  lcm_cmd.value = 0;
+  lcm_cmd.value = msg->value;
   lcm_cmd.duration = 0;
   GET_VALUE(msg->step_height, lcm_cmd.step_height, 2, "step_height");
   GET_VALUE(msg->vel_des, lcm_cmd.vel_des, 3, "vel_des");
@@ -87,7 +87,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
   lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
   lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
   lcm_cmd.contact = 15;
-  lcm_cmd.value = 0;
+  lcm_cmd.value = request->value;
   lcm_cmd.duration = request->duration;
   GET_VALUE(request->step_height, lcm_cmd.step_height, 2, "step_height");
   GET_VALUE(request->vel_des, lcm_cmd.vel_des, 3, "vel_des");

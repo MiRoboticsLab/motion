@@ -181,6 +181,7 @@ def main(argv):
           cmd.vel_des.fromlist([control_speed, control_speed_y, control_turn])
           cmd.pos_des.fromlist([0.0, 0.0, 0.2])
           cmd.step_height.fromlist([0.05, 0.05])
+          cmd.value = 2
         #   if key in moveBindings.keys():
           pub.publish(cmd)
 
