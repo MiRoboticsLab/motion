@@ -71,7 +71,7 @@ private:
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
   void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
-  bool CheckPreMotion(int32_t motion_id);
+  bool CheckPostMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
   bool isCommandValid(const MotionResultSrv::Request::SharedPtr request);
   inline void SetWorkStatus(const HandlerStatus status)
@@ -131,23 +131,26 @@ private:
     return std::string(timestamp_str);
   }
 
-  inline void CreateTomlLog(int32_t motion_id){
+  inline void CreateTomlLog(int32_t motion_id)
+  {
     toml_.open(
-      getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-"
-      + std::to_string(motion_id) + ".toml");
+      getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() +
+      "-" + std::to_string(motion_id) + ".toml");
     toml_.setf(std::ios::fixed, std::ios::floatfield);
     toml_.precision(3);
   }
 
-  inline void CreateTomlLog(std::string motion_id){
+  inline void CreateTomlLog(std::string motion_id)
+  {
     toml_.open(
-      getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-"
-      + motion_id + ".toml");
+      getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() +
+      "-" + motion_id + ".toml");
     toml_.setf(std::ios::fixed, std::ios::floatfield);
     toml_.precision(3);
   }
 
-  inline void CloseTomlLog(){
+  inline void CloseTomlLog()
+  {
     toml_.close();
   }
 
@@ -182,7 +185,7 @@ private:
   bool is_execute_wait_ {false};
   bool is_servo_need_check_ {false};
   bool premotion_executing_ {false};
-  bool pre_motion_checked_ {false};
+  bool post_motion_checked_ {false};
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

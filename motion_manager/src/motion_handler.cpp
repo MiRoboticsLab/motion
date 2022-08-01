@@ -129,7 +129,7 @@ void MotionHandler::HandleServoCmd(
         res.code = response->code;
         return;
       }
-      pre_motion_checked_ = true;
+      post_motion_checked_ = true;
     }
     last_servo_cmd_ = msg;
     action_ptr_->Execute(msg);
@@ -139,7 +139,7 @@ void MotionHandler::HandleServoCmd(
     SetServoNeedCheck(false);
     WalkStand(last_servo_cmd_);
     SetWorkStatus(HandlerStatus::kIdle);
-    pre_motion_checked_ = false;
+    post_motion_checked_ = false;
   }
   res.result = true;
   res.code = MotionCodeMsg::OK;
@@ -162,7 +162,7 @@ void MotionHandler::ServoDataCheck()
       WalkStand(last_servo_cmd_);
       // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
       SetWorkStatus(HandlerStatus::kIdle);
-      pre_motion_checked_ = false;
+      post_motion_checked_ = false;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
@@ -217,7 +217,7 @@ void MotionHandler::ExecuteResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  if (!CheckPreMotion(request->motion_id)) {
+  if (!CheckPostMotion(request->motion_id)) {
     MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
     MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
     req->motion_id = MotionIDMsg::RECOVERYSTAND;
@@ -391,27 +391,29 @@ MotionStatusMsg::SharedPtr MotionHandler::GetMotionStatus()
   return motion_status_ptr_;
 }
 
-bool MotionHandler::CheckPreMotion(int32_t motion_id)
+bool MotionHandler::CheckPostMotion(int32_t motion_id)
 {
   if (motion_id == MotionIDMsg::RECOVERYSTAND || motion_id == MotionIDMsg::ESTOP) {
     return true;
   }
-  std::vector<int32_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;
   if (motion_status_ptr_->motion_id == -1) {
     return false;
   }
-  int32_t current_mode = 
-    motion_id_map_.find(motion_status_ptr_->motion_id)->second.map.front();
-  return std::find(
-    pre_motion.begin(), pre_motion.end(),
-    current_mode) != pre_motion.end();
+
+  // 请求的mode
+  int32_t request_mode = motion_id_map_.find(motion_id)->second.map.front();
+  // 当前状态允许切换的post_motion
+  std::vector<int32_t> post_motion =
+    motion_id_map_.find(motion_status_ptr_->motion_id)->second.post_motion;
+
+  return std::find(post_motion.begin(), post_motion.end(), request_mode) != post_motion.end();
 }
 
 bool MotionHandler::AllowServoCmd(int32_t motion_id)
 {
   // TODO(harvey): 判断当前状态是否能够行走
-  if (pre_motion_checked_) {return true;}
-  return CheckPreMotion(motion_id);
+  if (post_motion_checked_) {return true;}
+  return CheckPostMotion(motion_id);
 }
 
 bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr request)
