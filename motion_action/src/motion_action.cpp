@@ -251,7 +251,7 @@ void MotionAction::ReadLcm(
     } else {
       for (auto m = motion_id_map_.begin(); ; m++) {
         if (m == motion_id_map_.end()) {
-          DEBUG_EXPRESSION(
+          WARN_EXPRESSION(
             lcm_cmd_init_,
             "Get unkown response about motion_id, mode: %d, gait_id: %d!",
             static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));

@@ -101,7 +101,7 @@ void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
 {
   // action_ptr_->Execute(msg);
   (void) msg;
-  WalkStand();
+  WalkStand(msg);
   SetServoNeedCheck(false);
 }
 
@@ -129,16 +129,17 @@ void MotionHandler::HandleServoCmd(
         res.code = response->code;
         return;
       }
-      pre_motion_checked_ = true;
+      post_motion_checked_ = true;
     }
+    last_servo_cmd_ = msg;
     action_ptr_->Execute(msg);
     TickServoCmd();
     SetServoNeedCheck(true);
   } else {
     SetServoNeedCheck(false);
-    WalkStand();
+    WalkStand(last_servo_cmd_);
     SetWorkStatus(HandlerStatus::kIdle);
-    pre_motion_checked_ = false;
+    post_motion_checked_ = false;
   }
   res.result = true;
   res.code = MotionCodeMsg::OK;
@@ -158,10 +159,10 @@ void MotionHandler::ServoDataCheck()
       // StopServoResponse();
       // SetServoDataLost(); TODO(harvey): 是否通知Decision？
       SetServoNeedCheck(false);
-      WalkStand();
+      WalkStand(last_servo_cmd_);
       // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
       SetWorkStatus(HandlerStatus::kIdle);
-      pre_motion_checked_ = false;
+      post_motion_checked_ = false;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
@@ -178,13 +179,18 @@ void MotionHandler::PoseControlDefinitively()
   ExecuteResultCmd(request, response);
 }
 
-void MotionHandler::WalkStand()
+void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr last_servo_cmd)
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-  MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
+  request->motion_id = last_servo_cmd->motion_id;
+  request->step_height = last_servo_cmd->step_height;
+  request->duration = 500;
+  CreateTomlLog(request->motion_id);
+  action_ptr_->Execute(request);
   request->motion_id = MotionIDMsg::WALK_STAND;
-  // action_ptr_->Execute(request);
-  ExecuteResultCmd(request, response);
+  action_ptr_->Execute(request);
+  CloseTomlLog();
+  // ExecuteResultCmd(request, response);
 }
 
 bool MotionHandler::CheckMotionResult()
@@ -211,7 +217,7 @@ void MotionHandler::ExecuteResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  if (!CheckPreMotion(request->motion_id)) {
+  if (!CheckPostMotion(request->motion_id)) {
     MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
     MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
     req->motion_id = MotionIDMsg::RECOVERYSTAND;
@@ -321,13 +327,9 @@ void MotionHandler::HandleResultCmd(
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
-  toml_.open(
-    getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-" +
-    std::to_string(request->motion_id) + ".toml");
-  toml_.setf(std::ios::fixed, std::ios::floatfield);
-  toml_.precision(3);
+  CreateTomlLog(request->motion_id);
   ExecuteResultCmd(request, response);
-  toml_.close();
+  CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
 }
 
@@ -349,12 +351,9 @@ void MotionHandler::HandleQueueCmd(
   //   return;
   // }
   (void)response;
-  toml_.open(
-    getenv("HOME") + std::string("/TomlLog/") + GetCurrentTime() + "-queue" + ".toml");
-  toml_.setf(std::ios::fixed, std::ios::floatfield);
-  toml_.precision(3);
+  CreateTomlLog("queue");
   action_ptr_->Execute(request);
-  toml_.close();
+  CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
 }
 
@@ -392,22 +391,29 @@ MotionStatusMsg::SharedPtr MotionHandler::GetMotionStatus()
   return motion_status_ptr_;
 }
 
-bool MotionHandler::CheckPreMotion(int32_t motion_id)
+bool MotionHandler::CheckPostMotion(int32_t motion_id)
 {
   if (motion_id == MotionIDMsg::RECOVERYSTAND || motion_id == MotionIDMsg::ESTOP) {
     return true;
   }
-  std::vector<int32_t> pre_motion = motion_id_map_.find(motion_id)->second.pre_motion;
-  return std::find(
-    pre_motion.begin(), pre_motion.end(),
-    motion_status_ptr_->motion_id) != pre_motion.end();
+  if (motion_status_ptr_->motion_id == -1) {
+    return false;
+  }
+
+  // 请求的mode
+  int32_t request_mode = motion_id_map_.find(motion_id)->second.map.front();
+  // 当前状态允许切换的post_motion
+  std::vector<int32_t> post_motion =
+    motion_id_map_.find(motion_status_ptr_->motion_id)->second.post_motion;
+
+  return std::find(post_motion.begin(), post_motion.end(), request_mode) != post_motion.end();
 }
 
 bool MotionHandler::AllowServoCmd(int32_t motion_id)
 {
   // TODO(harvey): 判断当前状态是否能够行走
-  if (pre_motion_checked_) {return true;}
-  return CheckPreMotion(motion_id);
+  if (post_motion_checked_) {return true;}
+  return CheckPostMotion(motion_id);
 }
 
 bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr request)
