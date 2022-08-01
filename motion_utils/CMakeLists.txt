@@ -53,6 +53,10 @@ add_executable(stair_align test/stair_align.cpp test/stair_perception.cpp)
 target_link_libraries(stair_align ${PROJECT_NAME} ${PCL_LIBRARIES})
 ament_target_dependencies(stair_align cyberdog_common cyberdog_debug PCL visualization_msgs)
 
+add_executable(stair_perception_test test/stair_perception.cpp test/stair_perception_test.cpp)
+target_link_libraries(stair_perception_test ${PROJECT_NAME} ${PCL_LIBRARIES})
+ament_target_dependencies(stair_perception_test cyberdog_common cyberdog_debug PCL visualization_msgs)
+
 install(
   DIRECTORY include/
   DESTINATION include
@@ -63,6 +67,7 @@ install(TARGETS
   distance_test
   duration_test
   stair_align
+  stair_perception_test
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )

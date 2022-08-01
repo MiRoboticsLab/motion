@@ -26,6 +26,7 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   stair_perception_->Launch();
   servo_cmd_.motion_id = MotionIDMsg::WALK_ADAPTIVELY;
   servo_cmd_.step_height = std::vector<float>{0.05, 0.05};
+  servo_cmd_.value = 2;
   std::thread{&StairAlign::Loop, this}.detach();
 }
 
@@ -75,7 +76,7 @@ void StairAlign::Loop()
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("stair_adjustment");
+  rclcpp::Node::SharedPtr node = std::make_shared<rclcpp::Node>("stair_align");
   cyberdog::motion::StairAlign sa(node);
   sa.Spin();
   rclcpp::shutdown();

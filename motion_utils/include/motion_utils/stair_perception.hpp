@@ -17,30 +17,30 @@
 #include <iostream>
 #include <rclcpp/node.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
-#include <geometry_msgs/msg/pose_stamped.hpp>
-#include <geometry_msgs/msg/pose_array.hpp>
-#include <geometry_msgs/msg/point_stamped.hpp>
-#include <visualization_msgs/msg/marker.hpp>
-#include <visualization_msgs/msg/marker_array.hpp>
+// #include <geometry_msgs/msg/pose_stamped.hpp>
+// #include <geometry_msgs/msg/pose_array.hpp>
+// #include <geometry_msgs/msg/point_stamped.hpp>
+// #include <visualization_msgs/msg/marker.hpp>
+// #include <visualization_msgs/msg/marker_array.hpp>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/ModelCoefficients.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/filters/passthrough.h>
-#include <pcl/filters/crop_box.h>
+// #include <pcl/filters/voxel_grid.h>
+// #include <pcl/filters/passthrough.h>
+// #include <pcl/filters/crop_box.h>
 #include <pcl/filters/radius_outlier_removal.h>
-#include <pcl/sample_consensus/method_types.h>
-#include <pcl/sample_consensus/model_types.h>
-#include <pcl/segmentation/sac_segmentation.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/features/normal_3d.h>
+// #include <pcl/sample_consensus/method_types.h>
+// #include <pcl/sample_consensus/model_types.h>
+// #include <pcl/segmentation/sac_segmentation.h>
+// #include <pcl/filters/extract_indices.h>
+// #include <pcl/features/normal_3d.h>
 #include <cyberdog_common/cyberdog_log.hpp>
 // #include <robot_state_aggregator/GroundSegmentationConfig.h>
 // #include <dynamic_reconfigure/server.h>
 // #include <tf/transform_listener.h>
-#include <tf2/LinearMath/Quaternion.h>
+// #include <tf2/LinearMath/Quaternion.h>
 namespace cyberdog
 {
 namespace motion
@@ -67,38 +67,38 @@ public:
 private:
   void HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg);
   // void HandleDynamicReconfigCallback(const robot_state_aggregator::GroundSegmentationConfig &config, int level);
-  float CaculateSlope(geometry_msgs::msg::PointStamped & end);
-  void Tick(std::string marker);
-  void SetMarkers();
+  // float CaculateSlope(geometry_msgs::msg::PointStamped & end);
+  // void Tick(std::string marker);
+  // void SetMarkers();
 
   pcl::RadiusOutlierRemoval<pcl::PointXYZ> ro_filter_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr pc_raw_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr pc_filtered_;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_tmp_;
+  // pcl::PointCloud<pcl::PointXYZ>::Ptr pc_tmp_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr pc_ro_filtered_;
 
-  std::vector<pcl::ModelCoefficients> coefficients_;
-  pcl::PointCloud<pcl::PointXYZ> pc_ground_, pc_remain_;
-  std::vector<pcl::PointCloud<pcl::PointXYZ>> pc_planes_;
-  geometry_msgs::msg::PoseArray centroids_;
-  std::vector<geometry_msgs::msg::PointStamped> norms_end_;
+  // std::vector<pcl::ModelCoefficients> coefficients_;
+  // pcl::PointCloud<pcl::PointXYZ> pc_ground_, pc_remain_;
+  // std::vector<pcl::PointCloud<pcl::PointXYZ>> pc_planes_;
+  // geometry_msgs::msg::PoseArray centroids_;
+  // std::vector<geometry_msgs::msg::PointStamped> norms_end_;
 
-  pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne_;
-  boost::shared_ptr<pcl::PointCloud<pcl::Normal>> pc_norms_;
-  pcl::SACSegmentation<pcl::PointXYZ> seg_points_;
-  pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal> seg_norms_;
-  pcl::ExtractIndices<pcl::PointXYZ> extract_;
+  // pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne_;
+  // boost::shared_ptr<pcl::PointCloud<pcl::Normal>> pc_norms_;
+  // pcl::SACSegmentation<pcl::PointXYZ> seg_points_;
+  // pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal> seg_norms_;
+  // pcl::ExtractIndices<pcl::PointXYZ> extract_;
   // dynamic_reconfigure::Server<robot_state_aggregator::GroundSegmentationConfig> dync_server_;
 
-  visualization_msgs::msg::Marker norm_, plane_;
-  visualization_msgs::msg::MarkerArray norms_, planes_;
-  sensor_msgs::msg::PointCloud2 pc_vg_filtered_ros_;
-  sensor_msgs::msg::PointCloud2 pc_planes_ros_;
+  // visualization_msgs::msg::Marker norm_, plane_;
+  // visualization_msgs::msg::MarkerArray norms_, planes_;
+  sensor_msgs::msg::PointCloud2 pc_filtered_ros_;
+  // sensor_msgs::msg::PointCloud2 pc_planes_ros_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_ro_filtered_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_planes_pub_;
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr plane_norms_pub_;
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr planes_pub_;
-  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr centroids_pub_;
+  // rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_planes_pub_;
+  // rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr plane_norms_pub_;
+  // rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr planes_pub_;
+  // rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr centroids_pub_;
   rclcpp::Node::SharedPtr node_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pcl_sub_;
   State state_;
