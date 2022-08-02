@@ -200,7 +200,7 @@ min_exec_time = -1
 # 自变频行走
 [[motion_ids]]
 motion_id = 303
-map = [11, 3]  
+map = [11, 25]  
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11]
 min_exec_time = -1
