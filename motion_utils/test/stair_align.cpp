@@ -44,12 +44,12 @@ void StairAlign::Loop()
         break;
       
       case StairPerception::State::TURN_LEFT:
-        servo_cmd_.vel_des = std::vector<float>{0.0, 0.0, 0.1};
+        servo_cmd_.vel_des = std::vector<float>{0.0, 0.0, 0.25};
         servo_cmd_pub_->publish(servo_cmd_);
         break;
 
       case StairPerception::State::TURN_RIGHT:
-        servo_cmd_.vel_des = std::vector<float>{0.0, 0.0, -0.1};
+        servo_cmd_.vel_des = std::vector<float>{0.0, 0.0, -0.25};
         servo_cmd_pub_->publish(servo_cmd_);
         break;
 

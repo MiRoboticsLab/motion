@@ -133,7 +133,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
       break;
 
     case State::BLIND_FORWARD:
-      if (total_points_size < 20) {
+      if (total_points_size < 15) {
         INFO("Points size %d < threshold, stair not found, Blind Forward", total_points_size);
         break;
       }
@@ -152,7 +152,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
     case State::TURN_LEFT:
       if (diff <= dead_zone + correction) {
         INFO("Finish turning left: %d", diff);
-        state_ = State::APPROACH;
+        state_ = State::IDLE;
       }
       INFO("Turn left: %d", diff);
       break;
@@ -160,7 +160,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
     case State::TURN_RIGHT:
       if (diff >= -dead_zone + correction) {
         INFO("Finish turning right: %d", diff);
-        state_ = State::APPROACH;
+        state_ = State::IDLE;
       }
       INFO("Turn right: %d", diff);
       break;
