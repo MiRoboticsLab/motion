@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(motion_utils)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wno-dev -Wno-pedantic)
 endif()
 
 if(NOT CMAKE_C_STANDARD)
@@ -22,13 +22,13 @@ find_package(protocol REQUIRED)
 find_package(cyberdog_system REQUIRED)
 find_package(cyberdog_debug REQUIRED)
 find_package(nav_msgs REQUIRED)
-find_package(PCL REQUIRED)
+find_package(PCL REQUIRED COMPONENTS filters)
 find_package(pcl_conversions REQUIRED)
-find_package(visualization_msgs REQUIRED)
+# find_package(visualization_msgs REQUIRED)
 find_package(cyberdog_common)
 find_package(motion_manager)
 
-include_directories(include)
+include_directories(include ${PCL_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} SHARED src/motion_utils.cpp)
 # target_link_libraries(${PROJECT_NAME} lcm)
@@ -51,11 +51,11 @@ ament_target_dependencies(duration_test lcm cyberdog_common cyberdog_debug)
 
 add_executable(stair_align test/stair_align.cpp test/stair_perception.cpp)
 target_link_libraries(stair_align ${PROJECT_NAME} ${PCL_LIBRARIES})
-ament_target_dependencies(stair_align cyberdog_common cyberdog_debug PCL visualization_msgs)
+ament_target_dependencies(stair_align cyberdog_common cyberdog_debug pcl_conversions)
 
 add_executable(stair_perception_test test/stair_perception.cpp test/stair_perception_test.cpp)
 target_link_libraries(stair_perception_test ${PROJECT_NAME} ${PCL_LIBRARIES})
-ament_target_dependencies(stair_perception_test cyberdog_common cyberdog_debug PCL visualization_msgs)
+ament_target_dependencies(stair_perception_test cyberdog_common cyberdog_debug pcl_conversions)
 
 install(
   DIRECTORY include/
