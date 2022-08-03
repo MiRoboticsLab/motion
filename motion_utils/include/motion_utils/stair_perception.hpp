@@ -66,6 +66,18 @@ public:
 
 private:
   void HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg);
+  inline int GetMeanDiff(int diff)
+  {
+    diffs_.emplace_back(diff);
+    if (diffs_.size() > size_) {
+      diffs_.pop_front();
+    }
+    int sum = 0;
+    for (auto diff : diffs_) {
+      sum += diff;
+    }
+    return sum / size_;
+  }
   // void HandleDynamicReconfigCallback(const robot_state_aggregator::GroundSegmentationConfig &config, int level);
   // float CaculateSlope(geometry_msgs::msg::PointStamped & end);
   // void Tick(std::string marker);
@@ -102,13 +114,15 @@ private:
   rclcpp::Node::SharedPtr node_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pcl_sub_;
   State state_;
+  std::deque<int32_t> diffs_;
   double radius_;
-  double min_slope_, max_slope_;
-  double max_height_slope_centroid_, zero_ground_epsilon_;
+  // double min_slope_, max_slope_;
+  // double max_height_slope_centroid_, zero_ground_epsilon_;
   std::string norms_frame_{"robot"}, pc_frame_{"robot"}, base_link_frame_{"robot"};
   int min_neighbors_;
-  int method_type_;
-  bool apply_norms_segmentation_{false};
+  int size_ {10};
+  // int method_type_;
+  // bool apply_norms_segmentation_{false};
   bool trigger_{false};
 };  // calss StairPerception
 }  // motion

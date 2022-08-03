@@ -113,7 +113,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
   int total_points_size = pc_filtered_->size();
   int left_point_size = 0;
   int right_point_size = 0;
-  int dead_zone = 5, correction = -2;
+  int dead_zone = 2, correction = 0;
 
   for (auto point : pc_filtered_->points) {
     if (point.y > 0) {
@@ -122,7 +122,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
       right_point_size++;
     }
   }
-  int diff = left_point_size - right_point_size;
+  int diff = GetMeanDiff(left_point_size - right_point_size);
   switch (state_) {
     case State::IDLE:
       if (trigger_) {
