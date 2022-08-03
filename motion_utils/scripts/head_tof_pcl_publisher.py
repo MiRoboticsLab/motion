@@ -95,7 +95,7 @@ class MinimalSubscriber(Node):
         for idx in range(0,64):
             z_array[idx] =  -tof_msg.data[63-idx]
             r_array[idx] = -z_array[idx]/math.cos(math.pi*angle_arr[idx]/180)*math.sin(math.pi*angle_arr[idx]/180)
-            if tof_position == SingleTofPayload.RIGHT_HEAD:
+            if tof_position == SingleTofPayload.RIGHT_HEAD or tof_position == SingleTofPayload.LEFT_HEAD:
                 x_array[idx] = round(r_array[idx]*cos_array_scale[7-idx%8]/math.sqrt(r2_array[idx]),4)
                 y_array[idx] = round(r_array[idx]*sin_array_scale[7-int(idx/8)]/math.sqrt(r2_array[idx]),4)
             else:
@@ -113,8 +113,8 @@ class MinimalSubscriber(Node):
         for idx in range(0,64):
             z_array[idx] =  -msg.left_head.data[63-idx]
             r_array[idx] = -z_array[idx]/math.cos(math.pi*angle_arr[idx]/180)*math.sin(math.pi*angle_arr[idx]/180)
-            x_array[idx] = round(r_array[idx]*cos_array_scale[idx%8]/math.sqrt(r2_array[idx]),4)
-            y_array[idx] = round(r_array[idx]*sin_array_scale[int(idx/8)]/math.sqrt(r2_array[idx]),4)
+            x_array[idx] = round(r_array[idx]*cos_array_scale[7-idx%8]/math.sqrt(r2_array[idx]),4)
+            y_array[idx] = round(r_array[idx]*sin_array_scale[7-int(idx/8)]/math.sqrt(r2_array[idx]),4)
             x_array[idx], y_array[idx], z_array[idx] = np.dot(left_R, np.array([x_array[idx], y_array[idx], z_array[idx]])) + left_t
         left_points = np.vstack((np.asarray(x_array),np.asarray(y_array),np.asarray(z_array))).T
         for idx in range(0,64):
