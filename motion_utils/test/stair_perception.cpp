@@ -21,29 +21,9 @@ namespace motion
 StairPerception::StairPerception(rclcpp::Node::SharedPtr node)
 {
   node_ = node;
-  // method_type_ = node_->declare_parameter("mothod_type", pcl::SAC_RANSAC);
 
   pc_raw_.reset(new pcl::PointCloud<pcl::PointXYZ>);
   pc_filtered_.reset(new pcl::PointCloud<pcl::PointXYZ>);
-  // pc_tmp_.reset(new pcl::PointCloud<pcl::PointXYZ>);
-  // pc_norms_.reset(new pcl::PointCloud<pcl::Normal>);
-
-  // if (apply_norms_segmentation_) {
-  //   seg_norms_.setOptimizeCoefficients(true);
-  //   // seg_.setModelType(pcl::SACMODEL_PLANE);
-  //   seg_norms_.setModelType(pcl::SACMODEL_NORMAL_PLANE);
-  //   seg_norms_.setNormalDistanceWeight(0.1);
-  //   seg_norms_.setMethodType(method_type_);
-  //   seg_norms_.setMaxIterations(1000);
-  //   seg_norms_.setDistanceThreshold(0.02);
-  // } else {
-  //   seg_points_.setOptimizeCoefficients(true);
-  //   seg_points_.setModelType(pcl::SACMODEL_PLANE);
-  //   seg_points_.setMethodType(method_type_);
-  //   seg_points_.setMaxIterations(1000);
-  //   seg_points_.setDistanceThreshold(0.05);
-  // }
-
   ro_filter_.setRadiusSearch(0.05);
   ro_filter_.setMinNeighborsInRadius(5);
 
@@ -52,55 +32,9 @@ StairPerception::StairPerception(rclcpp::Node::SharedPtr node)
     rclcpp::SystemDefaultsQoS(),
     std::bind(&StairPerception::HandlePointCloud, this, std::placeholders::_1));
   pc_ro_filtered_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("ro_filtered", 1);
-
-  // pc_planes_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("points_planes", 1);
-  // plane_norms_pub_ =
-  //   node_->create_publisher<visualization_msgs::msg::MarkerArray>("plane_norms", 1);
-  // planes_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>("planes_model", 1);
-  // centroids_pub_ = node_->create_publisher<geometry_msgs::msg::PoseArray>("centroids", 1);
-  // SetMarkers();
   state_ = State::IDLE;
   trigger_ = true;
 }
-
-// void StairPerception::SetMarkers()
-// {
-//   norm_.header.frame_id = norms_frame_;
-//   norm_.ns = "norm";
-//   norm_.frame_locked = true;
-//   norm_.lifetime = rclcpp::Duration(1, 0);
-//   norm_.action = visualization_msgs::msg::Marker::ADD;
-//   norm_.type = visualization_msgs::msg::Marker::LINE_STRIP;
-//   norm_.color.a = 1.0;
-//   norm_.color.r = 0.0;
-//   norm_.color.g = 1.0;
-//   norm_.color.b = 0.0;
-//   norm_.pose.orientation.w = 1;
-//   norm_.scale.x = 0.01;
-//   geometry_msgs::msg::Point point;
-//   point.x = point.y = point.z = 0;
-//   norm_.points.push_back(point);
-
-//   plane_.header.frame_id = base_link_frame_;
-//   plane_.ns = "plane";
-//   plane_.frame_locked = true;
-//   plane_.lifetime = rclcpp::Duration(1, 0);
-//   plane_.action = visualization_msgs::msg::Marker::ADD;
-//   plane_.type = visualization_msgs::msg::Marker::CUBE;
-//   plane_.color.a = 0.5;
-//   plane_.color.g = 1.0;
-//   plane_.scale.x = 1.0;
-//   plane_.scale.y = 1.0;
-//   plane_.scale.z = 0.001;
-// }
-
-// float StairPerception::CaculateSlope(geometry_msgs::msg::PointStamped & end)
-// {
-//   if (end.point.x < -0.1) {
-//     return -1.0;
-//   }
-//   return acos(abs(end.point.z)) / M_PI * 180.0;
-// }
 
 void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg)
 {
