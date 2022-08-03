@@ -112,6 +112,7 @@ void MotionHandler::HandleServoCmd(
   if (GetWorkStatus() == HandlerStatus::kExecutingResultCmd) {
     res.result = false;
     res.code = MotionCodeMsg::TASK_STATE_ERROR;
+    ERROR("Busy(Executing ResultCmd) for ServoCmd");
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingServoCmd);
@@ -127,6 +128,7 @@ void MotionHandler::HandleServoCmd(
         SetWorkStatus(HandlerStatus::kIdle);
         res.result = false;
         res.code = response->code;
+        ERROR("Get error when trying to be ready for ServoCmd");
         return;
       }
       post_motion_checked_ = true;
@@ -217,6 +219,14 @@ void MotionHandler::ExecuteResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
+  for (auto motor : motion_status_ptr_->motor_error) {
+    if (motor != 0 && motor != kMotorNormal) {
+      response->result = false;
+      response->code = MotionCodeMsg::HW_MOTOR_OFFLINE;
+      ERROR("Motor error");
+      return;
+    }
+  }
   if (!CheckPostMotion(request->motion_id)) {
     MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
     MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
@@ -227,6 +237,7 @@ void MotionHandler::ExecuteResultCmd(
       response->code = res->code;
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Get error when trying to be ready for ResultCmd");
       return;
     }
   }
@@ -235,6 +246,7 @@ void MotionHandler::ExecuteResultCmd(
     response->code = MotionCodeMsg::COM_LCM_TIMEOUT;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
+    ERROR("LCM Com timeout");
     return;
   }
   std::unique_lock<std::mutex> check_lk(execute_mutex_);
@@ -249,6 +261,7 @@ void MotionHandler::ExecuteResultCmd(
     response->code = MotionCodeMsg::MOTION_SWITCH_ERROR;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
+    ERROR("Motion switch error");
     return;
   }
   if (motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING) {
@@ -290,12 +303,14 @@ void MotionHandler::ExecuteResultCmd(
     response->code = MotionCodeMsg::MOTION_EXECUTE_TIMEOUT;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
+    ERROR("Motion execute timeout");
     return;
   }
   if (!CheckMotionResult()) {
     response->code = MotionCodeMsg::MOTION_EXECUTE_ERROR;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
+    ERROR("Motion execute error");
     return;
   }
   response->code = MotionCodeMsg::OK;
@@ -310,20 +325,15 @@ void MotionHandler::HandleResultCmd(
   if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
     response->result = false;
     response->code = MotionCodeMsg::TASK_STATE_ERROR;
+    ERROR("Busy when Getting ResultCmd(%d)", request->motion_id);
     return;
-  }
-  for (auto motor : motion_status_ptr_->motor_error) {
-    if (motor != 0 && motor != kMotorNormal) {
-      response->result = false;
-      response->code = MotionCodeMsg::HW_MOTOR_OFFLINE;
-      return;
-    }
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
   if (!isCommandValid(request)) {
     response->code = MotionCodeMsg::COMMAND_INVALID;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
+    ERROR("ResultCmd(%d) invalid", request->motion_id);
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
