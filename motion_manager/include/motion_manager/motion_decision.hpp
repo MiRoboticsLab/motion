@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <condition_variable>
+#include <vector>
 #include "motion_action/motion_action.hpp"
 #include "motion_manager/motion_handler.hpp"
 #include "cyberdog_common/cyberdog_msg_queue.hpp"
@@ -83,7 +84,7 @@ private:
   bool WaitHandlingResult(int32_t motion_id, int32_t duration, int32_t & code);
   void StopMotion();
   void ServoResponseThread();
-  inline void SetWorkStatus(DecisionStatus status_code)
+  inline void SetWorkStatus(const DecisionStatus status_code)
   {
     std::unique_lock<std::mutex> lk(status_mutex_);
     motion_work_mode_ = status_code;
