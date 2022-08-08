@@ -121,7 +121,7 @@ public:
    * @param msg 伺服指令
    * @return true: 无异常, false: 异常退出
    */
-  bool ExecuteWalkDuration(int duration, MotionServoCmdMsg::SharedPtr msg);
+  bool ExecuteWalkDuration(int duration, const MotionServoCmdMsg::SharedPtr msg);
   /**
    * @brief 控制机器人按照特定的时间和速度, 以自变频步态(motion_id: 303)行走
    *
