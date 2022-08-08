@@ -208,6 +208,14 @@ bool MotionHandler::CheckMotionResult()
          result;
 }
 
+bool MotionHandler::CheckMotionResult(int32_t motion_id)
+{
+  if (motion_id == MotionIDMsg::ESTOP) {
+    return true;
+  }
+  return CheckMotionResult();
+}
+
 bool MotionHandler::FeedbackTimeout()
 {
   std::unique_lock<std::mutex> feedback_lk(feedback_mutex_);
@@ -219,12 +227,14 @@ void MotionHandler::ExecuteResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  for (auto motor : motion_status_ptr_->motor_error) {
-    if (motor != 0 && motor != kMotorNormal) {
-      response->result = false;
-      response->code = MotionCodeMsg::HW_MOTOR_OFFLINE;
-      ERROR("Motor error");
-      return;
+  if (request->motion_id != MotionIDMsg::ESTOP) {
+    for (auto motor : motion_status_ptr_->motor_error) {
+      if (motor != 0 && motor != kMotorNormal) {
+        response->result = false;
+        response->code = MotionCodeMsg::HW_MOTOR_OFFLINE;
+        ERROR("Motor error");
+        return;
+      }
     }
   }
   if (!CheckPostMotion(request->motion_id)) {
@@ -306,7 +316,7 @@ void MotionHandler::ExecuteResultCmd(
     ERROR("Motion execute timeout");
     return;
   }
-  if (!CheckMotionResult()) {
+  if (!CheckMotionResult(request->motion_id)) {
     response->code = MotionCodeMsg::MOTION_EXECUTE_ERROR;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
