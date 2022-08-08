@@ -56,7 +56,13 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
       right_point_size++;
     }
   }
-  int diff = GetMeanDiff(left_point_size - right_point_size);
+  INFO("left: %d, right: %d", left_point_size, right_point_size);
+  int diff = 0;
+  if (diff_filter_) {
+    diff = GetMeanDiff(left_point_size - right_point_size);
+  } else {
+    diff = left_point_size - right_point_size;
+  }
   switch (state_) {
     case State::IDLE:
       if (trigger_) {
@@ -86,7 +92,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
     case State::TURN_LEFT:
       if (diff <= dead_zone + correction) {
         INFO("Finish turning left: %d", diff);
-        state_ = State::IDLE;
+        state_ = State::FINISH;
       }
       INFO("Turn left: %d", diff);
       break;
@@ -94,7 +100,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
     case State::TURN_RIGHT:
       if (diff >= -dead_zone + correction) {
         INFO("Finish turning right: %d", diff);
-        state_ = State::IDLE;
+        state_ = State::FINISH;
       }
       INFO("Turn right: %d", diff);
       break;
@@ -105,6 +111,9 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
         state_ = State::IDLE;
       }
       INFO("Approaching: %d", total_points_size);
+      break;
+
+    case State::FINISH:
       break;
 
     default:

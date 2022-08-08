@@ -38,6 +38,7 @@ private:
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<MotionServoCmdMsg>::SharedPtr servo_cmd_pub_;
+  rclcpp::Client<MotionResultSrv>::SharedPtr result_cmd_client_;
   MotionServoCmdMsg servo_cmd_;
   std::shared_ptr<StairPerception> stair_perception_;
 };  // calss StairAlign

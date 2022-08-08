@@ -43,9 +43,10 @@ public:
   };
 
 public:
-  StairPerception(rclcpp::Node::SharedPtr node);
+  StairPerception(const rclcpp::Node::SharedPtr node);
   void Launch(){};
-  State GetStatus(){ return state_; };
+  const State & GetStatus() const { return state_; };
+  inline void SetStatus(const State& state) { state_ = state; };
 
 private:
   void HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg);
@@ -77,7 +78,7 @@ private:
   std::string norms_frame_{"robot"}, pc_frame_{"robot"}, base_link_frame_{"robot"};
   int min_neighbors_;
   int size_ {10};
-  bool trigger_{false};
+  bool trigger_ {false}, diff_filter_ {false};
 };  // calss StairPerception
 }  // motion
 }  // cyberdog

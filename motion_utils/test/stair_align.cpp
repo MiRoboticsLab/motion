@@ -22,6 +22,7 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
 {
   node_ = node;
   servo_cmd_pub_ = node_->create_publisher<MotionServoCmdMsg>(kMotionServoCommandTopicName, 1);
+  result_cmd_client_ = node_->create_client<MotionResultSrv>(kMotionResultServiceName);
   stair_perception_ = std::make_shared<StairPerception>(node);
   stair_perception_->Launch();
   servo_cmd_.motion_id = MotionIDMsg::WALK_ADAPTIVELY;
@@ -59,9 +60,16 @@ void StairAlign::Loop()
         break;
 
       case StairPerception::State::FINISH:
+      {
+        stair_perception_->SetStatus(StairPerception::State::IDLE);
         servo_cmd_.cmd_type = MotionServoCmdMsg::SERVO_END;
         servo_cmd_pub_->publish(servo_cmd_);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+        req->motion_id = 126;
+        result_cmd_client_->async_send_request(req);
         break;
+      }
 
       default:
         break;
