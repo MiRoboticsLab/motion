@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import rclpy 
-import lcm
 import time
 import std_msgs.msg as std_msgs
 from rclpy.node import Node
