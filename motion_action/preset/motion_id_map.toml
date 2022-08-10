@@ -50,7 +50,7 @@ min_exec_time = 5000
 motion_id = 121
 map  = [5, 0]   
 pre_motion = []
-post_motion = [0, 3, 12, 5]
+post_motion = [0, 3, 12]
 min_exec_time = 8000
 
 # 前空翻
