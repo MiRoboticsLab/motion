@@ -57,15 +57,19 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
   int left_point_size = 0;
   int right_point_size = 0;
   // int dead_zone = 2, correction = 0;
-
+  min_z_ = 1e9;
   for (auto point : pc_filtered_->points) {
     if (point.y > 0) {
       left_point_size++;
     } else {
       right_point_size++;
     }
+    if(abs(point.z) < min_z_) {
+      min_z_ = abs(point.z);
+    }
   }
-  INFO("left: %d, right: %d", left_point_size, right_point_size);
+  approach_threashold_ = -400 * min_z_ + 140; 
+  INFO("left: %d, right: %d, min_range: %f, th: %d", left_point_size, right_point_size, min_z_, approach_threashold_);
   int diff = 0;
   if (orientation_filter_) {
     diff = GetMeanDiff(left_point_size - right_point_size);

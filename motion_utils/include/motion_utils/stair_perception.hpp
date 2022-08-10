@@ -77,6 +77,7 @@ private:
   State state_;
   std::deque<int32_t> diffs_;
   double radius_{0.05};
+  float min_z_{0};
   std::string norms_frame_{"robot"}, pc_frame_{"robot"}, base_link_frame_{"robot"};
   int min_neighbors_{5};
   int filter_size_ {10};
