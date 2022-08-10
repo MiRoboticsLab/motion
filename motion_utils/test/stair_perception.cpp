@@ -91,16 +91,26 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
 
     case State::TURN_LEFT:
       if (diff <= dead_zone + correction) {
-        INFO("Finish turning left: %d", diff);
-        state_ = State::FINISH;
+        if (total_points_size > 100) {
+          INFO("Finish turning left: %d", diff);
+          state_ = State::FINISH;
+        } else {
+          INFO("Will approach when turning left: %d", total_points_size);
+          state_ = State::APPROACH;
+        }
       }
       INFO("Turn left: %d", diff);
       break;
 
     case State::TURN_RIGHT:
       if (diff >= -dead_zone + correction) {
-        INFO("Finish turning right: %d", diff);
-        state_ = State::FINISH;
+        if(total_points_size > 100) {
+          INFO("Finish turning right: %d", diff);
+          state_ = State::FINISH;
+        } else {
+          INFO("Will approach when turning right: %d", total_points_size);
+          state_ = State::APPROACH;
+        }
       }
       INFO("Turn right: %d", diff);
       break;
