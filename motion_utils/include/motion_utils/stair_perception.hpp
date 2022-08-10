@@ -43,7 +43,11 @@ public:
     APPROACH,
     FINISH
   };
-
+  struct ApproachThreshold
+  {
+    std::array<float, 2> range;
+    int threshold;
+  };
 public:
   StairPerception(const rclcpp::Node::SharedPtr node, const toml::value& config);
   void Launch(){};
@@ -76,13 +80,13 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pcl_sub_;
   State state_;
   std::deque<int32_t> diffs_;
+  std::vector<ApproachThreshold> approach_thresholds_;
   double radius_{0.05};
-  float min_z_{0};
   std::string norms_frame_{"robot"}, pc_frame_{"robot"}, base_link_frame_{"robot"};
   int min_neighbors_{5};
   int filter_size_ {10};
   int orientation_dead_zone_{2}, orientation_correction_{0};
-  int blind_forward_threashold_{15}, approach_threashold_{100};
+  int blind_forward_threshold_{15}, approach_threshold_{100};
   bool trigger_ {false}, orientation_filter_ {false};
 };  // calss StairPerception
 }  // motion
