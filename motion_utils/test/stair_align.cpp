@@ -64,10 +64,10 @@ void StairAlign::Loop()
         stair_perception_->SetStatus(StairPerception::State::IDLE);
         servo_cmd_.cmd_type = MotionServoCmdMsg::SERVO_END;
         servo_cmd_pub_->publish(servo_cmd_);
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-        MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
-        req->motion_id = 126;
-        result_cmd_client_->async_send_request(req);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        // MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+        // req->motion_id = 126;
+        // result_cmd_client_->async_send_request(req);
         break;
       }
 
