@@ -18,14 +18,23 @@ namespace cyberdog
 namespace motion
 {
 
-StairPerception::StairPerception(rclcpp::Node::SharedPtr node)
+StairPerception::StairPerception(rclcpp::Node::SharedPtr node, const toml::value& config)
 {
   node_ = node;
 
   pc_raw_.reset(new pcl::PointCloud<pcl::PointXYZ>);
+  GET_TOML_VALUE(config, "radius", radius_);
+  GET_TOML_VALUE(config, "min_neighbors", min_neighbors_);
+  GET_TOML_VALUE(config, "orientation_dead_zone", orientation_dead_zone_);
+  GET_TOML_VALUE(config, "orientation_correction", orientation_correction_);
+  GET_TOML_VALUE(config, "orientation_filter", orientation_filter_);
+  GET_TOML_VALUE(config, "filter_size", filter_size_);
+  GET_TOML_VALUE(config, "blind_forward_threashold", blind_forward_threashold_);
+  GET_TOML_VALUE(config, "approach_threashold", approach_threashold_);
+  // INFO("r: %f,  m: %d, odz: %d, oc: %d, of: %d, fs: %d, bft: %d, at: %d", radius_, min_neighbors_, orientation_dead_zone_, orientation_correction_, orientation_filter_, filter_size_, blind_forward_threashold_, approach_threashold_);
   pc_filtered_.reset(new pcl::PointCloud<pcl::PointXYZ>);
-  ro_filter_.setRadiusSearch(0.05);
-  ro_filter_.setMinNeighborsInRadius(5);
+  ro_filter_.setRadiusSearch(radius_);
+  ro_filter_.setMinNeighborsInRadius(min_neighbors_);
 
   pcl_sub_ = node_->create_subscription<sensor_msgs::msg::PointCloud2>(
     "head_pc",
@@ -47,7 +56,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
   int total_points_size = pc_filtered_->size();
   int left_point_size = 0;
   int right_point_size = 0;
-  int dead_zone = 2, correction = 0;
+  // int dead_zone = 2, correction = 0;
 
   for (auto point : pc_filtered_->points) {
     if (point.y > 0) {
@@ -58,7 +67,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
   }
   INFO("left: %d, right: %d", left_point_size, right_point_size);
   int diff = 0;
-  if (diff_filter_) {
+  if (orientation_filter_) {
     diff = GetMeanDiff(left_point_size - right_point_size);
   } else {
     diff = left_point_size - right_point_size;
@@ -73,14 +82,14 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
       break;
 
     case State::BLIND_FORWARD:
-      if (total_points_size < 15) {
+      if (total_points_size < blind_forward_threashold_) {
         INFO("Points size %d < threshold, stair not found, Blind Forward", total_points_size);
         break;
       }
-      if (diff < -dead_zone + correction) {
+      if (diff < -orientation_dead_zone_ + orientation_correction_) {
         INFO("Turn right: %d", diff);
         state_ = State::TURN_RIGHT;
-      } else if (diff > dead_zone + correction) {
+      } else if (diff > orientation_dead_zone_ + orientation_correction_) {
         INFO("Turn left: %d", diff);
         state_ = State::TURN_LEFT;
       } else {
@@ -90,8 +99,8 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
       break;
 
     case State::TURN_LEFT:
-      if (diff <= dead_zone + correction) {
-        if (total_points_size > 100) {
+      if (diff <= orientation_dead_zone_ + orientation_correction_) {
+        if (total_points_size > approach_threashold_) {
           INFO("Finish turning left: %d", diff);
           state_ = State::FINISH;
         } else {
@@ -103,8 +112,8 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
       break;
 
     case State::TURN_RIGHT:
-      if (diff >= -dead_zone + correction) {
-        if(total_points_size > 100) {
+      if (diff >= -orientation_dead_zone_ + orientation_correction_) {
+        if(total_points_size > approach_threashold_) {
           INFO("Finish turning right: %d", diff);
           state_ = State::FINISH;
         } else {
@@ -116,7 +125,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
       break;
 
     case State::APPROACH:
-      if (total_points_size > 100) {
+      if (total_points_size > approach_threashold_) {
         INFO("Stop: %d", total_points_size);
         state_ = State::IDLE;
       }

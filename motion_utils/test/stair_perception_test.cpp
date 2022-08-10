@@ -12,12 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include "motion_utils/stair_perception.hpp"
-
+#include <ament_index_cpp/get_package_share_directory.hpp>
 int main(int argc, char** argv) 
 {
   rclcpp::init(argc, argv);
   rclcpp::Node::SharedPtr node(new rclcpp::Node("stair_perception_test"));
-  cyberdog::motion::StairPerception sp(node);
+  std::string toml_file = ament_index_cpp::get_package_share_directory("motion_utils") + "/config/stair_align.toml";
+  toml::value config;
+  if(!cyberdog::common::CyberdogToml::ParseFile(toml_file, config)) {
+    FATAL("Cannot parse %s", toml_file.c_str());
+    exit(-1);
+  }
+  cyberdog::motion::StairPerception sp(node, config);
   rclcpp::spin(node);
   return 0;
 }

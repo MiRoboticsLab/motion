@@ -23,7 +23,9 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/filters/radius_outlier_removal.h>
-#include <cyberdog_common/cyberdog_log.hpp>
+#include "cyberdog_common/cyberdog_log.hpp"
+#include "cyberdog_common/cyberdog_toml.hpp"
+#include "motion_action/motion_macros.hpp"
 namespace cyberdog
 {
 namespace motion
@@ -43,7 +45,7 @@ public:
   };
 
 public:
-  StairPerception(const rclcpp::Node::SharedPtr node);
+  StairPerception(const rclcpp::Node::SharedPtr node, const toml::value& config);
   void Launch(){};
   const State & GetStatus() const { return state_; };
   inline void SetStatus(const State& state) { state_ = state; };
@@ -53,14 +55,14 @@ private:
   inline int GetMeanDiff(int diff)
   {
     diffs_.emplace_back(diff);
-    if (diffs_.size() > size_) {
+    if (diffs_.size() > filter_size_) {
       diffs_.pop_front();
     }
     int sum = 0;
     for (auto diff : diffs_) {
       sum += diff;
     }
-    return sum / size_;
+    return sum / filter_size_;
   }
 
   pcl::RadiusOutlierRemoval<pcl::PointXYZ> ro_filter_;
@@ -74,11 +76,13 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pcl_sub_;
   State state_;
   std::deque<int32_t> diffs_;
-  double radius_;
+  double radius_{0.05};
   std::string norms_frame_{"robot"}, pc_frame_{"robot"}, base_link_frame_{"robot"};
-  int min_neighbors_;
-  int size_ {10};
-  bool trigger_ {false}, diff_filter_ {false};
+  int min_neighbors_{5};
+  int filter_size_ {10};
+  int orientation_dead_zone_{2}, orientation_correction_{0};
+  int blind_forward_threashold_{15}, approach_threashold_{100};
+  bool trigger_ {false}, orientation_filter_ {false};
 };  // calss StairPerception
 }  // motion
 }  // cyberdog

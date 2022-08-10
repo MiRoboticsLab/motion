@@ -16,7 +16,9 @@
 
 #include <iostream>
 #include <rclcpp/node.hpp>
-#include <cyberdog_common/cyberdog_log.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include "cyberdog_common/cyberdog_log.hpp"
+#include "cyberdog_common/cyberdog_toml.hpp"
 #include "motion_utils/stair_perception.hpp"
 #include "motion_action/motion_macros.hpp"
 namespace cyberdog
@@ -41,6 +43,8 @@ private:
   rclcpp::Client<MotionResultSrv>::SharedPtr result_cmd_client_;
   MotionServoCmdMsg servo_cmd_;
   std::shared_ptr<StairPerception> stair_perception_;
+  float vel_x_, vel_omega_;
+  bool jump_after_align_;
 };  // calss StairAlign
 }  // motion
 }  // cyberdog
