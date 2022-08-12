@@ -141,18 +141,18 @@ enum class HandlerStatus : uint8_t
   kExecutingResultCmd = 2
 };  // enum class HandlerStatus
 
-// 所有的motion相关code都从300开始，该值为全局架构设计分配
-enum class MotionCode : int32_t
-{
-  kOK = 0,
-  kCommandInvalid = (int32_t)system::ModuleCode::kMotion + 10,
-  kReadLcmTimeout = (int32_t)system::ModuleCode::kMotion + 20,
-  kSwitchError = (int32_t)system::ModuleCode::kMotion + 31,
-  kTransitionTimeout = (int32_t)system::ModuleCode::kMotion + 32,
-  kExecuteTimeout = (int32_t)system::ModuleCode::kMotion + 33,
-  kExecuteError = (int32_t)system::ModuleCode::kMotion + 34,
-  kStateError = (int32_t)system::ModuleCode::kMotion + 40
-};  // enum class MotionCode
+// // 所有的motion相关code都从300开始，该值为全局架构设计分配
+// enum class MotionCode : int32_t
+// {
+//   kOK = 0,
+//   kCommandInvalid = (int32_t)system::ModuleCode::kMotion + 10,
+//   kReadLcmTimeout = (int32_t)system::ModuleCode::kMotion + 20,
+//   kSwitchError = (int32_t)system::ModuleCode::kMotion + 31,
+//   kTransitionTimeout = (int32_t)system::ModuleCode::kMotion + 32,
+//   kExecuteTimeout = (int32_t)system::ModuleCode::kMotion + 33,
+//   kExecuteError = (int32_t)system::ModuleCode::kMotion + 34,
+//   kStateError = (int32_t)system::ModuleCode::kMotion + 40
+// };  // enum class MotionCode
 }  // namespace motion
 }  // namespace cyberdog
 #endif  // MOTION_ACTION__MOTION_MACROS_HPP_
