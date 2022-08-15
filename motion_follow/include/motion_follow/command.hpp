@@ -197,7 +197,7 @@ private:
         };
 
     ::protocol::msg::MotionServoCmd command;
-    command.motion_id = 303;
+    command.motion_id = 305;
     command.vel_des = vel_des;
     command.step_height = step_height;
     motion_command_pub_->publish(command);
@@ -218,7 +218,7 @@ private:
           0.05
         };
 
-    command.motion_id = 303;
+    command.motion_id = 301;
     command.vel_des = vel_des;
     command.value = 2;
     command.step_height = step_height;
@@ -240,6 +240,9 @@ private:
     double delta_dist = left_dist - right_dist;
     constexpr double lower_limit = -0.1f; // 0.3 meter
     constexpr double upper_limit = 0.1f;  // 0.3 meter
+    constexpr float vel_linear = 0.6;
+    constexpr float vel_shift = 0.1;
+    constexpr float vel_omega = 0.1;
     double angular_velocity = robot_odometry_.twist.twist.angular.z;
 
     // if (delta_dist >= lower_limit && lower_limit <= upper_limit) {
@@ -258,7 +261,7 @@ private:
     INFO("------------");
     switch (state_) {
       case FollowState::FORWARD:
-        SetCommandVelocity(command, 0.25f, 0.0, 0.0);
+        SetCommandVelocity(command, vel_linear, 0.0, 0.0);
         INFO("Forward: %f", current_left_angle_diff_);
         if(current_left_angle_diff_ > 0.05) {
           state_ = FollowState::TURN_LEFT;
@@ -272,7 +275,7 @@ private:
         break;
 
       case FollowState::TURN_LEFT:
-        SetCommandVelocity(command, 0.25f, 0.0, 0.1);
+        SetCommandVelocity(command, vel_linear, 0.0, vel_omega);
         INFO("Turning left: %f", current_left_angle_diff_);
         if(current_left_angle_diff_ >= -0.05 && current_left_angle_diff_ <= 0.05) {
           state_ = FollowState::FORWARD;
@@ -282,7 +285,7 @@ private:
         break;
 
       case FollowState::TURN_RIGHT:
-        SetCommandVelocity(command, 0.25f, 0.0, -0.1);
+        SetCommandVelocity(command, vel_linear, 0.0, -vel_omega);
         INFO("Turning right: %f", current_left_angle_diff_);
         if(current_left_angle_diff_ >= -0.05 && current_left_angle_diff_ <= 0.05) {
           state_ = FollowState::FORWARD;
@@ -293,14 +296,14 @@ private:
         break;
 
       case FollowState::SHIFT_LEFT:
-        SetCommandVelocity(command, 0.25f, 0.1, 0.0);
+        SetCommandVelocity(command, vel_linear, vel_shift, 0.0);
         if(abs(delta_dist) < upper_limit) {
           state_ = FollowState::FORWARD;
         }
         break;
 
       case FollowState::SHIFT_RIGHT:
-        SetCommandVelocity(command, 0.25f, -0.1, 0.0);
+        SetCommandVelocity(command, vel_linear, -vel_shift, 0.0);
         if(abs(delta_dist) < upper_limit) {
           state_ = FollowState::FORWARD;
         }
