@@ -42,7 +42,7 @@ min_exec_time = 5000
 motion_id = 112
 map  = [11, 1]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11]
+post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = 5000
 
 # 后空翻， duration必须为0
@@ -209,7 +209,7 @@ min_exec_time = -1
 motion_id = 303
 map = [11, 20]  
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11]
+post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
 
 # # 遛狗
