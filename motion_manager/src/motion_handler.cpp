@@ -27,14 +27,16 @@ MotionHandler::MotionHandler()
 MotionHandler::~MotionHandler()
 {}
 
-bool MotionHandler::Init(rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub)
+bool MotionHandler::Init(const rclcpp::Node::SharedPtr node)
 {
+  node_ptr_ = node;
   action_ptr_ = std::make_shared<MotionAction>();
   if (!action_ptr_->Init()) {
     ERROR("Fail to initialize MotionAction");
     return false;
   }
-  motion_status_pub_ = motion_status_pub;
+  motion_status_pub_ = node_ptr_->create_publisher<MotionStatusMsg>(
+    kMotionStatusTopicName, 10);
   servo_check_click_ = std::make_shared<ServoClick>();
   servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
   servo_data_check_thread_.detach();
@@ -59,6 +61,7 @@ bool MotionHandler::Init(rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_st
       }
     }
   }.detach();
+  SetWorkStatus(HandlerStatus::kIdle);
   return true;
 }
 

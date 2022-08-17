@@ -28,16 +28,16 @@ MotionDecision::~MotionDecision() {}
 
 void MotionDecision::Config() {}
 
-bool MotionDecision::Init(
-  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub,
-  rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub)
+bool MotionDecision::Init(const rclcpp::Node::SharedPtr node)
 {
+  node_ptr_ = node;
   handler_ptr_ = std::make_shared<MotionHandler>();
-  if (!handler_ptr_->Init(motion_status_pub)) {
+  if (!handler_ptr_->Init(node_ptr_)) {
     ERROR("Fail to initialize MotionHandler");
     return false;
   }
-  servo_response_pub_ = servo_response_pub;
+  servo_response_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
+    kMotionServoResponseTopicName, 10);
   servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponseThread, this));
   servo_response_thread_.detach();
   ResetServoResponseMsg();

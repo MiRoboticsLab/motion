@@ -19,6 +19,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <vector>
+#include "motion_action/motion_macros.hpp"
 #include "motion_action/motion_action.hpp"
 #include "motion_manager/motion_handler.hpp"
 #include "cyberdog_common/cyberdog_msg_queue.hpp"
@@ -39,9 +40,7 @@ public:
   ~MotionDecision();
 
   void Config();
-  bool Init(
-    rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub,
-    rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub);
+  bool Init(const rclcpp::Node::SharedPtr node);
 
 public:
   void DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg);
@@ -143,7 +142,7 @@ private:
   }
 
 private:
-  // std::shared_ptr<MotionAction> action_ptr_ {nullptr};
+  rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   std::shared_ptr<MotionHandler> handler_ptr_ {nullptr};
   DecisionStatus motion_work_mode_ {DecisionStatus::kIdle};
   std::mutex status_mutex_;

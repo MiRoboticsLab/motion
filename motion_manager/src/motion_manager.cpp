@@ -34,8 +34,6 @@ MotionManager::~MotionManager()
 void MotionManager::Config()
 {
   INFO("Get info from configure");
-  // action_ptr_ = std::make_shared<MotionAction>();
-  // handler_ptr_ = std::make_shared<MotionHandler>(motion_servo_pub_);
 }
 
 bool MotionManager::Init()
@@ -48,12 +46,8 @@ bool MotionManager::Init()
   executor_.reset(new rclcpp::executors::MultiThreadedExecutor);
   callback_group_ = node_ptr_->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
-  motion_servo_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
-    kMotionServoResponseTopicName, 10);
-  motion_status_pub_ = node_ptr_->create_publisher<MotionStatusMsg>(
-    kMotionStatusTopicName, 10);
   decision_ptr_ = std::make_shared<MotionDecision>();
-  decision_ptr_->Init(motion_servo_pub_, motion_status_pub_);
+  decision_ptr_->Init(node_ptr_);
 
   motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
     kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS(),

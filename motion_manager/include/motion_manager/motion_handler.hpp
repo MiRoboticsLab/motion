@@ -47,7 +47,7 @@ public:
   ~MotionHandler();
 
 public:
-  bool Init(rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub);
+  bool Init(const rclcpp::Node::SharedPtr node);
   void HandleServoCmd(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
   void ExecuteResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
@@ -156,6 +156,7 @@ private:
   }
 
   /* ros members */
+  rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub_ {nullptr};
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
