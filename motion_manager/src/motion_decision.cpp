@@ -21,18 +21,20 @@ namespace cyberdog
 namespace motion
 {
 
-MotionDecision::MotionDecision()
+MotionDecision::MotionDecision(
+  const rclcpp::Node::SharedPtr & node,
+  const std::shared_ptr<MCode> & code)
+: node_ptr_(node), code_ptr_(code)
 {}
 
 MotionDecision::~MotionDecision() {}
 
 void MotionDecision::Config() {}
 
-bool MotionDecision::Init(const rclcpp::Node::SharedPtr node)
+bool MotionDecision::Init()
 {
-  node_ptr_ = node;
-  handler_ptr_ = std::make_shared<MotionHandler>();
-  if (!handler_ptr_->Init(node_ptr_)) {
+  handler_ptr_ = std::make_shared<MotionHandler>(node_ptr_, code_ptr_);
+  if (!handler_ptr_->Init()) {
     ERROR("Fail to initialize MotionHandler");
     return false;
   }
@@ -40,11 +42,12 @@ bool MotionDecision::Init(const rclcpp::Node::SharedPtr node)
     kMotionServoResponseTopicName, 10);
   servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponseThread, this));
   servo_response_thread_.detach();
+  laser_helper_ = std::make_shared<LaserHelper>(node_ptr_);
   ResetServoResponseMsg();
   return true;
 }
 
-void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
+void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr & msg)
 {
   SetServoResponse();
   if (!IsStateValid(msg->motion_id)) {

@@ -43,11 +43,12 @@ bool MotionManager::Init()
     ERROR("Init failed with nullptr at ros node!");
     return false;
   }
+  code_ptr_ = std::make_shared<MCode>(cyberdog::system::ModuleCode::kMotionManager);
   executor_.reset(new rclcpp::executors::MultiThreadedExecutor);
   callback_group_ = node_ptr_->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
-  decision_ptr_ = std::make_shared<MotionDecision>();
-  decision_ptr_->Init(node_ptr_);
+  decision_ptr_ = std::make_shared<MotionDecision>(node_ptr_, code_ptr_);
+  decision_ptr_->Init();
 
   motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
     kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS(),

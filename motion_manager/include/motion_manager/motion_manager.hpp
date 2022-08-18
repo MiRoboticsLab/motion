@@ -73,6 +73,7 @@ private:
   rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::CallbackGroup::SharedPtr callback_group_{nullptr};
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
+  std::shared_ptr<MCode> code_ptr_;
 };  // class MotionManager
 }  // namespace motion
 }  // namespace cyberdog

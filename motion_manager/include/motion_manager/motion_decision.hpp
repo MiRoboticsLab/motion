@@ -27,6 +27,7 @@
 #include "protocol/msg/motion_servo_response.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
+#include "motion_utils/motion_utils.hpp"
 
 namespace cyberdog
 {
@@ -36,14 +37,14 @@ namespace motion
 class MotionDecision final
 {
 public:
-  MotionDecision();
+  MotionDecision(const rclcpp::Node::SharedPtr & node, const std::shared_ptr<MCode> & code);
   ~MotionDecision();
 
   void Config();
-  bool Init(const rclcpp::Node::SharedPtr node);
+  bool Init();
 
 public:
-  void DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg);
+  void DecideServoCmd(const MotionServoCmdMsg::SharedPtr & msg);
   void DecideResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
@@ -76,14 +77,14 @@ private:
   }
 
 private:
-  void ServoStart(const MotionServoCmdMsg::SharedPtr msg);
-  void ServoData(const MotionServoCmdMsg::SharedPtr msg);
-  void ServoEnd(const MotionServoCmdMsg::SharedPtr msg);
-  void Update(MotionStatusMsg::SharedPtr motion_status_ptr);
+  void ServoStart(const MotionServoCmdMsg::SharedPtr & msg);
+  void ServoData(const MotionServoCmdMsg::SharedPtr & msg);
+  void ServoEnd(const MotionServoCmdMsg::SharedPtr & msg);
+  void Update(MotionStatusMsg::SharedPtr & motion_status_ptr);
   bool WaitHandlingResult(int32_t motion_id, int32_t duration, int32_t & code);
   void StopMotion();
   void ServoResponseThread();
-  inline void SetWorkStatus(const DecisionStatus status_code)
+  inline void SetWorkStatus(const DecisionStatus & status_code)
   {
     std::unique_lock<std::mutex> lk(status_mutex_);
     motion_work_mode_ = status_code;
@@ -146,12 +147,14 @@ private:
   std::shared_ptr<MotionHandler> handler_ptr_ {nullptr};
   DecisionStatus motion_work_mode_ {DecisionStatus::kIdle};
   std::mutex status_mutex_;
+  std::shared_ptr<MCode> code_ptr_;
 
   /* Servo cmd members */
   std::thread servo_response_thread_;
   common::MsgQueue<int> servo_response_queue_;
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub_;
   MotionServoResponseMsg servo_response_msg_;
+  std::shared_ptr<LaserHelper> laser_helper_;
   bool estop_ {false};
 };  // class MotionDecision
 }  // namespace motion

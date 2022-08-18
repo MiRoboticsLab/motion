@@ -21,15 +21,17 @@ namespace cyberdog
 namespace motion
 {
 
-MotionHandler::MotionHandler()
+MotionHandler::MotionHandler(
+  const rclcpp::Node::SharedPtr & node,
+  const std::shared_ptr<MCode> & code)
+: node_ptr_(node), code_ptr_(code)
 {}
 
 MotionHandler::~MotionHandler()
 {}
 
-bool MotionHandler::Init(const rclcpp::Node::SharedPtr node)
+bool MotionHandler::Init()
 {
-  node_ptr_ = node;
   action_ptr_ = std::make_shared<MotionAction>();
   if (!action_ptr_->Init()) {
     ERROR("Fail to initialize MotionAction");
@@ -65,7 +67,7 @@ bool MotionHandler::Init(const rclcpp::Node::SharedPtr node)
   return true;
 }
 
-void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg)
+void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr & msg)
 {
   action_ptr_->Execute(msg);
   TickServoCmd();
@@ -73,7 +75,7 @@ void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg
 }
 
 void MotionHandler::HandleServoDataFrame(
-  const MotionServoCmdMsg::SharedPtr msg,
+  const MotionServoCmdMsg::SharedPtr & msg,
   MotionServoResponseMsg & res)
 {
   if (!AllowServoCmd(msg->motion_id)) {
@@ -100,7 +102,7 @@ void MotionHandler::HandleServoDataFrame(
   SetServoNeedCheck(true);
 }
 
-void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
+void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr & msg)
 {
   // action_ptr_->Execute(msg);
   (void) msg;
@@ -109,7 +111,7 @@ void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
 }
 
 void MotionHandler::HandleServoCmd(
-  const MotionServoCmdMsg::SharedPtr msg,
+  const MotionServoCmdMsg::SharedPtr & msg,
   MotionServoResponseMsg & res)
 {
   if (GetWorkStatus() == HandlerStatus::kExecutingResultCmd) {
@@ -184,7 +186,7 @@ void MotionHandler::PoseControlDefinitively()
   ExecuteResultCmd(request, response);
 }
 
-void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr last_servo_cmd)
+void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd)
 {
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
   request->motion_id = last_servo_cmd->motion_id;
@@ -380,7 +382,7 @@ void MotionHandler::HandleQueueCmd(
   SetWorkStatus(HandlerStatus::kIdle);
 }
 
-void MotionHandler::UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr)
+void MotionHandler::UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr)
 {
   feedback_cv_.notify_one();
   std::unique_lock<std::mutex> lk(execute_mutex_);
@@ -439,7 +441,7 @@ bool MotionHandler::AllowServoCmd(int32_t motion_id)
   return CheckPostMotion(motion_id);
 }
 
-bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr request)
+bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr & request)
 {
   if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
     return false;

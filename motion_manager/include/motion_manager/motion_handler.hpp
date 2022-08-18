@@ -43,12 +43,12 @@ namespace motion
 class MotionHandler final
 {
 public:
-  MotionHandler();
+  MotionHandler(const rclcpp::Node::SharedPtr & node, const std::shared_ptr<MCode> & code);
   ~MotionHandler();
 
 public:
-  bool Init(const rclcpp::Node::SharedPtr node);
-  void HandleServoCmd(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
+  bool Init();
+  void HandleServoCmd(const MotionServoCmdMsg::SharedPtr & msg, MotionServoResponseMsg & res);
   void ExecuteResultCmd(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
@@ -62,20 +62,20 @@ public:
   bool FeedbackTimeout();
 
 private:
-  void UpdateMotionStatus(const MotionStatusMsg::SharedPtr motion_status_ptr);
+  void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
   bool CheckMotionResult();
   bool CheckMotionResult(int32_t motion_id);
   void ServoDataCheck();
   void PoseControlDefinitively();
-  void WalkStand(const MotionServoCmdMsg::SharedPtr last_servo_cmd);
-  void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
-  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
-  void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
+  void WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd);
+  void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr & msg);
+  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr & msg, MotionServoResponseMsg & res);
+  void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr & msg);
   bool CheckPostMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
-  bool isCommandValid(const MotionResultSrv::Request::SharedPtr request);
-  inline void SetWorkStatus(const HandlerStatus status)
+  bool isCommandValid(const MotionResultSrv::Request::SharedPtr & request);
+  inline void SetWorkStatus(const HandlerStatus & status)
   {
     std::unique_lock<std::mutex> lk(status_mutex_);
     status_ = status;
@@ -179,6 +179,7 @@ private:
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
   HandlerStatus status_;
   std::ofstream toml_;
+  std::shared_ptr<MCode> code_ptr_;
   std::string toml_log_dir_;
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
