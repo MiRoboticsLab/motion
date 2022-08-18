@@ -92,7 +92,7 @@ void MotionHandler::HandleServoDataFrame(
       }
     } else {
       res.result = false;
-      res.code = MotionCodeMsg::MOTION_SWITCH_ERROR;
+      res.code = code_ptr_->GetCode(MotionCode::kMotionSwitchError);
     }
     return;
   }
@@ -116,7 +116,7 @@ void MotionHandler::HandleServoCmd(
 {
   if (GetWorkStatus() == HandlerStatus::kExecutingResultCmd) {
     res.result = false;
-    res.code = MotionCodeMsg::TASK_STATE_ERROR;
+    res.code = code_ptr_->GetCode(MotionCode::kBusy);
     ERROR("Busy(Executing ResultCmd) for ServoCmd");
     return;
   }
@@ -149,7 +149,7 @@ void MotionHandler::HandleServoCmd(
     post_motion_checked_ = false;
   }
   res.result = true;
-  res.code = MotionCodeMsg::OK;
+  res.code = code_ptr_->GetCode(MotionCode::kOK);
 }
 
 void MotionHandler::ServoDataCheck()
@@ -236,7 +236,7 @@ void MotionHandler::ExecuteResultCmd(
     for (auto motor : motion_status_ptr_->motor_error) {
       if (motor != 0 && motor != kMotorNormal) {
         response->result = false;
-        response->code = MotionCodeMsg::HW_MOTOR_OFFLINE;
+        response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
         ERROR("Motor error");
         return;
       }
@@ -258,7 +258,7 @@ void MotionHandler::ExecuteResultCmd(
   }
   action_ptr_->Execute(request);
   if (FeedbackTimeout()) {
-    response->code = MotionCodeMsg::COM_LCM_TIMEOUT;
+    response->code = code_ptr_->GetCode(MotionCode::kComLcmTimeout);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("LCM Com timeout");
@@ -273,7 +273,7 @@ void MotionHandler::ExecuteResultCmd(
     motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP ||
     motion_status_ptr_->switch_status == MotionStatusMsg::LIFTED)
   {
-    response->code = MotionCodeMsg::MOTION_SWITCH_ERROR;
+    response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchError);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("Motion switch error");
@@ -285,7 +285,7 @@ void MotionHandler::ExecuteResultCmd(
     if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
       std::cv_status::timeout)
     {
-      response->code = MotionCodeMsg::MOTION_TRANSITION_TIMEOUT;
+      response->code = code_ptr_->GetCode(MotionCode::kMotionTransitionTimeout);
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
       WARN("Transitioning Timeout");
@@ -315,14 +315,14 @@ void MotionHandler::ExecuteResultCmd(
       check_lk,
       std::chrono::milliseconds(wait_timeout)) == std::cv_status::timeout)
   {
-    response->code = MotionCodeMsg::MOTION_EXECUTE_TIMEOUT;
+    response->code = code_ptr_->GetCode(MotionCode::kMotionExecuteTimeout);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("Motion execute timeout");
     return;
   }
   if (!CheckMotionResult(request->motion_id)) {
-    response->code = MotionCodeMsg::MOTION_EXECUTE_ERROR;
+    response->code = code_ptr_->GetCode(MotionCode::kMotionExecuteError);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("Motion execute error");
@@ -339,13 +339,13 @@ void MotionHandler::HandleResultCmd(
 {
   if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
     response->result = false;
-    response->code = MotionCodeMsg::TASK_STATE_ERROR;
+    response->code = code_ptr_->GetCode(MotionCode::kBusy);
     ERROR("Busy when Getting ResultCmd(%d)", request->motion_id);
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
   if (!isCommandValid(request)) {
-    response->code = MotionCodeMsg::COMMAND_INVALID;
+    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("ResultCmd(%d) invalid", request->motion_id);

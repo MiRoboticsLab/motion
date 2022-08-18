@@ -53,7 +53,7 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr & msg)
   if (!IsStateValid(msg->motion_id)) {
     servo_response_msg_.motion_id = handler_ptr_->GetMotionStatus()->motion_id;
     servo_response_msg_.result = false;
-    servo_response_msg_.code = MotionCodeMsg::TASK_STATE_ERROR;
+    servo_response_msg_.code = code_ptr_->GetCode(MotionCode::kEstop);
     ERROR("Forbidden ServoCmd when estop");
     return;
   }
@@ -83,7 +83,7 @@ void MotionDecision::ServoResponseThread()
         servo_response_msg_.order_process_bar = -1;
         servo_response_msg_.status = -1;
         servo_response_msg_.result = false;
-        servo_response_msg_.code = MotionCodeMsg::COM_LCM_TIMEOUT;
+        servo_response_msg_.code = code_ptr_->GetCode(MotionCode::kComLcmTimeout);
         servo_response_pub_->publish(servo_response_msg_);
       }
     }
@@ -103,7 +103,7 @@ void MotionDecision::DecideResultCmd(
   if (!IsStateValid(request->motion_id)) {
     response->motion_id = handler_ptr_->GetMotionStatus()->motion_id;
     response->result = false;
-    response->code = MotionCodeMsg::TASK_STATE_ERROR;
+    response->code = code_ptr_->GetCode(MotionCode::kEstop);
     ERROR("Forbidden ResultCmd(%d) when estop", request->motion_id);
     return;
   }
