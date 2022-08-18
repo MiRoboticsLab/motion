@@ -36,6 +36,7 @@
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "ament_index_cpp/get_package_prefix.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 namespace cyberdog
 {
@@ -102,6 +103,31 @@ private:
   double last_x_{0}, last_y_{0};
   bool start_point_set_{false}, odom_waiting_{false};
 };  // class OdomHelper
+
+class LaserHelper final
+{
+public:
+  explicit LaserHelper(const rclcpp::Node::SharedPtr node){
+    laser_sub_ = node->create_subscription<sensor_msgs::msg::LaserScan>("scan", 
+      rclcpp::SystemDefaultsQoS(), 
+      std::bind(&LaserHelper::HandleLaserScanCallback, this, std::placeholders::_1));
+    laser_pub_ = node->create_publisher<sensor_msgs::msg::LaserScan>("scan_filterd",1);
+  }
+  bool IsStuck();
+private:
+  void HandleLaserScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg){
+    msg_ = msg;
+    // msg_->ranges.assign(2020, 0.0);
+    msg_->ranges.clear();
+    msg_->ranges.assign(msg->ranges.begin()+700, msg->ranges.begin()+1320);
+    laser_pub_->publish(*msg_);
+
+  }
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laser_sub_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_pub_;
+  sensor_msgs::msg::LaserScan::SharedPtr msg_;
+};
 
 class MotionUtils final
 {
