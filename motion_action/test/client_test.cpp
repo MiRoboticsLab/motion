@@ -18,7 +18,7 @@
 #include <motion_action/motion_macros.hpp>
 #include <cyberdog_common/cyberdog_log.hpp>
 #include <cyberdog_common/cyberdog_toml.hpp>
-
+#include "motion_action/motion_macros.hpp"
 class SimMotionClient
 {
 public:
@@ -27,17 +27,18 @@ public:
     node_ptr_ = rclcpp::Node::make_shared(name);
     motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>(cyberdog::motion::kMotionResultServiceName);
     motion_queue_client_ = node_ptr_->create_client<protocol::srv::MotionQueueCustomCmd>(cyberdog::motion::kMotionQueueServiceName);
-    map_.emplace(protocol::msg::MotionCode::OK, "OK");
-    map_.emplace(protocol::msg::MotionCode::HW_LOW_BATTERY, "HW_LOW_BATTERY");
-    map_.emplace(protocol::msg::MotionCode::HW_MOTOR_OFFLINE, "HW_MOTOR_OFFLINE");
-    map_.emplace(protocol::msg::MotionCode::COM_LCM_TIMEOUT, "COM_LCM_TIMEOUT");
-    map_.emplace(protocol::msg::MotionCode::MOTION_SWITCH_ERROR, "MOTION_SWITCH_ERROR");
-    map_.emplace(protocol::msg::MotionCode::MOTION_TRANSITION_TIMEOUT, "MOTION_TRANSITION_TIMEOUT");
-    map_.emplace(protocol::msg::MotionCode::MOTION_EXECUTE_TIMEOUT, "MOTION_EXECUTE_TIMEOUT");
-    map_.emplace(protocol::msg::MotionCode::MOTION_EXECUTE_ERROR, "MOTION_EXECUTE_ERROR");
-    map_.emplace(protocol::msg::MotionCode::COMMAND_INVALID, "COMMAND_INVALID");
-    map_.emplace(protocol::msg::MotionCode::TASK_MODE_ERROR, "TASK_MODE_ERROR");
-    map_.emplace(protocol::msg::MotionCode::TASK_STATE_ERROR, "TASK_STATE_ERROR");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kOK), "kOK");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwLowBattery), "kHwLowBattery");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwMotorOffline), "kHwMotorOffline");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kComLcmTimeout), "kComLcmTimeout");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionSwitchError), "kMotionSwitchError");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionTransitionTimeout), "kMotionTransitionTimeout");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionExecuteTimeout), "kMotionExecuteTimeout");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionExecuteError), "kMotionExecuteError");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kCommandInvalid), "kCommandInvalid");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kEstop), "kEstop");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kStuck), "kStuck");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kBusy), "kBusy");
   }
 
   void Run(int argc, char ** argv)
@@ -159,6 +160,7 @@ private:
   rclcpp::Client<protocol::srv::MotionQueueCustomCmd>::SharedPtr motion_queue_client_{nullptr};
   std::unordered_map<int, std::string> map_;
   std::string cmd_preset_;
+  std::shared_ptr<cyberdog::motion::MCode> code_ptr_;
   LOGGER_MINOR_INSTANCE("SimMotionClient");
 };
 

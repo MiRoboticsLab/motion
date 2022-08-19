@@ -100,11 +100,11 @@ void MotionDecision::DecideResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  if (!IsStateValid(request->motion_id)) {
+  int32_t error_code = code_ptr_->GetCode(MotionCode::kOK);
+  if (!IsStateValid(request->motion_id, error_code)) {
     response->motion_id = handler_ptr_->GetMotionStatus()->motion_id;
     response->result = false;
-    response->code = code_ptr_->GetCode(MotionCode::kEstop);
-    ERROR("Forbidden ResultCmd(%d) when estop", request->motion_id);
+    response->code = error_code;
     return;
   }
   if (!IsModeValid()) {

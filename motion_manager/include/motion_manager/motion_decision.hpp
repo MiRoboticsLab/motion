@@ -28,13 +28,72 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
 #include "motion_utils/motion_utils.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 namespace cyberdog
 {
 namespace motion
 {
 
+class LaserHelper final
+{
+public:
+  explicit LaserHelper(const rclcpp::Node::SharedPtr node)
+  {
     laser_sub_ = node->create_subscription<sensor_msgs::msg::LaserScan>(kGlobalScanTopicName, 
+      rclcpp::SystemDefaultsQoS(), 
+      std::bind(&LaserHelper::HandleLaserScanCallback, this, std::placeholders::_1));
+    laser_pub_ = node->create_publisher<sensor_msgs::msg::LaserScan>("scan_filterd", 1);
+    msg_ = std::make_shared<sensor_msgs::msg::LaserScan>();
+  }
+  bool IsStuck()
+  {
+    int32_t i = 0;
+    for(auto range : msg_->ranges){
+      ++i;
+      if(range == 0){
+        continue;
+      }
+      if(range < ranges_threshold_->at(i)) {
+        return true;
+      }
+    }
+    return false;
+  }
+private:
+  void HandleLaserScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg)
+  {
+    msg_->header = msg->header;
+    msg_->intensities = msg->intensities;
+    msg_->angle_increment = msg->angle_increment;
+    msg_->range_max = msg->range_max;
+    msg_->range_min = msg->range_min;
+    msg_->scan_time = msg->scan_time;
+    msg_->angle_max = msg->angle_max - msg->angle_increment * (msg->ranges.size() - end_);
+    msg_->angle_min = msg->angle_min + msg->angle_increment * begin_;
+    // msg_->ranges.assign(msg->ranges.begin() + begin_, msg->ranges.begin() + end_);
+    // laser_pub_->publish(*msg_);
+    static bool threshold_construct_ = false;
+    if(!threshold_construct_){
+      ranges_threshold_ = std::make_shared<std::vector<float>>(end_-begin_, 0.0);
+      auto fov = msg_->angle_max - msg_->angle_min;
+      for(std::size_t i = 0; i < ranges_threshold_->size(); ++i){
+        ranges_threshold_->at(i) = min_distance_ / cos(fov / 2 - msg_->angle_increment * i);
+      }
+      threshold_construct_ = true;
+    }
+    msg_->ranges = *ranges_threshold_;
+    laser_pub_->publish(*msg_);
+  }
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laser_sub_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_pub_;
+  sensor_msgs::msg::LaserScan::SharedPtr msg_;
+  std::shared_ptr<std::vector<float>> ranges_threshold_;
+  int32_t begin_{700}, end_{1320};
+  float min_distance_ {0.0}; // 0.22
+};
+
 class MotionDecision final
 {
 public:
@@ -59,6 +118,22 @@ public:
   }
 
 private:
+  inline bool IsStateValid(int32_t motion_id, int32_t & error_code)
+  {
+    if (estop_) {
+      if (motion_id != MotionIDMsg::ESTOP && motion_id != MotionIDMsg::RECOVERYSTAND) {
+        ERROR("Forbidden ResultCmd(%d) when estop", motion_id);
+        error_code = code_ptr_->GetCode(MotionCode::kEstop);
+        return false;
+      }
+    }
+    if (motion_id == MotionIDMsg::RECOVERYSTAND && laser_helper_->IsStuck()) {
+      ERROR("Forbidden ResultCmd(%d) when stuck", motion_id);
+      error_code = code_ptr_->GetCode(MotionCode::kStuck);
+      return false;
+    }
+    return true;
+  }
   inline bool IsStateValid(int32_t motion_id)
   {
     if (estop_) {
