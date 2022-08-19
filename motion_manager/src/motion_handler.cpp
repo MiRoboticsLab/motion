@@ -331,6 +331,7 @@ void MotionHandler::ExecuteResultCmd(
   response->code = MotionCodeMsg::OK;
   response->result = true;
   response->motion_id = motion_status_ptr_->motion_id;
+  INFO("Motion %d done", request->motion_id);
 }
 
 void MotionHandler::HandleResultCmd(
