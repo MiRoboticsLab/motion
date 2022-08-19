@@ -40,8 +40,9 @@ class LaserHelper final
 public:
   explicit LaserHelper(const rclcpp::Node::SharedPtr node)
   {
-    laser_sub_ = node->create_subscription<sensor_msgs::msg::LaserScan>(kGlobalScanTopicName, 
-      rclcpp::SystemDefaultsQoS(), 
+    laser_sub_ = node->create_subscription<sensor_msgs::msg::LaserScan>(
+      kGlobalScanTopicName,
+      rclcpp::SystemDefaultsQoS(),
       std::bind(&LaserHelper::HandleLaserScanCallback, this, std::placeholders::_1));
     laser_pub_ = node->create_publisher<sensor_msgs::msg::LaserScan>("scan_filterd", 1);
     msg_ = std::make_shared<sensor_msgs::msg::LaserScan>();
@@ -49,17 +50,18 @@ public:
   bool IsStuck()
   {
     int32_t i = 0;
-    for(auto range : msg_->ranges){
+    for (auto range : msg_->ranges) {
       ++i;
-      if(range == 0){
+      if (range == 0) {
         continue;
       }
-      if(range < ranges_threshold_->at(i)) {
+      if (range < ranges_threshold_->at(i)) {
         return true;
       }
     }
     return false;
   }
+
 private:
   void HandleLaserScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg)
   {
@@ -74,10 +76,10 @@ private:
     // msg_->ranges.assign(msg->ranges.begin() + begin_, msg->ranges.begin() + end_);
     // laser_pub_->publish(*msg_);
     static bool threshold_construct_ = false;
-    if(!threshold_construct_){
-      ranges_threshold_ = std::make_shared<std::vector<float>>(end_-begin_, 0.0);
+    if (!threshold_construct_) {
+      ranges_threshold_ = std::make_shared<std::vector<float>>(end_ - begin_, 0.0);
       auto fov = msg_->angle_max - msg_->angle_min;
-      for(std::size_t i = 0; i < ranges_threshold_->size(); ++i){
+      for (std::size_t i = 0; i < ranges_threshold_->size(); ++i) {
         ranges_threshold_->at(i) = min_distance_ / cos(fov / 2 - msg_->angle_increment * i);
       }
       threshold_construct_ = true;
@@ -91,7 +93,7 @@ private:
   sensor_msgs::msg::LaserScan::SharedPtr msg_;
   std::shared_ptr<std::vector<float>> ranges_threshold_;
   int32_t begin_{700}, end_{1320};
-  float min_distance_ {0.0}; // 0.22
+  float min_distance_ {0.0};  // 0.22
 };
 
 class MotionDecision final
