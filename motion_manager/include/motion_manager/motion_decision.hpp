@@ -34,6 +34,7 @@ namespace cyberdog
 namespace motion
 {
 
+    laser_sub_ = node->create_subscription<sensor_msgs::msg::LaserScan>(kGlobalScanTopicName, 
 class MotionDecision final
 {
 public:
