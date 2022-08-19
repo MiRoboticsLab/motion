@@ -57,6 +57,14 @@ add_executable(stair_perception_test test/stair_perception.cpp test/stair_percep
 target_link_libraries(stair_perception_test ${PROJECT_NAME} ${PCL_LIBRARIES})
 ament_target_dependencies(stair_perception_test cyberdog_common cyberdog_debug pcl_conversions)
 
+add_executable(edge_align test/edge_align.cpp test/edge_perception.cpp)
+target_link_libraries(edge_align ${PROJECT_NAME} ${PCL_LIBRARIES})
+ament_target_dependencies(edge_align cyberdog_common cyberdog_debug pcl_conversions)
+
+add_executable(edge_perception_test test/edge_perception.cpp test/edge_perception_test.cpp)
+target_link_libraries(edge_perception_test ${PROJECT_NAME} ${PCL_LIBRARIES})
+ament_target_dependencies(edge_perception_test cyberdog_common cyberdog_debug pcl_conversions)
+
 install(
   DIRECTORY include/
   DESTINATION include
@@ -67,7 +75,9 @@ install(TARGETS
   distance_test
   duration_test
   stair_align
+  edge_align
   stair_perception_test
+  edge_perception_test
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
