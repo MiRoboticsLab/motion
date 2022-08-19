@@ -27,6 +27,7 @@ public:
     node_ptr_ = rclcpp::Node::make_shared(name);
     motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>(cyberdog::motion::kMotionResultServiceName);
     motion_queue_client_ = node_ptr_->create_client<protocol::srv::MotionQueueCustomCmd>(cyberdog::motion::kMotionQueueServiceName);
+    code_ptr_ = std::make_shared<cyberdog::motion::MCode>(cyberdog::system::ModuleCode::kMotionManager);
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kOK), "kOK");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwLowBattery), "kHwLowBattery");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwMotorOffline), "kHwMotorOffline");
