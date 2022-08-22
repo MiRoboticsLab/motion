@@ -21,36 +21,39 @@ namespace cyberdog
 namespace motion
 {
 
-MotionDecision::MotionDecision()
+MotionDecision::MotionDecision(
+  const rclcpp::Node::SharedPtr & node,
+  const std::shared_ptr<MCode> & code)
+: node_ptr_(node), code_ptr_(code)
 {}
 
 MotionDecision::~MotionDecision() {}
 
 void MotionDecision::Config() {}
 
-bool MotionDecision::Init(
-  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub,
-  rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub)
+bool MotionDecision::Init()
 {
-  handler_ptr_ = std::make_shared<MotionHandler>();
-  if (!handler_ptr_->Init(motion_status_pub)) {
+  handler_ptr_ = std::make_shared<MotionHandler>(node_ptr_, code_ptr_);
+  if (!handler_ptr_->Init()) {
     ERROR("Fail to initialize MotionHandler");
     return false;
   }
-  servo_response_pub_ = servo_response_pub;
+  servo_response_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
+    kMotionServoResponseTopicName, 10);
   servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponseThread, this));
   servo_response_thread_.detach();
+  laser_helper_ = std::make_shared<LaserHelper>(node_ptr_);
   ResetServoResponseMsg();
   return true;
 }
 
-void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr msg)
+void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr & msg)
 {
   SetServoResponse();
   if (!IsStateValid(msg->motion_id)) {
     servo_response_msg_.motion_id = handler_ptr_->GetMotionStatus()->motion_id;
     servo_response_msg_.result = false;
-    servo_response_msg_.code = MotionCodeMsg::TASK_STATE_ERROR;
+    servo_response_msg_.code = code_ptr_->GetCode(MotionCode::kEstop);
     ERROR("Forbidden ServoCmd when estop");
     return;
   }
@@ -80,7 +83,7 @@ void MotionDecision::ServoResponseThread()
         servo_response_msg_.order_process_bar = -1;
         servo_response_msg_.status = -1;
         servo_response_msg_.result = false;
-        servo_response_msg_.code = MotionCodeMsg::COM_LCM_TIMEOUT;
+        servo_response_msg_.code = code_ptr_->GetCode(MotionCode::kComLcmTimeout);
         servo_response_pub_->publish(servo_response_msg_);
       }
     }
@@ -97,11 +100,11 @@ void MotionDecision::DecideResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  if (!IsStateValid(request->motion_id)) {
+  int32_t error_code = code_ptr_->GetCode(MotionCode::kOK);
+  if (!IsStateValid(request->motion_id, error_code)) {
     response->motion_id = handler_ptr_->GetMotionStatus()->motion_id;
     response->result = false;
-    response->code = MotionCodeMsg::TASK_STATE_ERROR;
-    ERROR("Forbidden ResultCmd(%d) when estop", request->motion_id);
+    response->code = error_code;
     return;
   }
   if (!IsModeValid()) {

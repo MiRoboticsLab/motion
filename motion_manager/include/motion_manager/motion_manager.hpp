@@ -68,13 +68,12 @@ private:
 
 private:
   rclcpp::Subscription<MotionServoCmdMsg>::SharedPtr motion_servo_sub_ {nullptr};
-  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr motion_servo_pub_ {nullptr};
-  rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub_ {nullptr};
   rclcpp::Service<MotionResultSrv>::SharedPtr motion_result_srv_ {nullptr};
   rclcpp::Service<MotionQueueCustomSrv>::SharedPtr motion_queue_srv_ {nullptr};
   rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::CallbackGroup::SharedPtr callback_group_{nullptr};
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
+  std::shared_ptr<MCode> code_ptr_;
 };  // class MotionManager
 }  // namespace motion
 }  // namespace cyberdog

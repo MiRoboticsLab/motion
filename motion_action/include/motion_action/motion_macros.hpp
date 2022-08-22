@@ -29,6 +29,28 @@ namespace cyberdog
 namespace motion
 {
 
+// 所有的motion相关code都从3000开始，该值为全局架构设计分配
+enum class MotionCode : int32_t
+{
+  kOK = 0,
+
+  kHwLowBattery = 1,
+  kHwMotorOffline = 2,
+
+  kComLcmTimeout = 10,
+
+  kMotionSwitchError = 20,
+  kMotionTransitionTimeout = 21,
+  kMotionExecuteTimeout = 22,
+  kMotionExecuteError = 23,
+
+  kCommandInvalid = 30,
+
+  kEstop = 40,
+  kStuck = 41,
+  kBusy = 42
+};  // enum class MotionCode
+
 using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
 using LcmResponse = robot_control_response_lcmt;
 using MotionResultSrv = protocol::srv::MotionResultCmd;
@@ -37,6 +59,7 @@ using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 using MotionIDMsg = protocol::msg::MotionID;
 using MotionCodeMsg = protocol::msg::MotionCode;
+using MCode = cyberdog::system::CyberdogCode<MotionCode>;
 
 constexpr uint8_t kActionLcmPublishFrequency = 20;
 constexpr uint8_t kServoDataLostTimesThreshold = 4;
@@ -60,6 +83,7 @@ constexpr const char * kMotionQueueServiceName = "motion_queue_cmd";
 constexpr const char * kMotionQueueCommandTopicName = "motion_queue_cmd_test";
 constexpr const char * kBridgeOdomTopicName = "odom_out";
 constexpr const char * kMotionStatusTopicName = "motion_status";
+constexpr const char * kGlobalScanTopicName = "scan";
 // a: src, b: des, c: size, d: description
 #define GET_VALUE(a, b, c, d) \
   if (a.size() != c) { \
@@ -141,19 +165,6 @@ enum class HandlerStatus : uint8_t
   kExecutingServoCmd = 1,
   kExecutingResultCmd = 2
 };  // enum class HandlerStatus
-
-// // 所有的motion相关code都从300开始，该值为全局架构设计分配
-// enum class MotionCode : int32_t
-// {
-//   kOK = 0,
-//   kCommandInvalid = (int32_t)system::ModuleCode::kMotion + 10,
-//   kReadLcmTimeout = (int32_t)system::ModuleCode::kMotion + 20,
-//   kSwitchError = (int32_t)system::ModuleCode::kMotion + 31,
-//   kTransitionTimeout = (int32_t)system::ModuleCode::kMotion + 32,
-//   kExecuteTimeout = (int32_t)system::ModuleCode::kMotion + 33,
-//   kExecuteError = (int32_t)system::ModuleCode::kMotion + 34,
-//   kStateError = (int32_t)system::ModuleCode::kMotion + 40
-// };  // enum class MotionCode
 }  // namespace motion
 }  // namespace cyberdog
 #endif  // MOTION_ACTION__MOTION_MACROS_HPP_
