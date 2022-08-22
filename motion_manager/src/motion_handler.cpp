@@ -149,7 +149,7 @@ void MotionHandler::HandleServoCmd(
     post_motion_checked_ = false;
   }
   res.result = true;
-  res.code = code_ptr_->GetCode(MotionCode::kOK);
+  res.code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
 }
 
 void MotionHandler::ServoDataCheck()
@@ -328,7 +328,7 @@ void MotionHandler::ExecuteResultCmd(
     ERROR("Motion execute error");
     return;
   }
-  response->code = MotionCodeMsg::OK;
+  response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
   response->result = true;
   response->motion_id = motion_status_ptr_->motion_id;
   INFO("Motion %d done", request->motion_id);

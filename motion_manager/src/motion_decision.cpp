@@ -100,7 +100,7 @@ void MotionDecision::DecideResultCmd(
   const MotionResultSrv::Request::SharedPtr request,
   MotionResultSrv::Response::SharedPtr response)
 {
-  int32_t error_code = code_ptr_->GetCode(MotionCode::kOK);
+  int32_t error_code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
   if (!IsStateValid(request->motion_id, error_code)) {
     response->motion_id = handler_ptr_->GetMotionStatus()->motion_id;
     response->result = false;
