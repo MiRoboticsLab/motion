@@ -147,7 +147,7 @@ void StairPerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg
     case State::APPROACH:
       if (total_points_size > approach_threshold_) {
         INFO("Stop: %d", total_points_size);
-        state_ = State::IDLE;
+        state_ = State::FINISH;
       }
       INFO("Approaching: %d", total_points_size);
       break;
