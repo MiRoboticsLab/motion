@@ -32,10 +32,8 @@ namespace motion
 // 所有的motion相关code都从3000开始，该值为全局架构设计分配
 enum class MotionCode : int32_t
 {
-  kOK = 0,
-
-  kHwLowBattery = 1,
-  kHwMotorOffline = 2,
+  kHwLowBattery = 0,
+  kHwMotorOffline = 1,
 
   kComLcmTimeout = 10,
 
@@ -58,7 +56,6 @@ using MotionQueueCustomSrv = protocol::srv::MotionQueueCustomCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 using MotionIDMsg = protocol::msg::MotionID;
-using MotionCodeMsg = protocol::msg::MotionCode;
 using MCode = cyberdog::system::CyberdogCode<MotionCode>;
 
 constexpr uint8_t kActionLcmPublishFrequency = 20;

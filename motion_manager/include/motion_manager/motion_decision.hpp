@@ -216,7 +216,7 @@ private:
   inline void ResetServoResponseMsg()
   {
     servo_response_msg_.result = true;
-    servo_response_msg_.code = MotionCodeMsg::OK;
+    servo_response_msg_.code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
   }
 
 private:
