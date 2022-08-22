@@ -49,7 +49,6 @@ enum class MotionCode : int32_t
   kEstop = 40,
   kStuck = 41,
   kBusy = 42
-
 };  // enum class MotionCode
 
 using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
