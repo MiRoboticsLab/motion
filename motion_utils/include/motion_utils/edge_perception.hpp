@@ -53,6 +53,7 @@ public:
   void Launch(){};
   const State & GetStatus() const { return state_; };
   inline void SetStatus(const State& state) { state_ = state; };
+  const bool & GetEdgeIsDeep() const { return is_edge_deep_; };
 
 private:
   void HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg);
@@ -78,6 +79,7 @@ private:
   rclcpp::Node::SharedPtr node_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pcl_sub_;
   State state_;
+  bool is_edge_deep_{false};
   std::deque<int32_t> diffs_;
   // std::vector<ApproachThreshold> approach_thresholds_;
   double radius_{0.05};
@@ -87,6 +89,7 @@ private:
   int orientation_dead_zone_{2}, orientation_correction_{0};
   int blind_forward_threshold_{15}, approach_threshold_{100};
   bool trigger_ {false}, orientation_filter_ {false};
+  double max_depth_{0.5};
 };  // calss EdgePerception
 }  // motion
 }  // cyberdog

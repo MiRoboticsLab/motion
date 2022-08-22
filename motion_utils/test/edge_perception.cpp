@@ -31,6 +31,7 @@ EdgePerception::EdgePerception(rclcpp::Node::SharedPtr node, const toml::value& 
   GET_TOML_VALUE(config, "filter_size", filter_size_);
   GET_TOML_VALUE(config, "blind_forward_threshold", blind_forward_threshold_);
   GET_TOML_VALUE(config, "threshold", approach_threshold_);
+  GET_TOML_VALUE(config, "max_depth", max_depth_);
 
   pc_filtered_.reset(new pcl::PointCloud<pcl::PointXYZ>);
   ro_filter_.setRadiusSearch(radius_);
@@ -43,6 +44,7 @@ EdgePerception::EdgePerception(rclcpp::Node::SharedPtr node, const toml::value& 
   pc_ro_filtered_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("ro_filtered", 1);
   state_ = State::IDLE;
   trigger_ = true;
+  is_edge_deep_ = false;
 }
 
 void EdgePerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg)
@@ -58,7 +60,9 @@ void EdgePerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg)
   int right_point_size = 0;
   // int dead_zone = 2, correction = 0;
   float z = 0, sum = 0;
-
+  float x_filtered_max = 0;
+  float z_beyond_xfmax = 0, sum_beyond_xfmax = 0;
+  int beyond_xfmax_point_size = 0;
   for (auto point : pc_filtered_->points) {
     if (point.y > 0) {
       left_point_size++;
@@ -70,10 +74,21 @@ void EdgePerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg)
     //   continue;
     // }
     sum += abs(point.z);
+    if (point.x > x_filtered_max)
+        x_filtered_max = point.x;
   }
   z = total_points_size > 0 ? sum / total_points_size : 0.5;
 
+  for (auto point : pc_raw_->points) {
+    if (point.x > x_filtered_max) {
+        beyond_xfmax_point_size++;
+        sum_beyond_xfmax += abs(point.z);
+    }
+  }
+  z_beyond_xfmax = beyond_xfmax_point_size > 0 ? sum_beyond_xfmax / beyond_xfmax_point_size : 0.5;
+  is_edge_deep_ = (z_beyond_xfmax > max_depth_);
   INFO("left: %d, right: %d, total: %d, z: %f", left_point_size, right_point_size, total_points_size, z);
+  INFO("z_beyond_xfmax: %f, beyond_xfmax_point_size: %d",z_beyond_xfmax, beyond_xfmax_point_size);
   int diff = 0;
   if (orientation_filter_) {
     diff = GetMeanDiff(left_point_size - right_point_size);
@@ -139,7 +154,7 @@ void EdgePerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg)
     case State::APPROACH:
       if (total_points_size < approach_threshold_) {
         INFO("Stop: %d", total_points_size);
-        state_ = State::IDLE;
+        state_ = State::FINISH;
       }
       INFO("Approaching: %d", total_points_size);
       break; 
