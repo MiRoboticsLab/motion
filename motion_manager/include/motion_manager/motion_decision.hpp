@@ -27,7 +27,6 @@
 #include "protocol/msg/motion_servo_response.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
-#include "motion_utils/motion_utils.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 
 namespace cyberdog
