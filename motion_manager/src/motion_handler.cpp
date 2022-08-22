@@ -509,5 +509,23 @@ void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
     cmd.step_height[1] << ",]\n";
   toml_ << "\n";
 }
+
+bool MotionHandler::CheckMotors(const int32_t motion_id, int32_t & error_code)
+{
+  if (motion_id == MotionIDMsg::ESTOP) {
+    return true;
+  }
+  bool ret = true;
+  for (auto motor : motion_status_ptr_->motor_error) {
+    if (motor != 0 || motor != kMotorNormal) {
+      continue;
+    } else {
+      // 检查电机状态位
+      (void)error_code;
+      ret = false;
+    }
+  }
+  return ret;
+}
 }  // namespace motion
 }  // namespace cyberdog
