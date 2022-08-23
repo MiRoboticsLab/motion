@@ -75,7 +75,7 @@ void EdgeAlign::Loop()
         edge_perception_->SetStatus(EdgePerception::State::IDLE);
         servo_cmd_.cmd_type = MotionServoCmdMsg::SERVO_END;
         servo_cmd_pub_->publish(servo_cmd_);
-        if(jump_after_align_&&edge_perception_->GetEdgeIsDeep()) {
+        if(jump_after_align_&&!edge_perception_->GetEdgeIsDeep()) {
           std::this_thread::sleep_for(std::chrono::milliseconds(2000));
           MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
           req->motion_id = 133;
