@@ -220,3 +220,10 @@ map = [11, 5]
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11]
 min_exec_time = -1
+
+[[motion_ids]]
+motion_id = 400
+map = [11, 80]   
+pre_motion = []
+post_motion = [0, 12, 7, 21, 3, 11]
+min_exec_time = -1

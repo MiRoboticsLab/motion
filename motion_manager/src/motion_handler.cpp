@@ -427,7 +427,8 @@ bool MotionHandler::CheckPostMotion(int32_t motion_id)
   }
 
   // 请求的mode
-  int32_t request_mode = motion_id_map_.find(motion_id)->second.map.front();
+  int32_t request_mode = motion_id < 400 ? motion_id_map_.find(motion_id)->second.map.front() :
+    motion_id_map_.find(400)->second.map.front();
   // 当前状态允许切换的post_motion
   std::vector<int32_t> post_motion =
     motion_id_map_.find(motion_status_ptr_->motion_id)->second.post_motion;
@@ -444,20 +445,25 @@ bool MotionHandler::AllowServoCmd(int32_t motion_id)
 
 bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr & request)
 {
-  if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
-    return false;
+  if (request->motion_id < 400) {
+    if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
+      return false;
+    }
+    bool result = true;
+    auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
+    if (min_exec_time > 0) {
+      result = request->duration == 0;
+    } else if (min_exec_time < 0) {
+      result = request->duration > 0;
+    } else {}
+    if (!result) {
+      return false;
+    }
+    return true;
+  } else {
+    // TODO(Harvey): 判断自定义动作的指令有效
+    return true;
   }
-  bool result = true;
-  auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
-  if (min_exec_time > 0) {
-    result = request->duration == 0;
-  } else if (min_exec_time < 0) {
-    result = request->duration > 0;
-  } else {}
-  if (!result) {
-    return false;
-  }
-  return true;
 }
 
 void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)

@@ -59,6 +59,12 @@ bool MotionManager::Init()
     std::bind(
       &MotionManager::MotionResultCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
+  motion_custom_srv_ =
+    node_ptr_->create_service<MotionCustomSrv>(
+    kMotionCustomServiceName,
+    std::bind(
+      &MotionManager::MotionCustomCmdCallback, this, std::placeholders::_1,
+      std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
   motion_queue_srv_ =
     node_ptr_->create_service<MotionQueueCustomSrv>(
     kMotionQueueServiceName,
@@ -135,6 +141,44 @@ void MotionManager::MotionResultCmdCallback(
   }
 
   decision_ptr_->DecideResultCmd(request, response);
+}
+
+void MotionManager::MotionCustomCmdCallback(
+  const MotionCustomSrv::Request::SharedPtr request, MotionCustomSrv::Response::SharedPtr response)
+{
+  if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {
+    auto lcm = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
+    std::ifstream custom_config(kMotionCustomCmdConfigPath);
+    std::string s;
+    file_lcmt lcm_file;
+    while (getline(custom_config, s)) {
+      INFO("%s", s.c_str());
+      lcm_file.data += s + "\n";
+    }
+    if (0 == lcm->publish(kLCMBridgeFileChannel, &lcm_file)) {
+      response->result = true;
+      response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+    } else {
+      response->result = false;
+      response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+    }
+    // TODO (Harvey): motion_id如何返回
+  } else if (request->cmd_type == MotionCustomSrv::Request::EXECUTION) {
+    INFO("Receive Cmd with motion_id: %d", request->motion_id);
+    if (!IsStateValid()) {
+      INFO("State invalid with current state");
+      return;
+    }
+    auto req = std::make_shared<MotionResultSrv::Request>();
+    req->motion_id = request->motion_id;
+    req->cmd_source = request->cmd_source;
+    auto res = std::make_shared<MotionResultSrv::Response>();
+    decision_ptr_->DecideResultCmd(req, res);
+    response->motion_id = res->motion_id;
+    response->result = res->result;
+    response->code = res->code;
+    // decision_ptr_->DecideCustomCmd(request, response);
+  }
 }
 
 void MotionManager::MotionQueueCmdCallback(
