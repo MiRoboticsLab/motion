@@ -189,8 +189,9 @@ void MotionHandler::PoseControlDefinitively()
 
 void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd)
 {
-  if (exec_servo_pre_motion_failed_) 
+  if (exec_servo_pre_motion_failed_) {
     return;
+  }
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
   request->motion_id = last_servo_cmd->motion_id;
   request->step_height = last_servo_cmd->step_height;
