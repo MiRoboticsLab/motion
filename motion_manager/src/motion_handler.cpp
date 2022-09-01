@@ -466,7 +466,7 @@ bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr & r
 void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
 {
   if (!toml_.is_open()) {
-    ERROR("TomlLog File not set before writing");
+    // ERROR("TomlLog File not set before writing");
     return;
   }
   toml_ << "# " + GetCurrentTime() << "\n";
