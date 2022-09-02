@@ -54,7 +54,7 @@ OdomOutPublisher::OdomOutPublisher(const rclcpp::Node::SharedPtr node)
         }
         leg_odom_publisher_->publish(odom_);
         tf2_broadcaster_->sendTransform(transform_stamped_);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
       }
     }
   }.detach();
