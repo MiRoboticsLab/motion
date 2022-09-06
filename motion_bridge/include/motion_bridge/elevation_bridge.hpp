@@ -34,7 +34,7 @@ namespace motion
 {
 constexpr int8_t SIZE_X = 80;
 constexpr int8_t SIZE_Y = 80;
-constexpr float RESOLUTION = 0.05;
+constexpr float RESOLUTION = 0.02;
 constexpr const char * LAYER_ELEVATION = "elevation";
 constexpr const char * LAYER_TRAVERSABILITY = " ";
 class ElevationBridge
