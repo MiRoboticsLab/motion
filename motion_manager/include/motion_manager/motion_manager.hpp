@@ -24,7 +24,7 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
-#include "protocol/lcm/file_lcmt.hpp"
+#include "protocol/lcm/file_send_lcmt.hpp"
 #include "manager_base/manager_base.hpp"
 #include "motion_manager/motion_decision.hpp"
 #include "motion_action/motion_action.hpp"
