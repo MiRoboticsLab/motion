@@ -85,21 +85,23 @@ void ElevationBridge::GridMapCallback(const grid_map_msgs::msg::GridMap::SharedP
     ERROR("Lenth error");
     // return;
   }
-  grid_map::GridMap map, submap;
+  grid_map::GridMap map, submap, tranformed_map;
   if (!grid_map::GridMapRosConverter::fromMessage(*msg, map)) {
     ERROR("Cannot convert grid map from ros msg");
     // return;
   }
+  float z_diff = 0;
   if (msg->header.frame_id != odom_frame_) {
     // trans msg to odom frame
     Eigen::Isometry3d transform;
     if (!GetTransform(transform, odom_frame_, msg->header.frame_id)) {
       ERROR("Cannot transform");
     }
-    map = map.getTransformedMap(transform, LAYER_ELEVATION, odom_frame_);
+    tranformed_map = map.getTransformedMap(transform, LAYER_ELEVATION, odom_frame_);
+    z_diff = transform.translation().z();
   }
-  double center_pos_x = map.getPosition()(0);
-  double center_pos_y = map.getPosition()(1);
+  double center_pos_x = tranformed_map.getPosition()(0);
+  double center_pos_y = tranformed_map.getPosition()(1);
   elevation_.robot_loc[0] = center_pos_x;
   elevation_.robot_loc[1] = center_pos_y;
 
@@ -136,7 +138,7 @@ void ElevationBridge::GridMapCallback(const grid_map_msgs::msg::GridMap::SharedP
   grid_map::SubmapIterator iter(map, submap_left_top_index, grid_map::Size(SIZE_X, SIZE_Y));
   for (int8_t i = 0; i < SIZE_X; i++) {
     for (int8_t j = 0; j < SIZE_Y; j++) {
-      elevation_.map[i][j] = map.at(LAYER_ELEVATION, *iter);
+      elevation_.map[i][j] = map.at(LAYER_ELEVATION, *iter) + z_diff;
       ++iter;
     }
   }
