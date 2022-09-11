@@ -133,6 +133,7 @@ void MotionHandler::HandleServoCmd(
         SetWorkStatus(HandlerStatus::kIdle);
         res.result = false;
         res.code = response->code;
+        exec_servo_pre_motion_failed_ = true;
         ERROR("Get error when trying to be ready for ServoCmd");
         return;
       }
@@ -188,6 +189,10 @@ void MotionHandler::PoseControlDefinitively()
 
 void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd)
 {
+  if (exec_servo_pre_motion_failed_) {
+    exec_servo_pre_motion_failed_ = false;
+    return;
+  }
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
   request->motion_id = last_servo_cmd->motion_id;
   request->step_height = last_servo_cmd->step_height;
@@ -469,7 +474,7 @@ bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr & r
 void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
 {
   if (!toml_.is_open()) {
-    ERROR("TomlLog File not set before writing");
+    // ERROR("TomlLog File not set before writing");
     return;
   }
   toml_ << "# " + GetCurrentTime() << "\n";

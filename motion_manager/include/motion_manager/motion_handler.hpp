@@ -190,6 +190,7 @@ private:
   bool is_servo_need_check_ {false};
   bool premotion_executing_ {false};
   bool post_motion_checked_ {false};
+  bool exec_servo_pre_motion_failed_ {false};
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

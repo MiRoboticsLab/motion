@@ -281,7 +281,7 @@ void MotionAction::ReadLcm(
       "bar:%d, mod:%d, gid:%d, sws:%d, fer:%d", msg->order_process_bar, msg->mode, msg->gait_id,
       msg->switch_status, msg->footpos_error);
   }
-  protocol::msg::MotionStatus::SharedPtr lcm_res(new protocol::msg::MotionStatus);
+  static auto lcm_res = std::make_shared<MotionStatusMsg>();
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
     last_res_mode_ = msg->mode;
     last_res_gait_id_ = msg->gait_id;
