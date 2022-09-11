@@ -233,9 +233,8 @@ bool MotionHandler::FeedbackTimeout()
          std::cv_status::timeout;
 }
 
-void MotionHandler::ExecuteResultCmd(
-  const MotionResultSrv::Request::SharedPtr request,
-  MotionResultSrv::Response::SharedPtr response)
+template<typename CmdRequestT, typename CmdResponseT>
+void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT response)
 {
   if (request->motion_id != MotionIDMsg::ESTOP) {
     for (auto motor : motion_status_ptr_->motor_error) {
@@ -339,9 +338,8 @@ void MotionHandler::ExecuteResultCmd(
   INFO("Motion %d done", request->motion_id);
 }
 
-void MotionHandler::HandleResultCmd(
-  const MotionResultSrv::Request::SharedPtr request,
-  MotionResultSrv::Response::SharedPtr response)
+template<typename CmdRequestT, typename CmdResponseT>
+void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT response)
 {
   if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
     response->result = false;
@@ -358,11 +356,44 @@ void MotionHandler::HandleResultCmd(
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
+  if(request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
+    
+  }
   CreateTomlLog(request->motion_id);
   ExecuteResultCmd(request, response);
   CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
 }
+
+
+void MotionHandler::HandleSequenceCmd(
+  const MotionSequenceSrv::Request::SharedPtr request,
+  MotionSequenceSrv::Response::SharedPtr response)
+{
+  if (GetWorkStatus() != HandlerStatus::kIdle) {
+    response->result = false;
+    response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    ERROR("Busy when Getting SequenceCmd(%d)", MotionIDMsg::SEQUENCE_CUSTOM);
+    return;
+  }
+  SetWorkStatus(HandlerStatus::kExecutingResultCmd);
+  auto req = std::make_shared<MotionResultSrv::Request>();
+  req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
+  if (!isCommandValid(req)) {
+    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+    response->result = false;
+    response->describe = "";
+    ERROR("SequenceCmd invalid");
+    SetWorkStatus(HandlerStatus::kIdle);
+    return;
+  }
+  CreateTomlLog(req->motion_id);
+  ExecuteResultCmd(request, response);
+  CloseTomlLog();
+  SetWorkStatus(HandlerStatus::kIdle);
+}
+
+
 
 void MotionHandler::HandleQueueCmd(
   const MotionQueueCustomSrv::Request::SharedPtr request,

@@ -49,12 +49,13 @@ public:
 public:
   bool Init();
   void HandleServoCmd(const MotionServoCmdMsg::SharedPtr & msg, MotionServoResponseMsg & res);
-  void ExecuteResultCmd(
-    const MotionResultSrv::Request::SharedPtr request,
-    MotionResultSrv::Response::SharedPtr response);
-  void HandleResultCmd(
-    const MotionResultSrv::Request::SharedPtr request,
-    MotionResultSrv::Response::SharedPtr response);
+  template<typename CmdRequestT, typename CmdResponseT>
+  void ExecuteResultCmd(const CmdRequestT request, CmdResponseT response);
+  template<typename CmdRequestT, typename CmdResponseT>
+  void HandleResultCmd(const CmdRequestT request, CmdResponseT response);
+  void HandleSequenceCmd(
+    const MotionSequenceSrv::Request::SharedPtr request,
+    MotionSequenceSrv::Response::SharedPtr response);
   void HandleQueueCmd(
     const MotionQueueCustomSrv::Request::SharedPtr request,
     MotionQueueCustomSrv::Response::SharedPtr response);

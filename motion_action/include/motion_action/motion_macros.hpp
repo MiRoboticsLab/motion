@@ -21,10 +21,12 @@
 #include "protocol/msg/motion_servo_response.hpp"
 #include "protocol/msg/motion_id.hpp"
 #include "protocol/msg/motion_code.hpp"
+#include "protocol/msg/motion_sequence_param.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/srv/motion_queue_custom_cmd.hpp"
 #include "protocol/srv/motion_custom_cmd.hpp"
+#include "protocol/srv/motion_sequence.hpp"
 namespace cyberdog
 {
 namespace motion
@@ -54,6 +56,7 @@ using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
 using LcmResponse = robot_control_response_lcmt;
 using MotionResultSrv = protocol::srv::MotionResultCmd;
 using MotionQueueCustomSrv = protocol::srv::MotionQueueCustomCmd;
+using MotionSequenceSrv = protocol::srv::MotionSequence;
 using MotionCustomSrv = protocol::srv::MotionCustomCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
@@ -80,6 +83,7 @@ constexpr const char * kMotionServoResponseTopicName = "motion_servo_response";
 constexpr const char * kMotionResultServiceName = "motion_result_cmd";
 constexpr const char * kMotionCustomServiceName = "motion_custom_cmd";
 constexpr const char * kMotionQueueServiceName = "motion_queue_cmd";
+constexpr const char * kMotionSequenceServiceName = "motion_sequence_cmd";
 constexpr const char * kMotionQueueCommandTopicName = "motion_queue_cmd_test";
 constexpr const char * kBridgeOdomTopicName = "odom_out";
 constexpr const char * kMotionStatusTopicName = "motion_status";

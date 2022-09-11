@@ -106,15 +106,17 @@ public:
 
 public:
   void DecideServoCmd(const MotionServoCmdMsg::SharedPtr & msg);
-  void DecideResultCmd(
-    const MotionResultSrv::Request::SharedPtr request,
-    MotionResultSrv::Response::SharedPtr response);
+  template<typename CmdRequestT, typename CmdResponseT>
+  void DecideResultCmd(const CmdRequestT request, CmdResponseT response);
   void DecideCustomCmd(
     const MotionCustomSrv::Request::SharedPtr request,
     MotionCustomSrv::Response::SharedPtr response);
   void DecideQueueCmd(
     const MotionQueueCustomSrv::Request::SharedPtr request,
     MotionQueueCustomSrv::Response::SharedPtr response);
+  void DecideSequenceCmd(
+    const MotionSequenceSrv::Request::SharedPtr request,
+    MotionSequenceSrv::Response::SharedPtr response);
 
   inline void SetMode(uint8_t mode)
   {

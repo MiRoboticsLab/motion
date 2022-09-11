@@ -71,7 +71,12 @@ bool MotionManager::Init()
     std::bind(
       &MotionManager::MotionQueueCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
-
+  motion_sequence_srv_ =
+    node_ptr_->create_service<MotionSequenceSrv>(
+    kMotionSequenceServiceName,
+    std::bind(
+      &MotionManager::MotionSequenceCmdCallback, this, std::placeholders::_1, 
+      std::placeholders::_2), rmw_qos_profile_services_default, callback_group_); 
   return true;
 }
 
@@ -140,7 +145,7 @@ void MotionManager::MotionResultCmdCallback(
     return;
   }
 
-  decision_ptr_->DecideResultCmd(request, response);
+  decision_ptr_->DecideResultCmd<MotionResultSrv::Request::SharedPtr, MotionResultSrv::Response::SharedPtr>(request, response);
 }
 
 void MotionManager::MotionCustomCmdCallback(
@@ -151,6 +156,53 @@ void MotionManager::MotionCustomCmdCallback(
   //   std::ifstream custom_config(kMotionCustomCmdConfigPath);
   //   std::string s;
   //   file_send_lcmt lcm_file;
+  //   while (getline(custom_config, s)) {
+  //     INFO("%s", s.c_str());
+  //     lcm_file.data += s + "\n";
+  //   }
+  //   if (0 == lcm->publish(kLCMBridgeFileChannel, &lcm_file)) {
+  //     response->result = true;
+  //     response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+  //   } else {
+  //     response->result = false;
+  //     response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+  //   }
+  //   // TODO (Harvey): motion_id如何返回
+  // } else if (request->cmd_type == MotionCustomSrv::Request::EXECUTION) {
+  //   INFO("Receive Cmd with motion_id: %d", request->motion_id);
+  //   if (!IsStateValid()) {
+  //     INFO("State invalid with current state");
+  //     return;
+  //   }
+  //   auto req = std::make_shared<MotionResultSrv::Request>();
+  //   req->motion_id = request->motion_id;
+  //   req->cmd_source = request->cmd_source;
+  //   auto res = std::make_shared<MotionResultSrv::Response>();
+  //   decision_ptr_->DecideResultCmd(req, res);
+  //   response->motion_id = res->motion_id;
+  //   response->result = res->result;
+  //   response->code = res->code;
+  //   // decision_ptr_->DecideCustomCmd(request, response);
+  // }
+}
+
+
+void MotionManager::MotionSequenceCmdCallback(
+  const MotionSequenceSrv::Request::SharedPtr request, MotionSequenceSrv::Response::SharedPtr response)
+{
+  INFO("Receive SequenceCmd with motion_id: %d", request->motion_id);
+  if (!IsStateValid()) {
+    INFO("State invalid with current state");
+    return;
+  }
+
+  decision_ptr_->DecideResultCmd<MotionSequenceSrv::Request::SharedPtr, MotionSequenceSrv::Response::SharedPtr>(request, response);
+
+  // if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {
+  //   auto lcm = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
+  //   std::ifstream custom_config(kMotionCustomCmdConfigPath);
+  //   std::string s;
+  //   file_lcmt lcm_file;
   //   while (getline(custom_config, s)) {
   //     INFO("%s", s.c_str());
   //     lcm_file.data += s + "\n";
