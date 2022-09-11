@@ -15,7 +15,8 @@
 #define MOTION_BRIDGE__FILE_BRIDGE_HPP_
 #include <rclcpp/rclcpp.hpp>
 #include <lcm/lcm-cpp.hpp>
-#include <protocol/lcm/file_lcmt.hpp>
+#include "protocol/lcm/file_send_lcmt.hpp"
+#include <protocol/lcm/file_recv_lcmt.hpp>
 #include <cyberdog_common/cyberdog_log.hpp>
 #include <fstream>
 #include <string>
@@ -37,7 +38,7 @@ private:
   void HandleFileBridgeCallback();
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<lcm::LCM> lcm_;
-  file_lcmt file_;
+  file_send_lcmt file_;
 };  // class FileBridge
 }  // namespace motion
 }  // namespace cyberdog
