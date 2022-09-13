@@ -19,6 +19,7 @@
 #include <cyberdog_common/cyberdog_log.hpp>
 #include <cyberdog_common/cyberdog_toml.hpp>
 #include "motion_action/motion_macros.hpp"
+#include <fstream>
 class SimMotionClient
 {
 public:
@@ -26,7 +27,7 @@ public:
   {
     node_ptr_ = rclcpp::Node::make_shared(name);
     motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>(cyberdog::motion::kMotionResultServiceName);
-    motion_queue_client_ = node_ptr_->create_client<protocol::srv::MotionQueueCustomCmd>(cyberdog::motion::kMotionQueueServiceName);
+    motion_queue_client_ = node_ptr_->create_client<protocol::srv::MotionSequence>(cyberdog::motion::kMotionSequenceServiceName);
     code_ptr_ = std::make_shared<cyberdog::motion::MCode>(cyberdog::system::ModuleCode::kMotionManager);
     map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK), "kOK");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwLowBattery), "kHwLowBattery");
@@ -50,10 +51,11 @@ public:
       return;
     }
     cmd_preset_ = ament_index_cpp::get_package_share_directory("motion_action") + "/preset/" + argv[1] + ".toml";
+    cmd_def_ = ament_index_cpp::get_package_share_directory("motion_action") + "/preset/user_gait_" + argv[1] + ".toml";
     if(std::atoi(argv[1]) < 400) {
       HandleResultCmd(argc, argv);
     } else {
-      HandleQueueCustomCmd(argc, argv);
+      HandleSequenceCmd(argc, argv);
     }
   }
 
@@ -104,10 +106,13 @@ private:
     INFO("MotionClient get res:\n motion_id: %d result: %d code: %d, %s", future_result.get()->motion_id, future_result.get()->result, future_result.get()->code, map_[future_result.get()->code].c_str());
   }
 
-  void HandleQueueCustomCmd(int argc, char **argv){
+  void HandleSequenceCmd(int argc, char **argv){
     (void)argc;
     (void)argv;
-    protocol::srv::MotionQueueCustomCmd::Request::SharedPtr req(new protocol::srv::MotionQueueCustomCmd::Request);
+    protocol::srv::MotionSequence::Request::SharedPtr req(new protocol::srv::MotionSequence::Request);
+    req->motion_id = protocol::msg::MotionID::SEQUENCE_CUSTOM;
+    std::ifstream file(cmd_def_);
+    file >> req->toml_data;
     protocol::msg::MotionCustomCmd msg;
     toml::value steps;
     if (!cyberdog::common::CyberdogToml::ParseFile(cmd_preset_, steps)) {
@@ -158,9 +163,9 @@ private:
   
   rclcpp::Node::SharedPtr node_ptr_;
   rclcpp::Client<protocol::srv::MotionResultCmd>::SharedPtr motion_result_client_{nullptr};
-  rclcpp::Client<protocol::srv::MotionQueueCustomCmd>::SharedPtr motion_queue_client_{nullptr};
+  rclcpp::Client<protocol::srv::MotionSequence>::SharedPtr motion_queue_client_{nullptr};
   std::unordered_map<int, std::string> map_;
-  std::string cmd_preset_;
+  std::string cmd_preset_, cmd_def_;
   std::shared_ptr<cyberdog::motion::MCode> code_ptr_;
   LOGGER_MINOR_INSTANCE("SimMotionClient");
 };

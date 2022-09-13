@@ -75,7 +75,8 @@ private:
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr & msg);
   bool CheckPostMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
-  bool isCommandValid(const MotionResultSrv::Request::SharedPtr & request);
+  template<typename CmdRequestT>
+  bool isCommandValid(const CmdRequestT & request);
   bool CheckMotors(const int32_t motion_id, int32_t & error_code);
   inline void SetWorkStatus(const HandlerStatus & status)
   {

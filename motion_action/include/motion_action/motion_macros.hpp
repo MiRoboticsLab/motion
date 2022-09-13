@@ -27,6 +27,9 @@
 #include "protocol/srv/motion_queue_custom_cmd.hpp"
 #include "protocol/srv/motion_custom_cmd.hpp"
 #include "protocol/srv/motion_sequence.hpp"
+#include "protocol/lcm/file_send_lcmt.hpp"
+#include "protocol/lcm/file_recv_lcmt.hpp"
+
 namespace cyberdog
 {
 namespace motion
@@ -73,6 +76,8 @@ constexpr const char * kLCMActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=25
 constexpr const char * kLCMBirdgeSubscribeURL = "udpm://239.255.76.67:7667?ttl=255";
 constexpr const char * kLCMActionControlChannel = "robot_control_cmd";
 constexpr const char * kLCMActionResponseChannel = "robot_control_response";
+constexpr const char * kLCMActionSequenceDefChannel = "user_gait_file";
+constexpr const char * kLCMActionSeqDefResultChannel = "user_gait_result";
 constexpr const char * kLCMBridgeImuChannel = "external_imu";
 constexpr const char * kLCMBridgeElevationChannel = "local_heightmap";
 constexpr const char * kLCMBridgeOdomChannel = "global_to_robot";

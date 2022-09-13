@@ -83,12 +83,15 @@ public:
     const std::string & subscribe_url = kLCMActionSubscibeURL);
   bool SelfCheck();
   std::map<int32_t, MotionIdMap> GetMotionIdMap() {return motion_id_map_;}
-
+  bool SequenceDefImpl(const std::string & toml_data);
 private:
   void WriteLcm();
-  void ReadLcm(
+  void ReadActionResponseLcm(
     const lcm::ReceiveBuffer *, const std::string &,
     const robot_control_response_lcmt * msg);
+  void ReadSeqDefResultLcm(
+    const lcm::ReceiveBuffer *, const std::string &,
+    const file_recv_lcmt * msg);
   bool ParseMotionIdMap();
 
 private:
@@ -97,6 +100,8 @@ private:
   std::function<void(const robot_control_cmd_lcmt &)> toml_log_func_;
   std::shared_ptr<lcm::LCM> lcm_publish_instance_, lcm_subscribe_instance_;
   std::mutex lcm_write_mutex_;
+  std::mutex seq_def_result_mutex_;
+  std::condition_variable seq_def_result_cv_;
   robot_control_cmd_lcmt lcm_cmd_;
   std::map<int32_t, MotionIdMap> motion_id_map_;
   int32_t last_motion_id_{0};
@@ -104,6 +109,7 @@ private:
   int8_t last_res_mode_{0}, last_res_gait_id_{0};
   int8_t life_count_{0};
   bool lcm_cmd_init_{false}, ins_init_{false};
+  bool sequence_recv_result_{false}, sequence_def_result_waiting_{false};
   LOGGER_MINOR_INSTANCE("MotionAction");
 };  // class MotionAction
 }  // namespace motion

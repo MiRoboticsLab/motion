@@ -191,7 +191,7 @@ void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
     lk.unlock();
     lcm_cmd_init_ = true;
     INFO(
-      "CustomCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
+      "SequenceCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
       lcm_cmd_.duration);
     if (toml_log_func_) {
       toml_log_func_(lcm_cmd_);
@@ -280,7 +280,8 @@ bool MotionAction::Init(
   lcm_publish_duration_ = 1 / static_cast<float>(kActionLcmPublishFrequency) * 1000;
   lcm_publish_instance_ = std::make_shared<lcm::LCM>(publish_url);
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
-  lcm_subscribe_instance_->subscribe(kLCMActionResponseChannel, &MotionAction::ReadLcm, this);
+  lcm_subscribe_instance_->subscribe(kLCMActionResponseChannel, &MotionAction::ReadActionResponseLcm, this);
+  lcm_subscribe_instance_->subscribe(kLCMActionSequenceDefChannel, &MotionAction::ReadSeqDefResultLcm, this);
   if (!lcm_subscribe_instance_->good()) {
     ERROR("MotionAction read lcm initialized error");
     return false;
@@ -322,7 +323,7 @@ void MotionAction::RegisterTomlLog(
   toml_log_func_ = toml_log;
 }
 
-void MotionAction::ReadLcm(
+void MotionAction::ReadActionResponseLcm(
   const lcm::ReceiveBuffer *, const std::string &,
   const robot_control_response_lcmt * msg)
 {
@@ -375,6 +376,19 @@ void MotionAction::ReadLcm(
   }
 }
 
+void MotionAction::ReadSeqDefResultLcm(
+  const lcm::ReceiveBuffer *, const std::string &,
+  const file_recv_lcmt * msg)
+{
+  INFO("Get Sequence definition result: %d", msg->result);
+  sequence_recv_result_ = false;
+  sequence_recv_result_ = msg->result;
+  if (sequence_def_result_waiting_) {
+    seq_def_result_cv_.notify_one();
+    sequence_def_result_waiting_ = false;
+  }
+}
+
 void MotionAction::WriteLcm()
 {
   while (lcm_publish_instance_->good()) {
@@ -385,5 +399,24 @@ void MotionAction::WriteLcm()
     std::this_thread::sleep_for(std::chrono::milliseconds(lcm_publish_duration_));
   }
 }
+
+bool MotionAction::SequenceDefImpl(const std::string & toml_data)
+{
+  {
+    std::unique_lock<std::mutex> lk(lcm_write_mutex_);
+    file_send_lcmt msg;
+    msg.data = toml_data;
+    lcm_publish_instance_->publish(kLCMActionSequenceDefChannel, &msg);
+  }
+  std::unique_lock<std::mutex> lk(seq_def_result_mutex_);
+  sequence_def_result_waiting_ = true;
+  if (seq_def_result_cv_.wait_for(lk, std::chrono::milliseconds(kAcitonLcmReadTimeout)) == std::cv_status::timeout) {
+    ERROR("Wait sequence def result timeout");
+    return false;
+  }
+  return sequence_recv_result_;
+}
+
+
 }  // namespace motion
 }  // namespace cyberdog
