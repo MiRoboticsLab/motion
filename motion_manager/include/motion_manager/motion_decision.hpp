@@ -126,7 +126,7 @@ public:
   inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
   {
     handler_ptr_->SetSequnceTotalDuration(sequence_total_duration);
-  };
+  }
 
 private:
   inline bool IsStateValid(int32_t motion_id, int32_t & error_code)
