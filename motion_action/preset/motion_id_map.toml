@@ -226,4 +226,4 @@ motion_id = 400
 map = [11, 110]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11]
-min_exec_time = 5000
+min_exec_time = 0

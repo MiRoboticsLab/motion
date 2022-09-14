@@ -61,6 +61,10 @@ public:
     MotionQueueCustomSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
   bool FeedbackTimeout();
+  inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
+  {
+    sequence_total_duration_ = sequence_total_duration;
+  }
 
 private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
@@ -184,6 +188,7 @@ private:
   std::ofstream toml_;
   std::shared_ptr<MCode> code_ptr_;
   std::string toml_log_dir_;
+  int64_t sequence_total_duration_{0};
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
   int8_t server_check_error_counter_ {0};

@@ -196,7 +196,11 @@ void MotionManager::MotionSequenceCmdCallback(
     INFO("State invalid with current state");
     return;
   }
-
+  int64_t total_duration = 0;
+  for ( auto & param : request->params) {
+    total_duration += param.duration_ms;
+  }
+  decision_ptr_->SetSequnceTotalDuration(total_duration);
   decision_ptr_->DecideResultCmd(request, response);
 
   // if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {
