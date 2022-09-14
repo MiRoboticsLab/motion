@@ -197,7 +197,7 @@ void MotionManager::MotionSequenceCmdCallback(
     return;
   }
   int64_t total_duration = 0;
-  for ( auto & param : request->params) {
+  for (auto & param : request->params) {
     total_duration += param.duration_ms;
   }
   decision_ptr_->SetSequnceTotalDuration(total_duration);
