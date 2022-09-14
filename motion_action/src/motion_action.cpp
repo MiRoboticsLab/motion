@@ -183,6 +183,9 @@ void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
     lcm_cmd.ctrl_point[0] = cmd.left_hindfoot.x;
     lcm_cmd.ctrl_point[1] = cmd.left_hindfoot.y;
     lcm_cmd.ctrl_point[2] = cmd.friction_coefficient;
+    for (int i = 0; i < 6; ++i) {
+      lcm_cmd.acc_des[i] = 1.0;
+    }
     lcm_cmd.duration = cmd.duration_ms;
     std::unique_lock<std::mutex> lk(lcm_write_mutex_);
     lcm_cmd_ = lcm_cmd;
@@ -303,7 +306,7 @@ bool MotionAction::Init(
       }
     });
   response_thread_.detach();
-  lcm_recv_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
+  lcm_recv_subscribe_instance_ = std::make_shared<lcm::LCM>(publish_url);
   if (!lcm_recv_subscribe_instance_->good()) {
     ERROR("MotionAction read recv lcm initialized error");
     return false;

@@ -24,7 +24,7 @@ public:
   {
     lcm_sub_.reset(new lcm::LCM(cyberdog::motion::kLCMActionPublishURL));
     lcm_pub_.reset(new lcm::LCM(cyberdog::motion::kLCMActionSubscibeURL));
-    lcm_recv_pub_.reset(new lcm::LCM(cyberdog::motion::kLCMActionSubscibeURL));
+    lcm_recv_pub_.reset(new lcm::LCM(cyberdog::motion::kLCMActionPublishURL));
     lcm_sub_->subscribe("robot_control_cmd", &SimMotionController::HandleCmd, this);
     lcm_sub_->subscribe("user_gait_file", &SimMotionController::HandleFileCmd, this);
     std::thread([this]() {while (0 == this->lcm_sub_->handle()) {}}).detach();

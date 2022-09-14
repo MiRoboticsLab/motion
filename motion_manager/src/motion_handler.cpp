@@ -388,6 +388,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
       ERROR("Get error when trying to be ready for ResultCmd");
+      CloseTomlLog();
       return;
     }
   }
@@ -399,6 +400,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       response->motion_id = motion_status_ptr_->motion_id;
       ERROR("SequenceCmd(%d) defination error", request->motion_id);
       SetWorkStatus(HandlerStatus::kIdle);
+      CloseTomlLog();
       return;
     }
   }

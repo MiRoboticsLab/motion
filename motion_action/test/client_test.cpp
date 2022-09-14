@@ -119,37 +119,57 @@ private:
     }
     // file >> req->toml_data;
     INFO("\n%s", req->toml_data.c_str());
-    protocol::msg::MotionSequenceParam msg1;
+    protocol::msg::MotionSequenceParam msg;
     // protocol::msg::MotionCustomCmd msg;
-    // toml::value steps;
-    // if (!cyberdog::common::CyberdogToml::ParseFile(cmd_preset_, steps)) {
-    //   FATAL("Cannot parse %s", cmd_preset_.c_str());
-    //   exit(-1);
-    // }
-    // if(!steps.is_table()) {
-    //   FATAL("Toml format error");
-    //   exit(-1);
-    // }
-    // toml::value values;
-    // cyberdog::common::CyberdogToml::Get(steps, "step", values);
-    // for(size_t i = 0; i < values.size(); i++) {
-    //   auto value = values.at(i);
-    //   // robot_control_cmd_lcmt lcm_base;
-    //   GET_TOML_VALUE(value, "mode", msg.mode);
-    //   GET_TOML_VALUE(value, "gait_id", msg.gait_id);
-    //   GET_TOML_VALUE(value, "contact", msg.contact);
-    //   GET_TOML_VALUE(value, "life_count", msg.life_count);
-    //   GET_TOML_VALUE(value, "value", msg.value);
-    //   GET_TOML_VALUE(value, "duration", msg.duration);
-    //   GET_TOML_VALUE(value, "vel_des", msg.vel_des);
-    //   GET_TOML_VALUE(value, "rpy_des", msg.rpy_des);
-    //   GET_TOML_VALUE(value, "pos_des", msg.pos_des);
-    //   GET_TOML_VALUE(value, "acc_des", msg.acc_des);
-    //   GET_TOML_VALUE(value, "ctrl_point", msg.ctrl_point);
-    //   GET_TOML_VALUE(value, "foot_pose", msg.foot_pose);
-    //   GET_TOML_VALUE(value, "step_height", msg.step_height);
-    //   req->cmds.push_back(msg);
-    // }
+    toml::value steps;
+    if (!cyberdog::common::CyberdogToml::ParseFile(cmd_preset_, steps)) {
+      FATAL("Cannot parse %s", cmd_preset_.c_str());
+      exit(-1);
+    }
+    if(!steps.is_table()) {
+      FATAL("Toml format error");
+      exit(-1);
+    }
+    toml::value values;
+    cyberdog::common::CyberdogToml::Get(steps, "step", values);
+    for(size_t i = 0; i < values.size(); i++) {
+      auto value = values.at(i);
+      // robot_control_cmd_lcmt lcm_base;
+      // GET_TOML_VALUE(value, "mode", msg.mode);
+      // GET_TOML_VALUE(value, "gait_id", msg.gait_id);
+      // GET_TOML_VALUE(value, "contact", msg.contact);
+      // GET_TOML_VALUE(value, "life_count", msg.life_count);
+      // GET_TOML_VALUE(value, "value", msg.value);
+      GET_TOML_VALUE(value, "duration", msg.duration_ms);
+      std::vector<double> temp;
+      GET_TOML_VALUE(value, "vel_des", temp);
+      msg.twist.linear.x = temp.at(0);
+      msg.twist.linear.y = temp.at(1);
+      msg.twist.linear.z = temp.at(2);
+      GET_TOML_VALUE(value, "rpy_des", temp);
+      msg.twist.angular.x = temp.at(0);
+      msg.twist.angular.y = temp.at(1);
+      msg.twist.angular.z = temp.at(2);
+      GET_TOML_VALUE(value, "pos_des", temp);
+      msg.centroid_height.x = temp.at(0);
+      msg.centroid_height.y = temp.at(1);
+      msg.centroid_height.z = temp.at(2);
+      GET_TOML_VALUE(value, "foot_pose", temp);
+      msg.right_forefoot.x = temp.at(0);
+      msg.right_forefoot.y = temp.at(1);
+      msg.left_forefoot.x = temp.at(2);
+      msg.left_forefoot.y = temp.at(3);
+      msg.right_hindfoot.x = temp.at(4);
+      msg.right_hindfoot.y = temp.at(5);
+      GET_TOML_VALUE(value, "ctrl_point", temp);
+      msg.left_hindfoot.x = temp.at(0);
+      msg.left_hindfoot.y = temp.at(1);
+      msg.friction_coefficient = temp.at(2);
+      GET_TOML_VALUE(value, "step_height", temp);
+      msg.forefoot_height = temp.at(0);
+      msg.hindfoot_height = temp.at(1);
+      req->params.push_back(msg);
+    }
     auto future_result = motion_queue_client_->async_send_request(req);
     // INFO(
     //   "MotionClient call with cmd:\n motion_id: %d\n duration: %d\n vel_des: [%.2f, %.2f, %.2f]\n rpy_des: [%.2f, %.2f, %.2f]\n pos_des: [%.2f, %.2f, %.2f]\n acc_des: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n ctrl_point: [%.2f, %.2f, %.2f]\n foot_pose: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n step_height: [%.2f, %.2f]\n", req->motion_id, req->duration,
