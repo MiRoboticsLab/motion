@@ -165,7 +165,7 @@ private:
       FATAL("Service failed");
       return;
     }
-    INFO("MotionClient get res:\n result: %d", future_result.get()->result);
+    INFO("MotionClient get res:\n motion_id: %d result: %d code: %d, %s", future_result.get()->motion_id, future_result.get()->result, future_result.get()->code, map_[future_result.get()->code].c_str());
   }
   
   rclcpp::Node::SharedPtr node_ptr_;

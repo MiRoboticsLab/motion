@@ -49,6 +49,7 @@ enum class MotionCode : int32_t
   kMotionExecuteError = 23,
 
   kCommandInvalid = 30,
+  kSequenceDefError = 31,
 
   kEstop = 40,
   kStuck = 41,

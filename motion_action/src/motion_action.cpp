@@ -280,8 +280,9 @@ bool MotionAction::Init(
   lcm_publish_duration_ = 1 / static_cast<float>(kActionLcmPublishFrequency) * 1000;
   lcm_publish_instance_ = std::make_shared<lcm::LCM>(publish_url);
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
-  lcm_subscribe_instance_->subscribe(kLCMActionResponseChannel, &MotionAction::ReadActionResponseLcm, this);
-  lcm_subscribe_instance_->subscribe(kLCMActionSequenceDefChannel, &MotionAction::ReadSeqDefResultLcm, this);
+  lcm_subscribe_instance_->subscribe(
+    kLCMActionResponseChannel,
+    &MotionAction::ReadActionResponseLcm, this);
   if (!lcm_subscribe_instance_->good()) {
     ERROR("MotionAction read lcm initialized error");
     return false;
@@ -302,6 +303,19 @@ bool MotionAction::Init(
       }
     });
   response_thread_.detach();
+  lcm_recv_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
+  if (!lcm_recv_subscribe_instance_->good()) {
+    ERROR("MotionAction read recv lcm initialized error");
+    return false;
+  }
+  lcm_recv_subscribe_instance_->subscribe(
+    kLCMActionSeqDefResultChannel,
+    &MotionAction::ReadSeqDefResultLcm, this);
+  std::thread{[this]() {
+      while (rclcpp::ok()) {
+        while (0 == this->lcm_recv_subscribe_instance_->handle()) {}
+      }
+    }}.detach();
   ins_init_ = true;
   return true;
 }
@@ -410,11 +424,15 @@ bool MotionAction::SequenceDefImpl(const std::string & toml_data)
   }
   std::unique_lock<std::mutex> lk(seq_def_result_mutex_);
   sequence_def_result_waiting_ = true;
-  if (seq_def_result_cv_.wait_for(lk, std::chrono::milliseconds(kAcitonLcmReadTimeout)) == std::cv_status::timeout) {
+  if (seq_def_result_cv_.wait_for(
+      lk,
+      std::chrono::milliseconds(kAcitonLcmReadTimeout + 2000)) == std::cv_status::timeout)
+  {
     ERROR("Wait sequence def result timeout");
     return false;
   }
-  return sequence_recv_result_;
+  std::this_thread::sleep_for(std::chrono::microseconds(1000));
+  return sequence_recv_result_ == 0;
 }
 
 

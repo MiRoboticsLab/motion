@@ -84,6 +84,7 @@ public:
   bool SelfCheck();
   std::map<int32_t, MotionIdMap> GetMotionIdMap() {return motion_id_map_;}
   bool SequenceDefImpl(const std::string & toml_data);
+
 private:
   void WriteLcm();
   void ReadActionResponseLcm(
@@ -99,6 +100,7 @@ private:
   std::function<void(MotionStatusMsg::SharedPtr)> feedback_func_;
   std::function<void(const robot_control_cmd_lcmt &)> toml_log_func_;
   std::shared_ptr<lcm::LCM> lcm_publish_instance_, lcm_subscribe_instance_;
+  std::shared_ptr<lcm::LCM> lcm_recv_subscribe_instance_;
   std::mutex lcm_write_mutex_;
   std::mutex seq_def_result_mutex_;
   std::condition_variable seq_def_result_cv_;

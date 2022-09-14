@@ -67,6 +67,7 @@ private:
   void MotionSequenceCmdCallback(
     const MotionSequenceSrv::Request::SharedPtr request,
     MotionSequenceSrv::Response::SharedPtr response);
+
 private:
   std::string name_;
   std::shared_ptr<MotionDecision> decision_ptr_ {nullptr};

@@ -75,8 +75,8 @@ bool MotionManager::Init()
     node_ptr_->create_service<MotionSequenceSrv>(
     kMotionSequenceServiceName,
     std::bind(
-      &MotionManager::MotionSequenceCmdCallback, this, std::placeholders::_1, 
-      std::placeholders::_2), rmw_qos_profile_services_default, callback_group_); 
+      &MotionManager::MotionSequenceCmdCallback, this, std::placeholders::_1,
+      std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
   return true;
 }
 
@@ -145,7 +145,7 @@ void MotionManager::MotionResultCmdCallback(
     return;
   }
 
-  decision_ptr_->DecideResultCmd<MotionResultSrv::Request::SharedPtr, MotionResultSrv::Response::SharedPtr>(request, response);
+  decision_ptr_->DecideResultCmd(request, response);
 }
 
 void MotionManager::MotionCustomCmdCallback(
@@ -188,7 +188,8 @@ void MotionManager::MotionCustomCmdCallback(
 
 
 void MotionManager::MotionSequenceCmdCallback(
-  const MotionSequenceSrv::Request::SharedPtr request, MotionSequenceSrv::Response::SharedPtr response)
+  const MotionSequenceSrv::Request::SharedPtr request,
+  MotionSequenceSrv::Response::SharedPtr response)
 {
   INFO("Receive SequenceCmd with motion_id: %d", request->motion_id);
   if (!IsStateValid()) {
@@ -196,7 +197,7 @@ void MotionManager::MotionSequenceCmdCallback(
     return;
   }
 
-  decision_ptr_->DecideResultCmd<MotionSequenceSrv::Request::SharedPtr, MotionSequenceSrv::Response::SharedPtr>(request, response);
+  decision_ptr_->DecideResultCmd(request, response);
 
   // if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {
   //   auto lcm = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);

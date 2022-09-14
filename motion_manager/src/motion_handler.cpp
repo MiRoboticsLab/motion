@@ -339,10 +339,14 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
 }
 
 template
-void MotionHandler::HandleResultCmd<MotionResultSrv::Request::SharedPtr, MotionResultSrv::Response::SharedPtr>(MotionResultSrv::Request::SharedPtr, MotionResultSrv::Response::SharedPtr);
+void MotionHandler::HandleResultCmd<MotionResultSrv::Request::SharedPtr,
+  MotionResultSrv::Response::SharedPtr>(MotionResultSrv::Request::SharedPtr,
+  MotionResultSrv::Response::SharedPtr);
 
 template
-void MotionHandler::HandleResultCmd<MotionSequenceSrv::Request::SharedPtr, MotionSequenceSrv::Response::SharedPtr>(MotionSequenceSrv::Request::SharedPtr, MotionSequenceSrv::Response::SharedPtr);
+void MotionHandler::HandleResultCmd<MotionSequenceSrv::Request::SharedPtr,
+  MotionSequenceSrv::Response::SharedPtr>(MotionSequenceSrv::Request::SharedPtr,
+  MotionSequenceSrv::Response::SharedPtr);
 
 template<typename CmdRequestT, typename CmdResponseT>
 void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT response)
@@ -387,10 +391,10 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       return;
     }
   }
-  if(request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
-    INFO("%s", request->toml_data.c_str());
-    if(!action_ptr_->SequenceDefImpl(request->toml_data)) {
-      response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+  if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
+    INFO("\n%s", request->toml_data.c_str());
+    if (!action_ptr_->SequenceDefImpl(request->toml_data)) {
+      response->code = code_ptr_->GetCode(MotionCode::kSequenceDefError);
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
       ERROR("SequenceCmd(%d) defination error", request->motion_id);
@@ -429,7 +433,6 @@ void MotionHandler::HandleSequenceCmd(
   CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
 }
-
 
 
 void MotionHandler::HandleQueueCmd(
