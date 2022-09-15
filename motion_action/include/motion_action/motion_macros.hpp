@@ -21,22 +21,51 @@
 #include "protocol/msg/motion_servo_response.hpp"
 #include "protocol/msg/motion_id.hpp"
 #include "protocol/msg/motion_code.hpp"
+#include "protocol/msg/motion_sequence_param.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/srv/motion_queue_custom_cmd.hpp"
+#include "protocol/srv/motion_custom_cmd.hpp"
+#include "protocol/srv/motion_sequence.hpp"
+#include "protocol/lcm/file_send_lcmt.hpp"
+#include "protocol/lcm/file_recv_lcmt.hpp"
+
 namespace cyberdog
 {
 namespace motion
 {
 
+// 所有的motion相关code都从3000开始，该值为全局架构设计分配
+enum class MotionCode : int32_t
+{
+  kHwLowBattery = 0,
+  kHwMotorOffline = 1,
+
+  kComLcmTimeout = 10,
+
+  kMotionSwitchError = 20,
+  kMotionTransitionTimeout = 21,
+  kMotionExecuteTimeout = 22,
+  kMotionExecuteError = 23,
+
+  kCommandInvalid = 30,
+  kSequenceDefError = 31,
+
+  kEstop = 40,
+  kStuck = 41,
+  kBusy = 42
+};  // enum class MotionCode
+
 using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
 using LcmResponse = robot_control_response_lcmt;
 using MotionResultSrv = protocol::srv::MotionResultCmd;
 using MotionQueueCustomSrv = protocol::srv::MotionQueueCustomCmd;
+using MotionSequenceSrv = protocol::srv::MotionSequence;
+using MotionCustomSrv = protocol::srv::MotionCustomCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
 using MotionIDMsg = protocol::msg::MotionID;
-using MotionCodeMsg = protocol::msg::MotionCode;
+using MCode = cyberdog::system::CyberdogCode<MotionCode>;
 
 constexpr uint8_t kActionLcmPublishFrequency = 20;
 constexpr uint8_t kServoDataLostTimesThreshold = 4;
@@ -48,17 +77,24 @@ constexpr const char * kLCMActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=25
 constexpr const char * kLCMBirdgeSubscribeURL = "udpm://239.255.76.67:7667?ttl=255";
 constexpr const char * kLCMActionControlChannel = "robot_control_cmd";
 constexpr const char * kLCMActionResponseChannel = "robot_control_response";
+constexpr const char * kLCMActionSequenceDefChannel = "user_gait_file";
+constexpr const char * kLCMActionSeqDefResultChannel = "user_gait_result";
 constexpr const char * kLCMBridgeImuChannel = "external_imu";
 constexpr const char * kLCMBridgeElevationChannel = "local_heightmap";
 constexpr const char * kLCMBridgeOdomChannel = "global_to_robot";
 constexpr const char * kLCMBridgeFileChannel = "custom_motion";
+constexpr const char * kLCMBridgeMotorChannel = "motor_temperature";
 constexpr const char * kMotionServoCommandTopicName = "motion_servo_cmd";
 constexpr const char * kMotionServoResponseTopicName = "motion_servo_response";
 constexpr const char * kMotionResultServiceName = "motion_result_cmd";
+constexpr const char * kMotionCustomServiceName = "motion_custom_cmd";
 constexpr const char * kMotionQueueServiceName = "motion_queue_cmd";
+constexpr const char * kMotionSequenceServiceName = "motion_sequence_cmd";
 constexpr const char * kMotionQueueCommandTopicName = "motion_queue_cmd_test";
 constexpr const char * kBridgeOdomTopicName = "odom_out";
 constexpr const char * kMotionStatusTopicName = "motion_status";
+constexpr const char * kGlobalScanTopicName = "scan";
+constexpr const char * kMotionCustomCmdConfigPath = "/";
 // a: src, b: des, c: size, d: description
 #define GET_VALUE(a, b, c, d) \
   if (a.size() != c) { \
@@ -140,19 +176,6 @@ enum class HandlerStatus : uint8_t
   kExecutingServoCmd = 1,
   kExecutingResultCmd = 2
 };  // enum class HandlerStatus
-
-// // 所有的motion相关code都从300开始，该值为全局架构设计分配
-// enum class MotionCode : int32_t
-// {
-//   kOK = 0,
-//   kCommandInvalid = (int32_t)system::ModuleCode::kMotion + 10,
-//   kReadLcmTimeout = (int32_t)system::ModuleCode::kMotion + 20,
-//   kSwitchError = (int32_t)system::ModuleCode::kMotion + 31,
-//   kTransitionTimeout = (int32_t)system::ModuleCode::kMotion + 32,
-//   kExecuteTimeout = (int32_t)system::ModuleCode::kMotion + 33,
-//   kExecuteError = (int32_t)system::ModuleCode::kMotion + 34,
-//   kStateError = (int32_t)system::ModuleCode::kMotion + 40
-// };  // enum class MotionCode
 }  // namespace motion
 }  // namespace cyberdog
 #endif  // MOTION_ACTION__MOTION_MACROS_HPP_

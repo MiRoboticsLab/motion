@@ -1,0 +1,89 @@
+[[step]]
+mode = 11
+gait_id = 81
+contact = 30
+life_count = 0
+vel_des = [ 0.0, 0.0, 0.0,]
+rpy_des = [ 0.0, 0.0, 0.0,]
+pos_des = [ 0.0, 0.0, 0.0,]
+acc_des = [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,]
+ctrl_point = [ 0.0, 0.0, 1.0,]
+foot_pose = [ 0.0, -0.02, 0.0, 0.02, 0.0, 0.0,]
+step_height = [ 35035.0, 20020.0,]
+value = 0
+duration = 420
+
+[[step]]
+mode = 11
+gait_id = 81
+contact = 30
+life_count = 0
+vel_des = [ 0.0, 0.0, 0.0,]
+rpy_des = [ 0.0, 0.0, 0.0,]
+pos_des = [ 0.0, 0.0, 0.0,]
+acc_des = [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,]
+ctrl_point = [ 0.0, 0.0, 1.0,]
+foot_pose = [ 0.0, 0.02, 0.0, -0.02, 0.0, 0.0,]
+step_height = [ 35035.0, 20020.0,]
+value = 0
+duration = 420
+
+[[step]]
+mode = 11
+gait_id = 81
+contact = 30
+life_count = 0
+vel_des = [ 0.0, 0.0, 0.0,]
+rpy_des = [ 0.0, 0.0, 0.0,]
+pos_des = [ 0.0, 0.0, 0.0,]
+acc_des = [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,]
+ctrl_point = [ 0.0, 0.0, 1.0,]
+foot_pose = [ 0.0, -0.02, 0.0, 0.02, 0.0, 0.0,]
+step_height = [ 35035.0, 20020.0,]
+value = 0
+duration = 420
+
+[[step]]
+mode = 11
+gait_id = 81
+contact = 30
+life_count = 0
+vel_des = [ 0.0, 0.0, 0.0,]
+rpy_des = [ 0.0, 0.0, 0.0,]
+pos_des = [ 0.0, 0.0, 0.0,]
+acc_des = [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,]
+ctrl_point = [ 0.0, 0.0, 1.0,]
+foot_pose = [ 0.0, 0.02, 0.0, -0.02, 0.0, 0.0,]
+step_height = [ 35035.0, 20020.0,]
+value = 0
+duration = 420
+
+[[step]]
+mode = 11
+gait_id = 81
+contact = 30
+life_count = 0
+vel_des = [ 0.0, 0.0, 0.0,]
+rpy_des = [ 0.0, 0.0, 0.0,]
+pos_des = [ 0.0, 0.0, 0.0,]
+acc_des = [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,]
+ctrl_point = [ 0.0, 0.0, 1.0,]
+foot_pose = [ 0.0, -0.02, 0.0, 0.02, 0.0, 0.0,]
+step_height = [ 35035.0, 20020.0,]
+value = 0
+duration = 420
+
+[[step]]
+mode = 11
+gait_id = 81
+contact = 30
+life_count = 0
+vel_des = [ 0.0, 0.0, 0.0,]
+rpy_des = [ 0.0, 0.0, 0.0,]
+pos_des = [ 0.0, 0.0, 0.0,]
+acc_des = [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,]
+ctrl_point = [ 0.0, 0.0, 1.0,]
+foot_pose = [ 0.06, 0.0, 0.06, 0.0, 0.0, 0.0,]
+step_height = [ 35035.0, 20020.0,]
+value = 0
+duration = 660

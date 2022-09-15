@@ -58,9 +58,15 @@ private:
   void MotionResultCmdCallback(
     const MotionResultSrv::Request::SharedPtr request,
     MotionResultSrv::Response::SharedPtr response);
+  void MotionCustomCmdCallback(
+    const MotionCustomSrv::Request::SharedPtr request,
+    MotionCustomSrv::Response::SharedPtr response);
   void MotionQueueCmdCallback(
     const MotionQueueCustomSrv::Request::SharedPtr request,
     MotionQueueCustomSrv::Response::SharedPtr response);
+  void MotionSequenceCmdCallback(
+    const MotionSequenceSrv::Request::SharedPtr request,
+    MotionSequenceSrv::Response::SharedPtr response);
 
 private:
   std::string name_;
@@ -68,13 +74,14 @@ private:
 
 private:
   rclcpp::Subscription<MotionServoCmdMsg>::SharedPtr motion_servo_sub_ {nullptr};
-  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr motion_servo_pub_ {nullptr};
-  rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub_ {nullptr};
   rclcpp::Service<MotionResultSrv>::SharedPtr motion_result_srv_ {nullptr};
+  rclcpp::Service<MotionCustomSrv>::SharedPtr motion_custom_srv_ {nullptr};
   rclcpp::Service<MotionQueueCustomSrv>::SharedPtr motion_queue_srv_ {nullptr};
+  rclcpp::Service<MotionSequenceSrv>::SharedPtr motion_sequence_srv_ {nullptr};
   rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::CallbackGroup::SharedPtr callback_group_{nullptr};
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
+  std::shared_ptr<MCode> code_ptr_;
 };  // class MotionManager
 }  // namespace motion
 }  // namespace cyberdog

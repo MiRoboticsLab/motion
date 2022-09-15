@@ -21,20 +21,24 @@ namespace cyberdog
 namespace motion
 {
 
-MotionHandler::MotionHandler()
+MotionHandler::MotionHandler(
+  const rclcpp::Node::SharedPtr & node,
+  const std::shared_ptr<MCode> & code)
+: node_ptr_(node), code_ptr_(code)
 {}
 
 MotionHandler::~MotionHandler()
 {}
 
-bool MotionHandler::Init(rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub)
+bool MotionHandler::Init()
 {
   action_ptr_ = std::make_shared<MotionAction>();
   if (!action_ptr_->Init()) {
     ERROR("Fail to initialize MotionAction");
     return false;
   }
-  motion_status_pub_ = motion_status_pub;
+  motion_status_pub_ = node_ptr_->create_publisher<MotionStatusMsg>(
+    kMotionStatusTopicName, 10);
   servo_check_click_ = std::make_shared<ServoClick>();
   servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
   servo_data_check_thread_.detach();
@@ -59,10 +63,11 @@ bool MotionHandler::Init(rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_st
       }
     }
   }.detach();
+  SetWorkStatus(HandlerStatus::kIdle);
   return true;
 }
 
-void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg)
+void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr & msg)
 {
   action_ptr_->Execute(msg);
   TickServoCmd();
@@ -70,7 +75,7 @@ void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg
 }
 
 void MotionHandler::HandleServoDataFrame(
-  const MotionServoCmdMsg::SharedPtr msg,
+  const MotionServoCmdMsg::SharedPtr & msg,
   MotionServoResponseMsg & res)
 {
   if (!AllowServoCmd(msg->motion_id)) {
@@ -87,7 +92,7 @@ void MotionHandler::HandleServoDataFrame(
       }
     } else {
       res.result = false;
-      res.code = MotionCodeMsg::MOTION_SWITCH_ERROR;
+      res.code = code_ptr_->GetCode(MotionCode::kMotionSwitchError);
     }
     return;
   }
@@ -97,7 +102,7 @@ void MotionHandler::HandleServoDataFrame(
   SetServoNeedCheck(true);
 }
 
-void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
+void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr & msg)
 {
   // action_ptr_->Execute(msg);
   (void) msg;
@@ -106,12 +111,12 @@ void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg)
 }
 
 void MotionHandler::HandleServoCmd(
-  const MotionServoCmdMsg::SharedPtr msg,
+  const MotionServoCmdMsg::SharedPtr & msg,
   MotionServoResponseMsg & res)
 {
   if (GetWorkStatus() == HandlerStatus::kExecutingResultCmd) {
     res.result = false;
-    res.code = MotionCodeMsg::TASK_STATE_ERROR;
+    res.code = code_ptr_->GetCode(MotionCode::kBusy);
     ERROR("Busy(Executing ResultCmd) for ServoCmd");
     return;
   }
@@ -128,6 +133,7 @@ void MotionHandler::HandleServoCmd(
         SetWorkStatus(HandlerStatus::kIdle);
         res.result = false;
         res.code = response->code;
+        exec_servo_pre_motion_failed_ = true;
         ERROR("Get error when trying to be ready for ServoCmd");
         return;
       }
@@ -144,7 +150,7 @@ void MotionHandler::HandleServoCmd(
     post_motion_checked_ = false;
   }
   res.result = true;
-  res.code = MotionCodeMsg::OK;
+  res.code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
 }
 
 void MotionHandler::ServoDataCheck()
@@ -181,8 +187,12 @@ void MotionHandler::PoseControlDefinitively()
   ExecuteResultCmd(request, response);
 }
 
-void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr last_servo_cmd)
+void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd)
 {
+  if (exec_servo_pre_motion_failed_) {
+    exec_servo_pre_motion_failed_ = false;
+    return;
+  }
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
   request->motion_id = last_servo_cmd->motion_id;
   request->step_height = last_servo_cmd->step_height;
@@ -224,37 +234,36 @@ bool MotionHandler::FeedbackTimeout()
          std::cv_status::timeout;
 }
 
-void MotionHandler::ExecuteResultCmd(
-  const MotionResultSrv::Request::SharedPtr request,
-  MotionResultSrv::Response::SharedPtr response)
+template<typename CmdRequestT, typename CmdResponseT>
+void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT response)
 {
-  if (request->motion_id != MotionIDMsg::ESTOP) {
-    for (auto motor : motion_status_ptr_->motor_error) {
-      if (motor != 0 && motor != kMotorNormal) {
-        response->result = false;
-        response->code = MotionCodeMsg::HW_MOTOR_OFFLINE;
-        ERROR("Motor error");
-        return;
-      }
-    }
-  }
-  if (!CheckPostMotion(request->motion_id)) {
-    MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
-    MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
-    req->motion_id = MotionIDMsg::RECOVERYSTAND;
-    INFO("Trying to be ready for ResultCmd");
-    ExecuteResultCmd(req, res);
-    if (!res->result) {
-      response->code = res->code;
-      response->result = false;
-      response->motion_id = motion_status_ptr_->motion_id;
-      ERROR("Get error when trying to be ready for ResultCmd");
-      return;
-    }
-  }
+  // if (request->motion_id != MotionIDMsg::ESTOP) {
+  //   for (auto motor : motion_status_ptr_->motor_error) {
+  //     if (motor != 0 && motor != kMotorNormal) {
+  //       response->result = false;
+  //       response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+  //       ERROR("Motor error");
+  //       return;
+  //     }
+  //   }
+  // }
+  // if (!CheckPostMotion(request->motion_id)) {
+  //   MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+  //   MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
+  //   req->motion_id = MotionIDMsg::RECOVERYSTAND;
+  //   INFO("Trying to be ready for ResultCmd");
+  //   ExecuteResultCmd(req, res);
+  //   if (!res->result) {
+  //     response->code = res->code;
+  //     response->result = false;
+  //     response->motion_id = motion_status_ptr_->motion_id;
+  //     ERROR("Get error when trying to be ready for ResultCmd");
+  //     return;
+  //   }
+  // }
   action_ptr_->Execute(request);
   if (FeedbackTimeout()) {
-    response->code = MotionCodeMsg::COM_LCM_TIMEOUT;
+    response->code = code_ptr_->GetCode(MotionCode::kComLcmTimeout);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("LCM Com timeout");
@@ -269,7 +278,7 @@ void MotionHandler::ExecuteResultCmd(
     motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP ||
     motion_status_ptr_->switch_status == MotionStatusMsg::LIFTED)
   {
-    response->code = MotionCodeMsg::MOTION_SWITCH_ERROR;
+    response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchError);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("Motion switch error");
@@ -281,7 +290,7 @@ void MotionHandler::ExecuteResultCmd(
     if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
       std::cv_status::timeout)
     {
-      response->code = MotionCodeMsg::MOTION_TRANSITION_TIMEOUT;
+      response->code = code_ptr_->GetCode(MotionCode::kMotionTransitionTimeout);
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
       WARN("Transitioning Timeout");
@@ -304,55 +313,131 @@ void MotionHandler::ExecuteResultCmd(
     wait_timeout = min_exec_time;
   } else if (min_exec_time < 0) {  // 增量力控、增量位控、绝对位控、行走duration必须大于0
     wait_timeout = request->duration;
-  } else {
+  } else {                         // 自定义动作按照设定的参数计算
+    wait_timeout = sequence_total_duration_ * 2;
   }
-
+  INFO("%d", wait_timeout);
   if (execute_cv_.wait_for(
       check_lk,
       std::chrono::milliseconds(wait_timeout)) == std::cv_status::timeout)
   {
-    response->code = MotionCodeMsg::MOTION_EXECUTE_TIMEOUT;
+    response->code = code_ptr_->GetCode(MotionCode::kMotionExecuteTimeout);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("Motion execute timeout");
     return;
   }
   if (!CheckMotionResult(request->motion_id)) {
-    response->code = MotionCodeMsg::MOTION_EXECUTE_ERROR;
+    response->code = code_ptr_->GetCode(MotionCode::kMotionExecuteError);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("Motion execute error");
     return;
   }
-  response->code = MotionCodeMsg::OK;
+  response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
   response->result = true;
   response->motion_id = motion_status_ptr_->motion_id;
+  INFO("Motion %d done", request->motion_id);
 }
 
-void MotionHandler::HandleResultCmd(
-  const MotionResultSrv::Request::SharedPtr request,
-  MotionResultSrv::Response::SharedPtr response)
+template
+void MotionHandler::HandleResultCmd<MotionResultSrv::Request::SharedPtr,
+  MotionResultSrv::Response::SharedPtr>(MotionResultSrv::Request::SharedPtr,
+  MotionResultSrv::Response::SharedPtr);
+
+template
+void MotionHandler::HandleResultCmd<MotionSequenceSrv::Request::SharedPtr,
+  MotionSequenceSrv::Response::SharedPtr>(MotionSequenceSrv::Request::SharedPtr,
+  MotionSequenceSrv::Response::SharedPtr);
+
+template<typename CmdRequestT, typename CmdResponseT>
+void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT response)
 {
   if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
     response->result = false;
-    response->code = MotionCodeMsg::TASK_STATE_ERROR;
+    response->code = code_ptr_->GetCode(MotionCode::kBusy);
     ERROR("Busy when Getting ResultCmd(%d)", request->motion_id);
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
-  if (!isCommandValid(request)) {
-    response->code = MotionCodeMsg::COMMAND_INVALID;
+  if (!IsCommandValid(request)) {
+    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("ResultCmd(%d) invalid", request->motion_id);
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
+  if (request->motion_id != MotionIDMsg::ESTOP) {
+    for (auto motor : motion_status_ptr_->motor_error) {
+      if (motor != 0 && motor != kMotorNormal) {
+        response->result = false;
+        response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+        ERROR("Motor error");
+        return;
+      }
+    }
+  }
   CreateTomlLog(request->motion_id);
+  if (!CheckPostMotion(request->motion_id)) {
+    MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+    MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
+    req->motion_id = MotionIDMsg::RECOVERYSTAND;
+    INFO("Trying to be ready for ResultCmd");
+    ExecuteResultCmd(req, res);
+    if (!res->result) {
+      response->code = res->code;
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Get error when trying to be ready for ResultCmd");
+      CloseTomlLog();
+      return;
+    }
+  }
+  if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
+    INFO("\n%s", request->toml_data.c_str());
+    if (!action_ptr_->SequenceDefImpl(request->toml_data)) {
+      response->code = code_ptr_->GetCode(MotionCode::kSequenceDefError);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("SequenceCmd(%d) defination error", request->motion_id);
+      SetWorkStatus(HandlerStatus::kIdle);
+      CloseTomlLog();
+      return;
+    }
+  }
   ExecuteResultCmd(request, response);
   CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
 }
+
+void MotionHandler::HandleSequenceCmd(
+  const MotionSequenceSrv::Request::SharedPtr request,
+  MotionSequenceSrv::Response::SharedPtr response)
+{
+  if (GetWorkStatus() != HandlerStatus::kIdle) {
+    response->result = false;
+    response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    ERROR("Busy when Getting SequenceCmd(%d)", MotionIDMsg::SEQUENCE_CUSTOM);
+    return;
+  }
+  SetWorkStatus(HandlerStatus::kExecutingResultCmd);
+  auto req = std::make_shared<MotionResultSrv::Request>();
+  req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
+  if (!IsCommandValid(req)) {
+    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+    response->result = false;
+    response->describe = "";
+    ERROR("SequenceCmd invalid");
+    SetWorkStatus(HandlerStatus::kIdle);
+    return;
+  }
+  CreateTomlLog(req->motion_id);
+  ExecuteResultCmd(request, response);
+  CloseTomlLog();
+  SetWorkStatus(HandlerStatus::kIdle);
+}
+
 
 void MotionHandler::HandleQueueCmd(
   const MotionQueueCustomSrv::Request::SharedPtr request,
@@ -364,7 +449,7 @@ void MotionHandler::HandleQueueCmd(
   //   return;
   // }
   // SetWorkStatus(HandlerStatus::kExecutingResultCmd);
-  // if (!isCommandValid(request)) {
+  // if (!IsCommandValid(request)) {
   //   response->code = MotionCodeMsg::COMMAND_INVALID;
   //   response->result = false;
   //   response->motion_id = motion_status_ptr_->motion_id;
@@ -378,7 +463,7 @@ void MotionHandler::HandleQueueCmd(
   SetWorkStatus(HandlerStatus::kIdle);
 }
 
-void MotionHandler::UpdateMotionStatus(MotionStatusMsg::SharedPtr motion_status_ptr)
+void MotionHandler::UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr)
 {
   feedback_cv_.notify_one();
   std::unique_lock<std::mutex> lk(execute_mutex_);
@@ -436,27 +521,36 @@ bool MotionHandler::AllowServoCmd(int32_t motion_id)
   if (post_motion_checked_) {return true;}
   return CheckPostMotion(motion_id);
 }
-
-bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr request)
+template<typename CmdRequestT>
+bool MotionHandler::IsCommandValid(const CmdRequestT & request)
 {
-  if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
-    return false;
+  if (request->motion_id != MotionIDMsg::SEQUENCE_CUSTOM) {
+    if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
+      return false;
+    }
+    bool result = true;
+    auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
+    if (min_exec_time > 0) {
+      result = request->duration == 0;
+    } else if (min_exec_time < 0) {
+      result = request->duration > 0;
+    } else {}
+    if (!result) {
+      return false;
+    }
+    return true;
+  } else {
+    // TODO(Harvey): 判断自定义动作的指令有效
+    return true;
   }
-  bool result = true;
-  auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
-  if (min_exec_time > 0) {
-    result = request->duration == 0;
-  } else if (min_exec_time < 0) {
-    result = request->duration > 0;
-  } else {}
-  if (!result) {
-    return false;
-  }
-  return true;
 }
 
 void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
 {
+  if (!toml_.is_open()) {
+    // ERROR("TomlLog File not set before writing");
+    return;
+  }
   toml_ << "# " + GetCurrentTime() << "\n";
   toml_ << "[[step]]\n";
   toml_ << "mode = " << int(cmd.mode) << "\n";
@@ -499,6 +593,24 @@ void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
     cmd.step_height[0] << ", " <<
     cmd.step_height[1] << ",]\n";
   toml_ << "\n";
+}
+
+bool MotionHandler::CheckMotors(const int32_t motion_id, int32_t & error_code)
+{
+  if (motion_id == MotionIDMsg::ESTOP) {
+    return true;
+  }
+  bool ret = true;
+  for (auto motor : motion_status_ptr_->motor_error) {
+    if (motor != 0 || motor != kMotorNormal) {
+      continue;
+    } else {
+      // 检查电机状态位
+      (void)error_code;
+      ret = false;
+    }
+  }
+  return ret;
 }
 }  // namespace motion
 }  // namespace cyberdog

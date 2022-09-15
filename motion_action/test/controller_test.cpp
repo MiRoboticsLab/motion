@@ -24,7 +24,9 @@ public:
   {
     lcm_sub_.reset(new lcm::LCM(cyberdog::motion::kLCMActionPublishURL));
     lcm_pub_.reset(new lcm::LCM(cyberdog::motion::kLCMActionSubscibeURL));
+    lcm_recv_pub_.reset(new lcm::LCM(cyberdog::motion::kLCMActionPublishURL));
     lcm_sub_->subscribe("robot_control_cmd", &SimMotionController::HandleCmd, this);
+    lcm_sub_->subscribe("user_gait_file", &SimMotionController::HandleFileCmd, this);
     std::thread([this]() {while (0 == this->lcm_sub_->handle()) {}}).detach();
   }
   void Run()
@@ -32,18 +34,19 @@ public:
     while (true) {
       // lcm_sub_->handle();
       lcm_pub_->publish("robot_control_response", &res_);
-      INFO(
-          "MotionController send res:\n mode: %d\n gait_id: %d\n contact: %d\n order_process_bar: %d\n switch_status: %d\n ori_error: %d\n footpos_error: %d\n motor_error: [%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d]\n", res_.mode, res_.gait_id, res_.contact, res_.order_process_bar, res_.switch_status, res_.ori_error, res_.footpos_error,
-          res_.motor_error[0], res_.motor_error[1], res_.motor_error[2], res_.motor_error[3],
-          res_.motor_error[4], res_.motor_error[5], res_.motor_error[6], res_.motor_error[7],
-          res_.motor_error[8], res_.motor_error[9], res_.motor_error[10], res_.motor_error[11]);
+      // INFO(
+      //     "MotionController send res:\n mode: %d\n gait_id: %d\n contact: %d\n order_process_bar: %d\n switch_status: %d\n ori_error: %d\n footpos_error: %d\n motor_error: [%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d]\n", res_.mode, res_.gait_id, res_.contact, res_.order_process_bar, res_.switch_status, res_.ori_error, res_.footpos_error,
+      //     res_.motor_error[0], res_.motor_error[1], res_.motor_error[2], res_.motor_error[3],
+      //     res_.motor_error[4], res_.motor_error[5], res_.motor_error[6], res_.motor_error[7],
+      //     res_.motor_error[8], res_.motor_error[9], res_.motor_error[10], res_.motor_error[11]);
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
   }
 
 private:
-  std::shared_ptr<lcm::LCM> lcm_sub_, lcm_pub_;
+  std::shared_ptr<lcm::LCM> lcm_sub_, lcm_pub_, lcm_recv_pub_;
   robot_control_response_lcmt res_;
+  file_recv_lcmt recv_result_;
   void HandleCmd(const lcm::ReceiveBuffer *, const std::string &,
                  const robot_control_cmd_lcmt * msg)
   {
@@ -56,6 +59,14 @@ private:
     res_.ori_error = 0;
     res_.footpos_error = 0;
     memset(res_.motor_error, 0, sizeof(res_.motor_error));
+  }
+  void HandleFileCmd(const lcm::ReceiveBuffer *, const std::string &,
+                 const file_send_lcmt * msg)
+  {
+    INFO("MotionController get SequenceCmd data %s", msg->data.c_str());
+    recv_result_.result = 0;
+    lcm_recv_pub_->publish("user_gait_result", &recv_result_);
+    INFO("publish result: %d", recv_result_.result);
   }
   LOGGER_MINOR_INSTANCE("SimMotionController")
 };
