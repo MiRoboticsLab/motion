@@ -21,6 +21,7 @@
 #include "cyberdog_common/cyberdog_toml.hpp"
 #include "motion_utils/stair_perception.hpp"
 #include "motion_action/motion_macros.hpp"
+#include "std_srvs/srv/trigger.hpp"
 namespace cyberdog
 {
 namespace motion
@@ -39,7 +40,8 @@ private:
   void Loop();
 
   rclcpp::Node::SharedPtr node_;
-  rclcpp::Publisher<MotionServoCmdMsg>::SharedPtr servo_cmd_pub_;
+  rclcpp::Publisher<MotionServoCmdMsg>::SharedPtr servo_cmd_pub_, align_status_pub_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr stair_align_srv_, jump_srv_;
   rclcpp::Client<MotionResultSrv>::SharedPtr result_cmd_client_;
   MotionServoCmdMsg servo_cmd_;
   std::shared_ptr<StairPerception> stair_perception_;

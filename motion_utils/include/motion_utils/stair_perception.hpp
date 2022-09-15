@@ -50,7 +50,7 @@ public:
   };
 public:
   StairPerception(const rclcpp::Node::SharedPtr node, const toml::value& config);
-  void Launch(){};
+  void Launch(bool launch){launch_ = launch;};
   const State & GetStatus() const { return state_; };
   inline void SetStatus(const State& state) { state_ = state; };
 
@@ -88,6 +88,7 @@ private:
   int orientation_dead_zone_{2}, orientation_correction_{0};
   int blind_forward_threshold_{15}, approach_threshold_{100};
   bool trigger_ {false}, orientation_filter_ {false};
+  bool launch_ {false};
 };  // calss StairPerception
 }  // motion
 }  // cyberdog

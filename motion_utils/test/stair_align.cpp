@@ -23,7 +23,8 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   node_ = node;
   servo_cmd_pub_ = node_->create_publisher<MotionServoCmdMsg>(kMotionServoCommandTopicName, 1);
   result_cmd_client_ = node_->create_client<MotionResultSrv>(kMotionResultServiceName);
-
+  stair_align_srv_ = node->create_service<std_srvs::srv::Trigger>(
+    "stair_align", std::bind(&StairAlign::Loop, this, std::placeholders::_1));
   servo_cmd_.motion_id = MotionIDMsg::WALK_ADAPTIVELY;
   servo_cmd_.step_height = std::vector<float>{0.05, 0.05};
   servo_cmd_.value = 2;
@@ -38,12 +39,12 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   GET_TOML_VALUE(config, "jump_after_align", jump_after_align_);
   // INFO("%f, %f, %d", vel_x_, vel_omega_, jump_after_align_);
   stair_perception_ = std::make_shared<StairPerception>(node, config);
-  stair_perception_->Launch();
-  std::thread{&StairAlign::Loop, this}.detach();
+  // std::thread{&StairAlign::Loop, this}.detach();
 }
 
 void StairAlign::Loop()
 {
+  stair_perception_->Launch(true);
   while(rclcpp::ok()){
     switch (stair_perception_->GetStatus())
     {
@@ -75,13 +76,15 @@ void StairAlign::Loop()
         stair_perception_->SetStatus(StairPerception::State::IDLE);
         servo_cmd_.cmd_type = MotionServoCmdMsg::SERVO_END;
         servo_cmd_pub_->publish(servo_cmd_);
-        if(jump_after_align_) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-          MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
-          req->motion_id = 126;
-          result_cmd_client_->async_send_request(req);
-        }
-        break;
+        // if(jump_after_align_) {
+        //   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        //   MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+        //   req->motion_id = 126;
+        //   result_cmd_client_->async_send_request(req);
+        // }
+        // break;
+        stair_perception_->Launch(false);
+        return;
       }
 
       default:
