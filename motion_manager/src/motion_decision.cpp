@@ -90,15 +90,25 @@ void MotionDecision::ServoResponseThread()
   }
 }
 
+template
+void MotionDecision::DecideResultCmd<MotionResultSrv::Request::SharedPtr,
+  MotionResultSrv::Response::SharedPtr>(MotionResultSrv::Request::SharedPtr,
+  MotionResultSrv::Response::SharedPtr);
+
+template
+void MotionDecision::DecideResultCmd<MotionSequenceSrv::Request::SharedPtr,
+  MotionSequenceSrv::Response::SharedPtr>(MotionSequenceSrv::Request::SharedPtr,
+  MotionSequenceSrv::Response::SharedPtr);
+
 /**
  * @brief 执行结果指令
  *
  * @param request
  * @param response
  */
+template<typename CmdRequestT, typename CmdResponseT>
 void MotionDecision::DecideResultCmd(
-  const MotionResultSrv::Request::SharedPtr request,
-  MotionResultSrv::Response::SharedPtr response)
+  const CmdRequestT request, CmdResponseT response)
 {
   int32_t error_code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
   if (!IsStateValid(request->motion_id, error_code)) {
@@ -114,6 +124,27 @@ void MotionDecision::DecideResultCmd(
   handler_ptr_->HandleResultCmd(request, response);
 }
 
+// /**
+//  * @brief 执行自定义动作指令
+//  *
+//  * @param request
+//  * @param response
+//  */
+// void MotionDecision::DecideSequenceCmd(
+//   const MotionSequenceSrv::Request::SharedPtr request,
+//   MotionSequenceSrv::Response::SharedPtr response)
+// {
+//   int32_t error_code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+//   if (!IsStateValid(MotionIDMsg::SEQUENCE_CUSTOM, error_code)) {
+//     response->result = false;
+//     response->code = error_code;
+//     return;
+//   }
+//   if (!IsModeValid()) {
+//     return;
+//   }
+//   handler_ptr_->HandleSequenceCmd(request, response);
+// }
 
 /**
  * @brief 执行结果指令

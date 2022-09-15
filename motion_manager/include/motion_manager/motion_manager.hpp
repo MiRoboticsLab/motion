@@ -24,7 +24,6 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
-#include "protocol/lcm/file_send_lcmt.hpp"
 #include "manager_base/manager_base.hpp"
 #include "motion_manager/motion_decision.hpp"
 #include "motion_action/motion_action.hpp"
@@ -65,6 +64,9 @@ private:
   void MotionQueueCmdCallback(
     const MotionQueueCustomSrv::Request::SharedPtr request,
     MotionQueueCustomSrv::Response::SharedPtr response);
+  void MotionSequenceCmdCallback(
+    const MotionSequenceSrv::Request::SharedPtr request,
+    MotionSequenceSrv::Response::SharedPtr response);
 
 private:
   std::string name_;
@@ -75,6 +77,7 @@ private:
   rclcpp::Service<MotionResultSrv>::SharedPtr motion_result_srv_ {nullptr};
   rclcpp::Service<MotionCustomSrv>::SharedPtr motion_custom_srv_ {nullptr};
   rclcpp::Service<MotionQueueCustomSrv>::SharedPtr motion_queue_srv_ {nullptr};
+  rclcpp::Service<MotionSequenceSrv>::SharedPtr motion_sequence_srv_ {nullptr};
   rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::CallbackGroup::SharedPtr callback_group_{nullptr};
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};

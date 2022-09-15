@@ -233,34 +233,33 @@ bool MotionHandler::FeedbackTimeout()
          std::cv_status::timeout;
 }
 
-void MotionHandler::ExecuteResultCmd(
-  const MotionResultSrv::Request::SharedPtr request,
-  MotionResultSrv::Response::SharedPtr response)
+template<typename CmdRequestT, typename CmdResponseT>
+void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT response)
 {
-  if (request->motion_id != MotionIDMsg::ESTOP) {
-    for (auto motor : motion_status_ptr_->motor_error) {
-      if (motor != 0 && motor != kMotorNormal) {
-        response->result = false;
-        response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
-        ERROR("Motor error");
-        return;
-      }
-    }
-  }
-  if (!CheckPostMotion(request->motion_id)) {
-    MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
-    MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
-    req->motion_id = MotionIDMsg::RECOVERYSTAND;
-    INFO("Trying to be ready for ResultCmd");
-    ExecuteResultCmd(req, res);
-    if (!res->result) {
-      response->code = res->code;
-      response->result = false;
-      response->motion_id = motion_status_ptr_->motion_id;
-      ERROR("Get error when trying to be ready for ResultCmd");
-      return;
-    }
-  }
+  // if (request->motion_id != MotionIDMsg::ESTOP) {
+  //   for (auto motor : motion_status_ptr_->motor_error) {
+  //     if (motor != 0 && motor != kMotorNormal) {
+  //       response->result = false;
+  //       response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+  //       ERROR("Motor error");
+  //       return;
+  //     }
+  //   }
+  // }
+  // if (!CheckPostMotion(request->motion_id)) {
+  //   MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+  //   MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
+  //   req->motion_id = MotionIDMsg::RECOVERYSTAND;
+  //   INFO("Trying to be ready for ResultCmd");
+  //   ExecuteResultCmd(req, res);
+  //   if (!res->result) {
+  //     response->code = res->code;
+  //     response->result = false;
+  //     response->motion_id = motion_status_ptr_->motion_id;
+  //     ERROR("Get error when trying to be ready for ResultCmd");
+  //     return;
+  //   }
+  // }
   action_ptr_->Execute(request);
   if (FeedbackTimeout()) {
     response->code = code_ptr_->GetCode(MotionCode::kComLcmTimeout);
@@ -313,9 +312,10 @@ void MotionHandler::ExecuteResultCmd(
     wait_timeout = min_exec_time;
   } else if (min_exec_time < 0) {  // 增量力控、增量位控、绝对位控、行走duration必须大于0
     wait_timeout = request->duration;
-  } else {
+  } else {                         // 自定义动作按照设定的参数计算
+    wait_timeout = sequence_total_duration_ * 2;
   }
-
+  INFO("%d", wait_timeout);
   if (execute_cv_.wait_for(
       check_lk,
       std::chrono::milliseconds(wait_timeout)) == std::cv_status::timeout)
@@ -339,9 +339,18 @@ void MotionHandler::ExecuteResultCmd(
   INFO("Motion %d done", request->motion_id);
 }
 
-void MotionHandler::HandleResultCmd(
-  const MotionResultSrv::Request::SharedPtr request,
-  MotionResultSrv::Response::SharedPtr response)
+template
+void MotionHandler::HandleResultCmd<MotionResultSrv::Request::SharedPtr,
+  MotionResultSrv::Response::SharedPtr>(MotionResultSrv::Request::SharedPtr,
+  MotionResultSrv::Response::SharedPtr);
+
+template
+void MotionHandler::HandleResultCmd<MotionSequenceSrv::Request::SharedPtr,
+  MotionSequenceSrv::Response::SharedPtr>(MotionSequenceSrv::Request::SharedPtr,
+  MotionSequenceSrv::Response::SharedPtr);
+
+template<typename CmdRequestT, typename CmdResponseT>
+void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT response)
 {
   if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
     response->result = false;
@@ -358,11 +367,76 @@ void MotionHandler::HandleResultCmd(
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
+  if (request->motion_id != MotionIDMsg::ESTOP) {
+    for (auto motor : motion_status_ptr_->motor_error) {
+      if (motor != 0 && motor != kMotorNormal) {
+        response->result = false;
+        response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+        ERROR("Motor error");
+        return;
+      }
+    }
+  }
   CreateTomlLog(request->motion_id);
+  if (!CheckPostMotion(request->motion_id)) {
+    MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+    MotionResultSrv::Response::SharedPtr res(new MotionResultSrv::Response);
+    req->motion_id = MotionIDMsg::RECOVERYSTAND;
+    INFO("Trying to be ready for ResultCmd");
+    ExecuteResultCmd(req, res);
+    if (!res->result) {
+      response->code = res->code;
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Get error when trying to be ready for ResultCmd");
+      CloseTomlLog();
+      return;
+    }
+  }
+  if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
+    INFO("\n%s", request->toml_data.c_str());
+    if (!action_ptr_->SequenceDefImpl(request->toml_data)) {
+      response->code = code_ptr_->GetCode(MotionCode::kSequenceDefError);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("SequenceCmd(%d) defination error", request->motion_id);
+      SetWorkStatus(HandlerStatus::kIdle);
+      CloseTomlLog();
+      return;
+    }
+  }
   ExecuteResultCmd(request, response);
   CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
 }
+
+void MotionHandler::HandleSequenceCmd(
+  const MotionSequenceSrv::Request::SharedPtr request,
+  MotionSequenceSrv::Response::SharedPtr response)
+{
+  if (GetWorkStatus() != HandlerStatus::kIdle) {
+    response->result = false;
+    response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    ERROR("Busy when Getting SequenceCmd(%d)", MotionIDMsg::SEQUENCE_CUSTOM);
+    return;
+  }
+  SetWorkStatus(HandlerStatus::kExecutingResultCmd);
+  auto req = std::make_shared<MotionResultSrv::Request>();
+  req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
+  if (!isCommandValid(req)) {
+    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+    response->result = false;
+    response->describe = "";
+    ERROR("SequenceCmd invalid");
+    SetWorkStatus(HandlerStatus::kIdle);
+    return;
+  }
+  CreateTomlLog(req->motion_id);
+  ExecuteResultCmd(request, response);
+  CloseTomlLog();
+  SetWorkStatus(HandlerStatus::kIdle);
+}
+
 
 void MotionHandler::HandleQueueCmd(
   const MotionQueueCustomSrv::Request::SharedPtr request,
@@ -432,8 +506,7 @@ bool MotionHandler::CheckPostMotion(int32_t motion_id)
   }
 
   // 请求的mode
-  int32_t request_mode = motion_id < 400 ? motion_id_map_.find(motion_id)->second.map.front() :
-    motion_id_map_.find(400)->second.map.front();
+  int32_t request_mode = motion_id_map_.find(motion_id)->second.map.front();
   // 当前状态允许切换的post_motion
   std::vector<int32_t> post_motion =
     motion_id_map_.find(motion_status_ptr_->motion_id)->second.post_motion;
@@ -447,8 +520,8 @@ bool MotionHandler::AllowServoCmd(int32_t motion_id)
   if (post_motion_checked_) {return true;}
   return CheckPostMotion(motion_id);
 }
-
-bool MotionHandler::isCommandValid(const MotionResultSrv::Request::SharedPtr & request)
+template<typename CmdRequestT>
+bool MotionHandler::isCommandValid(const CmdRequestT & request)
 {
   if (request->motion_id < 400) {
     if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {

@@ -17,9 +17,9 @@ find_package(cyberdog_debug REQUIRED)
 include_directories(include)
 
 add_executable(${PROJECT_NAME}
-  src/motion_manager.cpp
   src/motion_handler.cpp
   src/motion_decision.cpp
+  src/motion_manager.cpp
   src/main.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}

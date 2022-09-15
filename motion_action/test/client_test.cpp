@@ -19,6 +19,7 @@
 #include <cyberdog_common/cyberdog_log.hpp>
 #include <cyberdog_common/cyberdog_toml.hpp>
 #include "motion_action/motion_macros.hpp"
+#include <fstream>
 class SimMotionClient
 {
 public:
@@ -26,7 +27,7 @@ public:
   {
     node_ptr_ = rclcpp::Node::make_shared(name);
     motion_result_client_ = node_ptr_->create_client<protocol::srv::MotionResultCmd>(cyberdog::motion::kMotionResultServiceName);
-    motion_queue_client_ = node_ptr_->create_client<protocol::srv::MotionQueueCustomCmd>(cyberdog::motion::kMotionQueueServiceName);
+    motion_queue_client_ = node_ptr_->create_client<protocol::srv::MotionSequence>(cyberdog::motion::kMotionSequenceServiceName);
     code_ptr_ = std::make_shared<cyberdog::motion::MCode>(cyberdog::system::ModuleCode::kMotionManager);
     map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK), "kOK");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwLowBattery), "kHwLowBattery");
@@ -50,10 +51,11 @@ public:
       return;
     }
     cmd_preset_ = ament_index_cpp::get_package_share_directory("motion_action") + "/preset/" + argv[1] + ".toml";
+    cmd_def_ = ament_index_cpp::get_package_share_directory("motion_action") + "/preset/user_gait_" + argv[1] + ".toml";
     if(std::atoi(argv[1]) < 400) {
       HandleResultCmd(argc, argv);
     } else {
-      HandleQueueCustomCmd(argc, argv);
+      HandleSequenceCmd(argc, argv);
     }
   }
 
@@ -104,11 +106,21 @@ private:
     INFO("MotionClient get res:\n motion_id: %d result: %d code: %d, %s", future_result.get()->motion_id, future_result.get()->result, future_result.get()->code, map_[future_result.get()->code].c_str());
   }
 
-  void HandleQueueCustomCmd(int argc, char **argv){
+  void HandleSequenceCmd(int argc, char **argv){
     (void)argc;
     (void)argv;
-    protocol::srv::MotionQueueCustomCmd::Request::SharedPtr req(new protocol::srv::MotionQueueCustomCmd::Request);
-    protocol::msg::MotionCustomCmd msg;
+    protocol::srv::MotionSequence::Request::SharedPtr req(new protocol::srv::MotionSequence::Request);
+    req->motion_id = protocol::msg::MotionID::SEQUENCE_CUSTOM;
+    std::ifstream file(cmd_def_);
+    std::string s;
+    while (getline(file, s)) {
+      // INFO("%s", s.c_str());
+      req->toml_data += s + "\n";
+    }
+    // file >> req->toml_data;
+    INFO("\n%s", req->toml_data.c_str());
+    protocol::msg::MotionSequenceParam msg;
+    // protocol::msg::MotionCustomCmd msg;
     toml::value steps;
     if (!cyberdog::common::CyberdogToml::ParseFile(cmd_preset_, steps)) {
       FATAL("Cannot parse %s", cmd_preset_.c_str());
@@ -123,20 +135,40 @@ private:
     for(size_t i = 0; i < values.size(); i++) {
       auto value = values.at(i);
       // robot_control_cmd_lcmt lcm_base;
-      GET_TOML_VALUE(value, "mode", msg.mode);
-      GET_TOML_VALUE(value, "gait_id", msg.gait_id);
-      GET_TOML_VALUE(value, "contact", msg.contact);
-      GET_TOML_VALUE(value, "life_count", msg.life_count);
-      GET_TOML_VALUE(value, "value", msg.value);
-      GET_TOML_VALUE(value, "duration", msg.duration);
-      GET_TOML_VALUE(value, "vel_des", msg.vel_des);
-      GET_TOML_VALUE(value, "rpy_des", msg.rpy_des);
-      GET_TOML_VALUE(value, "pos_des", msg.pos_des);
-      GET_TOML_VALUE(value, "acc_des", msg.acc_des);
-      GET_TOML_VALUE(value, "ctrl_point", msg.ctrl_point);
-      GET_TOML_VALUE(value, "foot_pose", msg.foot_pose);
-      GET_TOML_VALUE(value, "step_height", msg.step_height);
-      req->cmds.push_back(msg);
+      // GET_TOML_VALUE(value, "mode", msg.mode);
+      // GET_TOML_VALUE(value, "gait_id", msg.gait_id);
+      // GET_TOML_VALUE(value, "contact", msg.contact);
+      // GET_TOML_VALUE(value, "life_count", msg.life_count);
+      // GET_TOML_VALUE(value, "value", msg.value);
+      GET_TOML_VALUE(value, "duration", msg.duration_ms);
+      std::vector<double> temp;
+      GET_TOML_VALUE(value, "vel_des", temp);
+      msg.twist.linear.x = temp.at(0);
+      msg.twist.linear.y = temp.at(1);
+      msg.twist.linear.z = temp.at(2);
+      GET_TOML_VALUE(value, "rpy_des", temp);
+      msg.twist.angular.x = temp.at(0);
+      msg.twist.angular.y = temp.at(1);
+      msg.twist.angular.z = temp.at(2);
+      GET_TOML_VALUE(value, "pos_des", temp);
+      msg.centroid_height.x = temp.at(0);
+      msg.centroid_height.y = temp.at(1);
+      msg.centroid_height.z = temp.at(2);
+      GET_TOML_VALUE(value, "foot_pose", temp);
+      msg.right_forefoot.x = temp.at(0);
+      msg.right_forefoot.y = temp.at(1);
+      msg.left_forefoot.x = temp.at(2);
+      msg.left_forefoot.y = temp.at(3);
+      msg.right_hindfoot.x = temp.at(4);
+      msg.right_hindfoot.y = temp.at(5);
+      GET_TOML_VALUE(value, "ctrl_point", temp);
+      msg.left_hindfoot.x = temp.at(0);
+      msg.left_hindfoot.y = temp.at(1);
+      msg.friction_coefficient = temp.at(2);
+      GET_TOML_VALUE(value, "step_height", temp);
+      msg.forefoot_height = temp.at(0);
+      msg.hindfoot_height = temp.at(1);
+      req->params.push_back(msg);
     }
     auto future_result = motion_queue_client_->async_send_request(req);
     // INFO(
@@ -153,14 +185,14 @@ private:
       FATAL("Service failed");
       return;
     }
-    INFO("MotionClient get res:\n result: %d", future_result.get()->result);
+    INFO("MotionClient get res:\n motion_id: %d result: %d code: %d, %s", future_result.get()->motion_id, future_result.get()->result, future_result.get()->code, map_[future_result.get()->code].c_str());
   }
   
   rclcpp::Node::SharedPtr node_ptr_;
   rclcpp::Client<protocol::srv::MotionResultCmd>::SharedPtr motion_result_client_{nullptr};
-  rclcpp::Client<protocol::srv::MotionQueueCustomCmd>::SharedPtr motion_queue_client_{nullptr};
+  rclcpp::Client<protocol::srv::MotionSequence>::SharedPtr motion_queue_client_{nullptr};
   std::unordered_map<int, std::string> map_;
-  std::string cmd_preset_;
+  std::string cmd_preset_, cmd_def_;
   std::shared_ptr<cyberdog::motion::MCode> code_ptr_;
   LOGGER_MINOR_INSTANCE("SimMotionClient");
 };

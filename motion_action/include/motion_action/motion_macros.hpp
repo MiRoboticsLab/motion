@@ -21,10 +21,15 @@
 #include "protocol/msg/motion_servo_response.hpp"
 #include "protocol/msg/motion_id.hpp"
 #include "protocol/msg/motion_code.hpp"
+#include "protocol/msg/motion_sequence_param.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/srv/motion_queue_custom_cmd.hpp"
 #include "protocol/srv/motion_custom_cmd.hpp"
+#include "protocol/srv/motion_sequence.hpp"
+#include "protocol/lcm/file_send_lcmt.hpp"
+#include "protocol/lcm/file_recv_lcmt.hpp"
+
 namespace cyberdog
 {
 namespace motion
@@ -44,6 +49,7 @@ enum class MotionCode : int32_t
   kMotionExecuteError = 23,
 
   kCommandInvalid = 30,
+  kSequenceDefError = 31,
 
   kEstop = 40,
   kStuck = 41,
@@ -54,6 +60,7 @@ using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
 using LcmResponse = robot_control_response_lcmt;
 using MotionResultSrv = protocol::srv::MotionResultCmd;
 using MotionQueueCustomSrv = protocol::srv::MotionQueueCustomCmd;
+using MotionSequenceSrv = protocol::srv::MotionSequence;
 using MotionCustomSrv = protocol::srv::MotionCustomCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
@@ -70,6 +77,8 @@ constexpr const char * kLCMActionSubscibeURL = "udpm://239.255.76.67:7670?ttl=25
 constexpr const char * kLCMBirdgeSubscribeURL = "udpm://239.255.76.67:7667?ttl=255";
 constexpr const char * kLCMActionControlChannel = "robot_control_cmd";
 constexpr const char * kLCMActionResponseChannel = "robot_control_response";
+constexpr const char * kLCMActionSequenceDefChannel = "user_gait_file";
+constexpr const char * kLCMActionSeqDefResultChannel = "user_gait_result";
 constexpr const char * kLCMBridgeImuChannel = "external_imu";
 constexpr const char * kLCMBridgeElevationChannel = "local_heightmap";
 constexpr const char * kLCMBridgeOdomChannel = "global_to_robot";
@@ -80,6 +89,7 @@ constexpr const char * kMotionServoResponseTopicName = "motion_servo_response";
 constexpr const char * kMotionResultServiceName = "motion_result_cmd";
 constexpr const char * kMotionCustomServiceName = "motion_custom_cmd";
 constexpr const char * kMotionQueueServiceName = "motion_queue_cmd";
+constexpr const char * kMotionSequenceServiceName = "motion_sequence_cmd";
 constexpr const char * kMotionQueueCommandTopicName = "motion_queue_cmd_test";
 constexpr const char * kBridgeOdomTopicName = "odom_out";
 constexpr const char * kMotionStatusTopicName = "motion_status";

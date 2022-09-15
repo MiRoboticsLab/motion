@@ -49,17 +49,22 @@ public:
 public:
   bool Init();
   void HandleServoCmd(const MotionServoCmdMsg::SharedPtr & msg, MotionServoResponseMsg & res);
-  void ExecuteResultCmd(
-    const MotionResultSrv::Request::SharedPtr request,
-    MotionResultSrv::Response::SharedPtr response);
-  void HandleResultCmd(
-    const MotionResultSrv::Request::SharedPtr request,
-    MotionResultSrv::Response::SharedPtr response);
+  template<typename CmdRequestT, typename CmdResponseT>
+  void ExecuteResultCmd(const CmdRequestT request, CmdResponseT response);
+  template<typename CmdRequestT, typename CmdResponseT>
+  void HandleResultCmd(const CmdRequestT request, CmdResponseT response);
+  void HandleSequenceCmd(
+    const MotionSequenceSrv::Request::SharedPtr request,
+    MotionSequenceSrv::Response::SharedPtr response);
   void HandleQueueCmd(
     const MotionQueueCustomSrv::Request::SharedPtr request,
     MotionQueueCustomSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
   bool FeedbackTimeout();
+  inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
+  {
+    sequence_total_duration_ = sequence_total_duration;
+  }
 
 private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
@@ -74,7 +79,8 @@ private:
   void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr & msg);
   bool CheckPostMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
-  bool isCommandValid(const MotionResultSrv::Request::SharedPtr & request);
+  template<typename CmdRequestT>
+  bool isCommandValid(const CmdRequestT & request);
   bool CheckMotors(const int32_t motion_id, int32_t & error_code);
   inline void SetWorkStatus(const HandlerStatus & status)
   {
@@ -182,6 +188,7 @@ private:
   std::ofstream toml_;
   std::shared_ptr<MCode> code_ptr_;
   std::string toml_log_dir_;
+  int64_t sequence_total_duration_{0};
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
   int8_t server_check_error_counter_ {0};
