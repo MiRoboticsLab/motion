@@ -46,7 +46,7 @@ private:
   MotionServoCmdMsg servo_cmd_;
   std::shared_ptr<StairPerception> stair_perception_;
   float vel_x_, vel_omega_;
-  bool jump_after_align_;
+  bool jump_after_align_, auto_start_;
 };  // calss StairAlign
 }  // motion
 }  // cyberdog

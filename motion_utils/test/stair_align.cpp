@@ -37,9 +37,12 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   GET_TOML_VALUE(config, "vel_x", vel_x_);
   GET_TOML_VALUE(config, "vel_omega", vel_omega_);
   GET_TOML_VALUE(config, "jump_after_align", jump_after_align_);
+  GET_TOML_VALUE(config, "auto_start", auto_start_);
   // INFO("%f, %f, %d", vel_x_, vel_omega_, jump_after_align_);
   stair_perception_ = std::make_shared<StairPerception>(node, config);
-  // std::thread{&StairAlign::Loop, this}.detach();
+  if(auto_start_) {
+    std::thread{&StairAlign::Loop, this}.detach();
+  }
 }
 
 void StairAlign::Loop()
@@ -76,15 +79,14 @@ void StairAlign::Loop()
         stair_perception_->SetStatus(StairPerception::State::IDLE);
         servo_cmd_.cmd_type = MotionServoCmdMsg::SERVO_END;
         servo_cmd_pub_->publish(servo_cmd_);
-        // if(jump_after_align_) {
-        //   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-        //   MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
-        //   req->motion_id = 126;
-        //   result_cmd_client_->async_send_request(req);
-        // }
-        // break;
+        if(jump_after_align_) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+          MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
+          req->motion_id = 126;
+          result_cmd_client_->async_send_request(req);
+        }
         stair_perception_->Launch(false);
-        return;
+        break;
       }
 
       default:
