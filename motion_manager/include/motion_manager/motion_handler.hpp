@@ -80,7 +80,7 @@ private:
   bool CheckPostMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
   template<typename CmdRequestT>
-  bool isCommandValid(const CmdRequestT & request);
+  bool IsCommandValid(const CmdRequestT & request);
   bool CheckMotors(const int32_t motion_id, int32_t & error_code);
   inline void SetWorkStatus(const HandlerStatus & status)
   {

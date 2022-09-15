@@ -359,7 +359,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
-  if (!isCommandValid(request)) {
+  if (!IsCommandValid(request)) {
     response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
@@ -423,7 +423,7 @@ void MotionHandler::HandleSequenceCmd(
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
   auto req = std::make_shared<MotionResultSrv::Request>();
   req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
-  if (!isCommandValid(req)) {
+  if (!IsCommandValid(req)) {
     response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
     response->result = false;
     response->describe = "";
@@ -448,7 +448,7 @@ void MotionHandler::HandleQueueCmd(
   //   return;
   // }
   // SetWorkStatus(HandlerStatus::kExecutingResultCmd);
-  // if (!isCommandValid(request)) {
+  // if (!IsCommandValid(request)) {
   //   response->code = MotionCodeMsg::COMMAND_INVALID;
   //   response->result = false;
   //   response->motion_id = motion_status_ptr_->motion_id;
@@ -521,9 +521,9 @@ bool MotionHandler::AllowServoCmd(int32_t motion_id)
   return CheckPostMotion(motion_id);
 }
 template<typename CmdRequestT>
-bool MotionHandler::isCommandValid(const CmdRequestT & request)
+bool MotionHandler::IsCommandValid(const CmdRequestT & request)
 {
-  if (request->motion_id < 400) {
+  if (request->motion_id != MotionIDMsg::SEQUENCE_CUSTOM) {
     if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
       return false;
     }
