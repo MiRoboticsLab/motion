@@ -373,6 +373,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
         response->result = false;
         response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
         ERROR("Motor error");
+        SetWorkStatus(HandlerStatus::kIdle);
         return;
       }
     }
@@ -390,6 +391,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       response->motion_id = motion_status_ptr_->motion_id;
       ERROR("Get error when trying to be ready for ResultCmd");
       CloseTomlLog();
+      SetWorkStatus(HandlerStatus::kIdle);
       return;
     }
   }
