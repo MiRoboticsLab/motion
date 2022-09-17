@@ -84,68 +84,33 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
     return;
   }
   robot_control_cmd_lcmt lcm_cmd;
-  if (request->motion_id < 400) {
-    if (motion_id_map_.empty()) {
-      ERROR("MotionIdMap empty");
-      return;
-    }
-    lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
-    lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
-    lcm_cmd.contact = 15;
-    lcm_cmd.value = request->value;
-    lcm_cmd.duration = request->duration;
-    GET_VALUE(request->step_height, lcm_cmd.step_height, 2, "step_height");
-    GET_VALUE(request->vel_des, lcm_cmd.vel_des, 3, "vel_des");
-    GET_VALUE(request->rpy_des, lcm_cmd.rpy_des, 3, "rpy_des");
-    GET_VALUE(request->pos_des, lcm_cmd.pos_des, 3, "pos_des");
-    GET_VALUE(request->ctrl_point, lcm_cmd.ctrl_point, 3, "ctrl_point");
-    GET_VALUE(request->acc_des, lcm_cmd.acc_des, 6, "acc_des");
-    GET_VALUE(request->foot_pose, lcm_cmd.foot_pose, 6, "foot_pose");
-    std::unique_lock<std::mutex> lk(lcm_write_mutex_);
-    lcm_cmd_ = lcm_cmd;
-    lcm_cmd_.life_count = life_count_++;
-    lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
-    lk.unlock();
-    lcm_cmd_init_ = true;
-    INFO(
-      "ResultCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
-      lcm_cmd_.duration);
-    if (toml_log_func_) {
-      toml_log_func_(lcm_cmd_);
-    }
-  } else {
-    toml::value steps;
-    std::string cmd = kMotionCustomCmdConfigPath +
-      std::to_string(request->motion_id);
-    if (!cyberdog::common::CyberdogToml::ParseFile(cmd, steps)) {
-      FATAL("Cannot parse %s", cmd.c_str());
-      exit(-1);
-    }
-    if (!steps.is_table()) {
-      FATAL("Toml format error");
-      exit(-1);
-    }
-    toml::value values;
-    cyberdog::common::CyberdogToml::Get(steps, "step", values);
-    for (size_t i = 0; i < values.size(); i++) {
-      auto value = values.at(i);
-      std::vector<float> temp;
-      GET_TOML_VALUE(value, "mode", lcm_cmd.mode);
-      GET_TOML_VALUE(value, "gait_id", lcm_cmd.gait_id);
-      GET_TOML_VALUE(value, "contact", lcm_cmd.contact);
-      // GET_TOML_VALUE(value, "life_count", lcm_cmd.life_count);
-      GET_TOML_VALUE(value, "value", lcm_cmd.value);
-      GET_TOML_VALUE(value, "duration", lcm_cmd.duration);
-      GET_TOML_VALUE_ARR(value, "vel_des", temp, lcm_cmd.vel_des);
-      GET_TOML_VALUE_ARR(value, "rpy_des", temp, lcm_cmd.rpy_des);
-      GET_TOML_VALUE_ARR(value, "pos_des", temp, lcm_cmd.pos_des);
-      GET_TOML_VALUE_ARR(value, "acc_des", temp, lcm_cmd.acc_des);
-      GET_TOML_VALUE_ARR(value, "ctrl_point", temp, lcm_cmd.ctrl_point);
-      GET_TOML_VALUE_ARR(value, "foot_pose", temp, lcm_cmd.foot_pose);
-      GET_TOML_VALUE_ARR(value, "step_height", temp, lcm_cmd.step_height);
-      Execute(lcm_cmd);
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
+  if (motion_id_map_.empty()) {
+    ERROR("MotionIdMap empty");
+    return;
+  }
+  lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
+  lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
+  lcm_cmd.contact = 15;
+  lcm_cmd.value = request->value;
+  lcm_cmd.duration = request->duration;
+  GET_VALUE(request->step_height, lcm_cmd.step_height, 2, "step_height");
+  GET_VALUE(request->vel_des, lcm_cmd.vel_des, 3, "vel_des");
+  GET_VALUE(request->rpy_des, lcm_cmd.rpy_des, 3, "rpy_des");
+  GET_VALUE(request->pos_des, lcm_cmd.pos_des, 3, "pos_des");
+  GET_VALUE(request->ctrl_point, lcm_cmd.ctrl_point, 3, "ctrl_point");
+  GET_VALUE(request->acc_des, lcm_cmd.acc_des, 6, "acc_des");
+  GET_VALUE(request->foot_pose, lcm_cmd.foot_pose, 6, "foot_pose");
+  std::unique_lock<std::mutex> lk(lcm_write_mutex_);
+  lcm_cmd_ = lcm_cmd;
+  lcm_cmd_.life_count = life_count_++;
+  lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
+  lk.unlock();
+  lcm_cmd_init_ = true;
+  INFO(
+    "ResultCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
+    lcm_cmd_.duration);
+  if (toml_log_func_) {
+    toml_log_func_(lcm_cmd_);
   }
 }
 
@@ -357,23 +322,18 @@ void MotionAction::ReadActionResponseLcm(
     if (msg->mode == 0) {
       last_motion_id_ = MotionIDMsg::ESTOP;
     } else {
-      if (msg->mode == 11 && msg->gait_id >= 80) {
-        // TODO(Harvey): 如何获取自定义动作对应的motion_id
-        last_motion_id_ = 320 + msg->gait_id;
-      } else {
-        for (auto m = motion_id_map_.begin(); ; m++) {
-          if (m == motion_id_map_.end()) {
-            WARN_EXPRESSION(
-              lcm_cmd_init_,
-              "Get unkown response about motion_id, mode: %d, gait_id: %d!",
-              static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));
-            last_motion_id_ = -1;
-            break;
-          }
-          if (m->second.map.front() == msg->mode && m->second.map.back() == msg->gait_id) {
-            last_motion_id_ = m->first;
-            break;
-          }
+      for (auto m = motion_id_map_.begin(); ; m++) {
+        if (m == motion_id_map_.end()) {
+          WARN_EXPRESSION(
+            lcm_cmd_init_,
+            "Get unkown response about motion_id, mode: %d, gait_id: %d!",
+            static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));
+          last_motion_id_ = -1;
+          break;
+        }
+        if (m->second.map.front() == msg->mode && m->second.map.back() == msg->gait_id) {
+          last_motion_id_ = m->first;
+          break;
         }
       }
     }
