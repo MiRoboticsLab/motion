@@ -322,23 +322,18 @@ void MotionAction::ReadActionResponseLcm(
     if (msg->mode == 0) {
       last_motion_id_ = MotionIDMsg::ESTOP;
     } else {
-      if (msg->mode == 11 && msg->gait_id >= 80) {
-        // TODO(Harvey): 如何获取自定义动作对应的motion_id
-        last_motion_id_ = 320 + msg->gait_id;
-      } else {
-        for (auto m = motion_id_map_.begin(); ; m++) {
-          if (m == motion_id_map_.end()) {
-            WARN_EXPRESSION(
-              lcm_cmd_init_,
-              "Get unkown response about motion_id, mode: %d, gait_id: %d!",
-              static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));
-            last_motion_id_ = -1;
-            break;
-          }
-          if (m->second.map.front() == msg->mode && m->second.map.back() == msg->gait_id) {
-            last_motion_id_ = m->first;
-            break;
-          }
+      for (auto m = motion_id_map_.begin(); ; m++) {
+        if (m == motion_id_map_.end()) {
+          WARN_EXPRESSION(
+            lcm_cmd_init_,
+            "Get unkown response about motion_id, mode: %d, gait_id: %d!",
+            static_cast<int>(msg->mode), static_cast<int>(msg->gait_id));
+          last_motion_id_ = -1;
+          break;
+        }
+        if (m->second.map.front() == msg->mode && m->second.map.back() == msg->gait_id) {
+          last_motion_id_ = m->first;
+          break;
         }
       }
     }
