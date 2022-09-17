@@ -24,7 +24,7 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   servo_cmd_pub_ = node_->create_publisher<MotionServoCmdMsg>(kMotionServoCommandTopicName, 1);
   result_cmd_client_ = node_->create_client<MotionResultSrv>(kMotionResultServiceName);
   stair_align_srv_ = node->create_service<std_srvs::srv::Trigger>(
-    "stair_align", std::bind(&StairAlign::Loop, this, std::placeholders::_1));
+    "stair_align", std::bind(&StairAlign::Loop, this, std::placeholders::_1, std::placeholders::_2));
   servo_cmd_.motion_id = MotionIDMsg::WALK_ADAPTIVELY;
   servo_cmd_.step_height = std::vector<float>{0.05, 0.05};
   servo_cmd_.value = 2;
@@ -41,11 +41,11 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   // INFO("%f, %f, %d", vel_x_, vel_omega_, jump_after_align_);
   stair_perception_ = std::make_shared<StairPerception>(node, config);
   if(auto_start_) {
-    std::thread{&StairAlign::Loop, this}.detach();
+    std::thread{std::bind(&StairAlign::Loop, this, std_srvs::srv::Trigger_Request::SharedPtr(), std_srvs::srv::Trigger_Response::SharedPtr())}.detach();
   }
 }
 
-void StairAlign::Loop()
+void StairAlign::Loop(const std_srvs::srv::Trigger_Request::SharedPtr, std_srvs::srv::Trigger_Response::SharedPtr)
 {
   stair_perception_->Launch(true);
   while(rclcpp::ok()){

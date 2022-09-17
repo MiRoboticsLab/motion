@@ -14,30 +14,33 @@
 #ifndef MOTION_UTILS__STAIR_ALIGN_HPP_
 #define MOTION_UTILS__STAIR_ALIGN_HPP_
 
-#include <iostream>
 #include <rclcpp/node.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#include <iostream>
+#include <memory>
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "cyberdog_common/cyberdog_toml.hpp"
 #include "motion_utils/stair_perception.hpp"
 #include "motion_action/motion_macros.hpp"
 #include "std_srvs/srv/trigger.hpp"
+
 namespace cyberdog
 {
 namespace motion
 {
 class StairAlign
 {
-
 public:
-  StairAlign(rclcpp::Node::SharedPtr node);
+  explicit StairAlign(rclcpp::Node::SharedPtr node);
   void Spin()
   {
     rclcpp::spin(node_);
   }
 
 private:
-  void Loop();
+  void Loop(
+    const std_srvs::srv::Trigger_Request::SharedPtr request,
+    std_srvs::srv::Trigger_Response::SharedPtr response);
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<MotionServoCmdMsg>::SharedPtr servo_cmd_pub_, align_status_pub_;
@@ -48,6 +51,6 @@ private:
   float vel_x_, vel_omega_;
   bool jump_after_align_, auto_start_;
 };  // calss StairAlign
-}  // motion
-}  // cyberdog
-#endif // MOTION_UTILS__STAIR_ALIGN_HPP_
+}  // namespace motion
+}  // namespace cyberdog
+#endif  // MOTION_UTILS__STAIR_ALIGN_HPP_

@@ -170,7 +170,9 @@ class MinimalSubscriber(Node):
         self.tof_pcd_generate(msg.right_rear)
 
 def point_cloud(points, parent_frame):
-    """ Creates a point cloud message.
+    """
+    Create a point cloud message.
+    
     Args:
         points: Nx3 array of xyz positions.
         parent_frame: frame in which the point cloud is defined

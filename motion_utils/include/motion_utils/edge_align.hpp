@@ -14,22 +14,23 @@
 #ifndef MOTION_UTILS__EDGE_ALIGN_HPP_
 #define MOTION_UTILS__EDGE_ALIGN_HPP_
 
-#include <iostream>
 #include <rclcpp/node.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#include <iostream>
+#include <memory>
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "cyberdog_common/cyberdog_toml.hpp"
 #include "motion_utils/edge_perception.hpp"
 #include "motion_action/motion_macros.hpp"
+
 namespace cyberdog
 {
 namespace motion
 {
 class EdgeAlign
 {
-
 public:
-  EdgeAlign(rclcpp::Node::SharedPtr node);
+  explicit EdgeAlign(rclcpp::Node::SharedPtr node);
   void Spin()
   {
     rclcpp::spin(node_);
@@ -46,6 +47,6 @@ private:
   float vel_x_, vel_omega_;
   bool jump_after_align_;
 };  // calss EdgeAlign
-}  // motion
-}  // cyberdog
-#endif // MOTION_UTILS__EDGE_ALIGN_HPP_
+}  // namespace motion
+}  // namespace cyberdog
+#endif  // MOTION_UTILS__EDGE_ALIGN_HPP_
