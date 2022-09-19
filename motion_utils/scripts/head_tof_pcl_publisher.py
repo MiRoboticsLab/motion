@@ -170,26 +170,6 @@ class MinimalSubscriber(Node):
         self.tof_pcd_generate(msg.right_rear)
 
 def point_cloud(points, parent_frame):
-    """
-    Create a point cloud message.
-    
-    Args:
-        points: Nx3 array of xyz positions.
-        parent_frame: frame in which the point cloud is defined
-    Returns:
-        sensor_msgs/PointCloud2 message
-    Code source:
-        https://gist.github.com/pgorczak/5c717baa44479fa064eb8d33ea4587e0
-    References:
-        http://docs.ros.org/melodic/api/sensor_msgs/html/msg/PointCloud2.html
-        http://docs.ros.org/melodic/api/sensor_msgs/html/msg/PointField.html
-        http://docs.ros.org/melodic/api/std_msgs/html/msg/Header.html
-    """
-    # In a PointCloud2 message, the point cloud is stored as an byte 
-    # array. In order to unpack it, we also include some parameters 
-    # which desribes the size of each individual point.
-        
-    
     ros_dtype = sensor_msgs.PointField.FLOAT32
     dtype = np.float32
     itemsize = np.dtype(dtype).itemsize # A 32-bit float takes 4 bytes.
