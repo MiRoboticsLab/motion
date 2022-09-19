@@ -22,10 +22,13 @@ find_package(protocol REQUIRED)
 find_package(cyberdog_system REQUIRED)
 find_package(cyberdog_debug REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(PCL REQUIRED COMPONENTS filters)
+find_package(pcl_conversions REQUIRED)
+# find_package(visualization_msgs REQUIRED)
 find_package(cyberdog_common)
 find_package(motion_manager)
 
-include_directories(include)
+include_directories(include ${PCL_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} SHARED src/motion_utils.cpp)
 # target_link_libraries(${PROJECT_NAME} lcm)
@@ -46,6 +49,22 @@ add_executable(duration_test test/duration_test.cpp)
 target_link_libraries(duration_test ${PROJECT_NAME})
 ament_target_dependencies(duration_test lcm cyberdog_common cyberdog_debug)
 
+add_executable(stair_align test/stair_align.cpp test/stair_perception.cpp)
+target_link_libraries(stair_align ${PROJECT_NAME} ${PCL_LIBRARIES})
+ament_target_dependencies(stair_align cyberdog_common cyberdog_debug pcl_conversions)
+
+add_executable(stair_perception_test test/stair_perception.cpp test/stair_perception_test.cpp)
+target_link_libraries(stair_perception_test ${PROJECT_NAME} ${PCL_LIBRARIES})
+ament_target_dependencies(stair_perception_test cyberdog_common cyberdog_debug pcl_conversions)
+
+add_executable(edge_align test/edge_align.cpp test/edge_perception.cpp)
+target_link_libraries(edge_align ${PROJECT_NAME} ${PCL_LIBRARIES})
+ament_target_dependencies(edge_align cyberdog_common cyberdog_debug pcl_conversions)
+
+add_executable(edge_perception_test test/edge_perception.cpp test/edge_perception_test.cpp)
+target_link_libraries(edge_perception_test ${PROJECT_NAME} ${PCL_LIBRARIES})
+ament_target_dependencies(edge_perception_test cyberdog_common cyberdog_debug pcl_conversions)
+
 install(
   DIRECTORY include/
   DESTINATION include
@@ -55,6 +74,10 @@ install(TARGETS
   ${PROJECT_NAME}
   distance_test
   duration_test
+  stair_align
+  edge_align
+  stair_perception_test
+  edge_perception_test
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
@@ -63,7 +86,13 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/servo_delay_statistics.py
+  scripts/head_tof_pcl_publisher.py
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

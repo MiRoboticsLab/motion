@@ -42,7 +42,7 @@ min_exec_time = 5000
 motion_id = 112
 map  = [11, 1]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11]
+post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = 5000
 
 # 后空翻， duration必须为0
@@ -76,11 +76,18 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 62, 5, 64, 16]
 min_exec_time = 8000
 
-
 # 遛狗, duration 不需要用户设置，必须为0
 [[motion_ids]]
 motion_id = 125
 map = [11, 4]   
+pre_motion = []
+post_motion = [0, 12, 7, 21, 3, 11]
+min_exec_time = 1000
+
+# 跳台阶, duration 不需要用户设置，必须为0
+[[motion_ids]]
+motion_id = 126
+map = [23, 0]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11]
 min_exec_time = 1000
@@ -200,9 +207,9 @@ min_exec_time = -1
 # 自变频行走
 [[motion_ids]]
 motion_id = 303
-map = [11, 3]  
+map = [11, 20]  
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11]
+post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
 
 # # 遛狗
