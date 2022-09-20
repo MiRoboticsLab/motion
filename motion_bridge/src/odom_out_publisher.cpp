@@ -59,7 +59,6 @@ OdomOutPublisher::OdomOutPublisher(const rclcpp::Node::SharedPtr node)
         }
         leg_odom_publisher_->publish(odom_);
         if (this->tf_pub_) {
-          INFO("pub tf!");
           tf2_broadcaster_->sendTransform(transform_stamped_);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
