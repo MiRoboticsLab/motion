@@ -23,6 +23,11 @@ namespace motion
 OdomOutPublisher::OdomOutPublisher(const rclcpp::Node::SharedPtr node)
 {
   node_ = node;
+  odom_frame_ = node_->declare_parameter("odom_frame", std::string("odom"));
+  base_frame_ = node_->declare_parameter("base_frame", std::string("base_link_leg"));
+  map_frame_ = node_->declare_parameter("map_frame", std::string("map"));
+  tf_pub_ = node->declare_parameter("tf_pub", true);
+  INFO("%d", tf_pub_);
   leg_odom_publisher_ = node_->create_publisher<nav_msgs::msg::Odometry>(
     kBridgeOdomTopicName,
     rclcpp::SystemDefaultsQoS());
@@ -53,8 +58,10 @@ OdomOutPublisher::OdomOutPublisher(const rclcpp::Node::SharedPtr node)
           cv_.wait(lk);
         }
         leg_odom_publisher_->publish(odom_);
-        tf2_broadcaster_->sendTransform(transform_stamped_);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        if (this->tf_pub_) {
+          tf2_broadcaster_->sendTransform(transform_stamped_);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
       }
     }
   }.detach();
