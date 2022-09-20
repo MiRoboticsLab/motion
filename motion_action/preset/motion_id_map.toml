@@ -84,13 +84,13 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11]
 min_exec_time = 1000
 
-# 跳台阶, duration 不需要用户设置，必须为0
+# 跳上台阶, duration 不需要用户设置，必须为0
 [[motion_ids]]
 motion_id = 126
 map = [23, 0]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11]
-min_exec_time = 1000
+post_motion = [0, 12, 7, 3]
+min_exec_time = 5000
 
 # 3D跳跃左转90度, duration 不需要用户设置，必须为0
 [[motion_ids]]
@@ -147,6 +147,14 @@ map = [16, 6]
 pre_motion = []
 post_motion = [0, 12, 7, 3, 21, 11]
 min_exec_time = 1500
+
+# 跳下台阶, duration 不需要用户设置，必须为0
+[[motion_ids]]
+motion_id = 137
+map = [16, 9]   
+pre_motion = []
+post_motion = [0, 12, 7, 3, 21, 11]
+min_exec_time = 5000
 
 ###################################################################
 # 2 特殊的力控和位控指令
