@@ -55,6 +55,7 @@ private:
   std::condition_variable cv_;
   std::mutex mutex_;
   bool ready_publish_;
+  bool tf_pub_;
 };  // class OdomOutPublisher
 }  // namespace motion
 }  // namespace cyberdog
