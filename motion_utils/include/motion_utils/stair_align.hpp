@@ -38,9 +38,10 @@ public:
   }
 
 private:
-  void Loop(
+  void HandleServiceCallback(
     const std_srvs::srv::Trigger_Request::SharedPtr request,
     std_srvs::srv::Trigger_Response::SharedPtr response);
+  void Loop();
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<MotionServoCmdMsg>::SharedPtr servo_cmd_pub_, align_status_pub_;
@@ -48,6 +49,8 @@ private:
   rclcpp::Client<MotionResultSrv>::SharedPtr result_cmd_client_;
   MotionServoCmdMsg servo_cmd_;
   std::shared_ptr<StairPerception> stair_perception_;
+  std::mutex loop_mutex_;
+  std::condition_variable cv_;
   float vel_x_, vel_omega_;
   bool jump_after_align_, auto_start_;
 };  // calss StairAlign
