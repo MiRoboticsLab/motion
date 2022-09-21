@@ -35,7 +35,7 @@ MotorBridge::MotorBridge(const rclcpp::Node::SharedPtr node)
     std::thread(
     [this]() {
       while (rclcpp::ok()) {
-        while (0 == this->lcm_subscribe_instance_->handleTimeout(kAcitonLcmReadTimeout)) {
+        while (0 == this->lcm_subscribe_instance_->handleTimeout(5000)) {
           ERROR("Cannot read motor temp LCM from MR813");
         }
       }
