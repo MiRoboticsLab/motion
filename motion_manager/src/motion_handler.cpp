@@ -32,7 +32,13 @@ MotionHandler::~MotionHandler()
 
 bool MotionHandler::Init()
 {
+  motion_status_ptr_ = std::make_shared<MotionStatusMsg>();
+  motion_status_ptr_->motor_error.resize(12);
   action_ptr_ = std::make_shared<MotionAction>();
+  action_ptr_->RegisterFeedback(
+    std::bind(&MotionHandler::UpdateMotionStatus, this, std::placeholders::_1));
+  action_ptr_->RegisterTomlLog(
+    std::bind(&MotionHandler::WriteTomlLog, this, std::placeholders::_1));
   if (!action_ptr_->Init()) {
     ERROR("Fail to initialize MotionAction");
     return false;
@@ -42,18 +48,12 @@ bool MotionHandler::Init()
   servo_check_click_ = std::make_shared<ServoClick>();
   servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
   servo_data_check_thread_.detach();
-  action_ptr_->RegisterFeedback(
-    std::bind(&MotionHandler::UpdateMotionStatus, this, std::placeholders::_1));
-  action_ptr_->RegisterTomlLog(
-    std::bind(&MotionHandler::WriteTomlLog, this, std::placeholders::_1));
   toml_log_dir_ = getenv("HOME") + std::string("/TomlLog/");
   if (access(toml_log_dir_.c_str(), 0) != 0) {
     if (mkdir(toml_log_dir_.c_str(), 0777) != 0) {
       INFO("Cannot create TomlLog directory");
     }
   }
-  motion_status_ptr_.reset(new MotionStatusMsg);
-  motion_status_ptr_->motor_error.resize(12);
   motion_id_map_ = action_ptr_->GetMotionIdMap();
   std::thread{
     [this]() {
@@ -467,6 +467,11 @@ void MotionHandler::HandleQueueCmd(
 
 void MotionHandler::UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr)
 {
+  static int8_t count = 5;
+  if (count > 0) {
+    INFO("Get Feedback: %d", count);
+    --count;
+  }
   feedback_cv_.notify_one();
   std::unique_lock<std::mutex> lk(execute_mutex_);
   motion_status_ptr_->motion_id = motion_status_ptr->motion_id;
