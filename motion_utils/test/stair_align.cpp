@@ -22,12 +22,15 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
 {
   node_ = node;
   servo_cmd_pub_ = node_->create_publisher<MotionServoCmdMsg>(kMotionServoCommandTopicName, 1);
+  align_finish_pub_ = node_->create_publisher<std_msgs::msg::Bool>("stair_align_finished_flag", 1);
   result_cmd_client_ = node_->create_client<MotionResultSrv>(kMotionResultServiceName);
   stair_align_srv_ = node->create_service<std_srvs::srv::Trigger>(
     "stair_align", std::bind(&StairAlign::HandleServiceCallback, this, std::placeholders::_1, std::placeholders::_2));
   servo_cmd_.motion_id = MotionIDMsg::WALK_ADAPTIVELY;
   servo_cmd_.step_height = std::vector<float>{0.05, 0.05};
   servo_cmd_.value = 2;
+  align_finish_.data = false;
+  
   std::string toml_file = ament_index_cpp::get_package_share_directory("motion_utils") + "/config/stair_align.toml";
   toml::value config;
   if(!cyberdog::common::CyberdogToml::ParseFile(toml_file, config)) {
@@ -66,7 +69,6 @@ void StairAlign::Loop()
       stair_perception_->Launch(true);
       perception_launched = false;
     }
-    INFO("%d", stair_perception_->GetStatus());
     switch (stair_perception_->GetStatus())
     {
       case StairPerception::State::IDLE:
@@ -97,6 +99,7 @@ void StairAlign::Loop()
         stair_perception_->SetStatus(StairPerception::State::IDLE);
         servo_cmd_.cmd_type = MotionServoCmdMsg::SERVO_END;
         servo_cmd_pub_->publish(servo_cmd_);
+        align_finish_.data = true;
         if(jump_after_align_) {
           std::this_thread::sleep_for(std::chrono::milliseconds(2000));
           MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
@@ -111,6 +114,7 @@ void StairAlign::Loop()
       default:
         break;
     }
+    align_finish_pub_->publish(align_finish_);
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 }

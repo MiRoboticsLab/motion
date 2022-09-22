@@ -23,7 +23,7 @@
 #include "motion_utils/stair_perception.hpp"
 #include "motion_action/motion_macros.hpp"
 #include "std_srvs/srv/trigger.hpp"
-
+#include "std_msgs/msg/bool.hpp"
 namespace cyberdog
 {
 namespace motion
@@ -48,6 +48,8 @@ private:
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr stair_align_srv_, jump_srv_;
   rclcpp::Client<MotionResultSrv>::SharedPtr result_cmd_client_;
   MotionServoCmdMsg servo_cmd_;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr align_finish_pub_;
+  std_msgs::msg::Bool align_finish_;
   std::shared_ptr<StairPerception> stair_perception_;
   std::mutex loop_mutex_;
   std::condition_variable cv_;
