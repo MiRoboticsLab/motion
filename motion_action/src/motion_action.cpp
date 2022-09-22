@@ -72,6 +72,9 @@ void MotionAction::Execute(const robot_control_cmd_lcmt & lcm)
   INFO(
     "ResultCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
     lcm_cmd_.duration);
+  if (toml_log_func_) {
+    toml_log_func_(lcm_cmd_);
+  }
 }
 
 void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
@@ -80,10 +83,11 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
     ERROR("MotionAction has not been initialized when execute ResultSrv");
     return;
   }
+  robot_control_cmd_lcmt lcm_cmd;
   if (motion_id_map_.empty()) {
+    ERROR("MotionIdMap empty");
     return;
   }
-  robot_control_cmd_lcmt lcm_cmd;
   lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
   lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
   lcm_cmd.contact = 15;
@@ -107,6 +111,60 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
     lcm_cmd_.duration);
   if (toml_log_func_) {
     toml_log_func_(lcm_cmd_);
+  }
+}
+
+
+void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
+{
+  if (!ins_init_) {
+    ERROR("MotionAction has not been initialized when execute QueueSrv");
+    return;
+  }
+  if (motion_id_map_.empty()) {
+    return;
+  }
+  for (auto cmd : request->params) {
+    robot_control_cmd_lcmt lcm_cmd;
+    lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
+    lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
+    lcm_cmd.step_height[0] = cmd.forefoot_height;
+    lcm_cmd.step_height[1] = cmd.hindfoot_height;
+    lcm_cmd.vel_des[0] = cmd.twist.linear.x;
+    lcm_cmd.vel_des[1] = cmd.twist.linear.y;
+    lcm_cmd.vel_des[2] = cmd.twist.linear.z;
+    lcm_cmd.rpy_des[0] = cmd.twist.angular.x;
+    lcm_cmd.rpy_des[1] = cmd.twist.angular.y;
+    lcm_cmd.rpy_des[2] = cmd.twist.angular.z;
+    lcm_cmd.pos_des[0] = cmd.centroid_height.x;
+    lcm_cmd.pos_des[1] = cmd.centroid_height.y;
+    lcm_cmd.pos_des[2] = cmd.centroid_height.z;
+    lcm_cmd.foot_pose[0] = cmd.right_forefoot.x;
+    lcm_cmd.foot_pose[1] = cmd.right_forefoot.y;
+    lcm_cmd.foot_pose[2] = cmd.left_forefoot.x;
+    lcm_cmd.foot_pose[3] = cmd.left_forefoot.y;
+    lcm_cmd.foot_pose[4] = cmd.right_hindfoot.x;
+    lcm_cmd.foot_pose[5] = cmd.right_hindfoot.y;
+    lcm_cmd.ctrl_point[0] = cmd.left_hindfoot.x;
+    lcm_cmd.ctrl_point[1] = cmd.left_hindfoot.y;
+    lcm_cmd.ctrl_point[2] = cmd.friction_coefficient;
+    for (int i = 0; i < 6; ++i) {
+      lcm_cmd.acc_des[i] = 1.0;
+    }
+    lcm_cmd.duration = cmd.duration_ms;
+    std::unique_lock<std::mutex> lk(lcm_write_mutex_);
+    lcm_cmd_ = lcm_cmd;
+    lcm_cmd_.life_count = life_count_++;
+    lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
+    lk.unlock();
+    lcm_cmd_init_ = true;
+    INFO(
+      "SequenceCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
+      lcm_cmd_.duration);
+    if (toml_log_func_) {
+      toml_log_func_(lcm_cmd_);
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
 
@@ -190,7 +248,9 @@ bool MotionAction::Init(
   lcm_publish_duration_ = 1 / static_cast<float>(kActionLcmPublishFrequency) * 1000;
   lcm_publish_instance_ = std::make_shared<lcm::LCM>(publish_url);
   lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(subscribe_url);
-  lcm_subscribe_instance_->subscribe(kLCMActionResponseChannel, &MotionAction::ReadLcm, this);
+  lcm_subscribe_instance_->subscribe(
+    kLCMActionResponseChannel,
+    &MotionAction::ReadActionResponseLcm, this);
   if (!lcm_subscribe_instance_->good()) {
     ERROR("MotionAction read lcm initialized error");
     return false;
@@ -211,6 +271,19 @@ bool MotionAction::Init(
       }
     });
   response_thread_.detach();
+  lcm_recv_subscribe_instance_ = std::make_shared<lcm::LCM>(publish_url);
+  if (!lcm_recv_subscribe_instance_->good()) {
+    ERROR("MotionAction read recv lcm initialized error");
+    return false;
+  }
+  lcm_recv_subscribe_instance_->subscribe(
+    kLCMActionSeqDefResultChannel,
+    &MotionAction::ReadSeqDefResultLcm, this);
+  std::thread{[this]() {
+      while (rclcpp::ok()) {
+        while (0 == this->lcm_recv_subscribe_instance_->handle()) {}
+      }
+    }}.detach();
   ins_init_ = true;
   return true;
 }
@@ -232,7 +305,7 @@ void MotionAction::RegisterTomlLog(
   toml_log_func_ = toml_log;
 }
 
-void MotionAction::ReadLcm(
+void MotionAction::ReadActionResponseLcm(
   const lcm::ReceiveBuffer *, const std::string &,
   const robot_control_response_lcmt * msg)
 {
@@ -242,7 +315,7 @@ void MotionAction::ReadLcm(
       "bar:%d, mod:%d, gid:%d, sws:%d, fer:%d", msg->order_process_bar, msg->mode, msg->gait_id,
       msg->switch_status, msg->footpos_error);
   }
-  protocol::msg::MotionStatus::SharedPtr lcm_res(new protocol::msg::MotionStatus);
+  static auto lcm_res = std::make_shared<MotionStatusMsg>();
   if (msg->mode != last_res_mode_ || msg->gait_id != last_res_gait_id_) {
     last_res_mode_ = msg->mode;
     last_res_gait_id_ = msg->gait_id;
@@ -280,6 +353,19 @@ void MotionAction::ReadLcm(
   }
 }
 
+void MotionAction::ReadSeqDefResultLcm(
+  const lcm::ReceiveBuffer *, const std::string &,
+  const file_recv_lcmt * msg)
+{
+  INFO("Get Sequence definition result: %d", msg->result);
+  sequence_recv_result_ = false;
+  sequence_recv_result_ = msg->result;
+  if (sequence_def_result_waiting_) {
+    seq_def_result_cv_.notify_one();
+    sequence_def_result_waiting_ = false;
+  }
+}
+
 void MotionAction::WriteLcm()
 {
   while (lcm_publish_instance_->good()) {
@@ -290,5 +376,28 @@ void MotionAction::WriteLcm()
     std::this_thread::sleep_for(std::chrono::milliseconds(lcm_publish_duration_));
   }
 }
+
+bool MotionAction::SequenceDefImpl(const std::string & toml_data)
+{
+  {
+    std::unique_lock<std::mutex> lk(lcm_write_mutex_);
+    file_send_lcmt msg;
+    msg.data = toml_data;
+    lcm_publish_instance_->publish(kLCMActionSequenceDefChannel, &msg);
+  }
+  std::unique_lock<std::mutex> lk(seq_def_result_mutex_);
+  sequence_def_result_waiting_ = true;
+  if (seq_def_result_cv_.wait_for(
+      lk,
+      std::chrono::milliseconds(kAcitonLcmReadTimeout + 2000)) == std::cv_status::timeout)
+  {
+    ERROR("Wait sequence def result timeout");
+    return false;
+  }
+  std::this_thread::sleep_for(std::chrono::microseconds(1000));
+  return sequence_recv_result_ == 0;
+}
+
+
 }  // namespace motion
 }  // namespace cyberdog

@@ -14,7 +14,6 @@
 #ifndef MOTION_UTILS__STAIR_PERCEPTION_HPP_
 #define MOTION_UTILS__STAIR_PERCEPTION_HPP_
 
-#include <iostream>
 #include <rclcpp/node.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <pcl_conversions/pcl_conversions.h>
@@ -23,6 +22,10 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/filters/radius_outlier_removal.h>
+#include <iostream>
+#include <deque>
+#include <vector>
+#include <string>
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "cyberdog_common/cyberdog_toml.hpp"
 #include "motion_action/motion_macros.hpp"
@@ -48,11 +51,12 @@ public:
     std::array<float, 2> range;
     int threshold;
   };
+
 public:
-  StairPerception(const rclcpp::Node::SharedPtr node, const toml::value& config);
-  void Launch(){};
-  const State & GetStatus() const { return state_; };
-  inline void SetStatus(const State& state) { state_ = state; };
+  StairPerception(const rclcpp::Node::SharedPtr node, const toml::value & config);
+  void Launch(bool launch) {launch_ = launch;}
+  const State & GetStatus() const {return state_;}
+  inline void SetStatus(const State & state) {state_ = state;}
 
 private:
   void HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg);
@@ -88,7 +92,8 @@ private:
   int orientation_dead_zone_{2}, orientation_correction_{0};
   int blind_forward_threshold_{15}, approach_threshold_{100};
   bool trigger_ {false}, orientation_filter_ {false};
+  bool launch_ {false};
 };  // calss StairPerception
-}  // motion
-}  // cyberdog
-#endif // MOTION_UTILS__STAIR_PERCEPTION_HPP_
+}  // namespace motion
+}  // namespace cyberdog
+#endif  // MOTION_UTILS__STAIR_PERCEPTION_HPP_

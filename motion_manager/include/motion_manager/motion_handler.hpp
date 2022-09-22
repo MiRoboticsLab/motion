@@ -43,39 +43,46 @@ namespace motion
 class MotionHandler final
 {
 public:
-  MotionHandler();
+  MotionHandler(const rclcpp::Node::SharedPtr & node, const std::shared_ptr<MCode> & code);
   ~MotionHandler();
 
 public:
-  bool Init(rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub);
-  void HandleServoCmd(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
-  void ExecuteResultCmd(
-    const MotionResultSrv::Request::SharedPtr request,
-    MotionResultSrv::Response::SharedPtr response);
-  void HandleResultCmd(
-    const MotionResultSrv::Request::SharedPtr request,
-    MotionResultSrv::Response::SharedPtr response);
+  bool Init();
+  void HandleServoCmd(const MotionServoCmdMsg::SharedPtr & msg, MotionServoResponseMsg & res);
+  template<typename CmdRequestT, typename CmdResponseT>
+  void ExecuteResultCmd(const CmdRequestT request, CmdResponseT response);
+  template<typename CmdRequestT, typename CmdResponseT>
+  void HandleResultCmd(const CmdRequestT request, CmdResponseT response);
+  void HandleSequenceCmd(
+    const MotionSequenceSrv::Request::SharedPtr request,
+    MotionSequenceSrv::Response::SharedPtr response);
   void HandleQueueCmd(
     const MotionQueueCustomSrv::Request::SharedPtr request,
     MotionQueueCustomSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
   bool FeedbackTimeout();
+  inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
+  {
+    sequence_total_duration_ = sequence_total_duration;
+  }
 
 private:
-  void UpdateMotionStatus(const MotionStatusMsg::SharedPtr motion_status_ptr);
+  void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
   bool CheckMotionResult();
   bool CheckMotionResult(int32_t motion_id);
   void ServoDataCheck();
   void PoseControlDefinitively();
-  void WalkStand(const MotionServoCmdMsg::SharedPtr last_servo_cmd);
-  void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr msg);
-  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr msg, MotionServoResponseMsg & res);
-  void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr msg);
+  void WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd);
+  void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr & msg);
+  void HandleServoDataFrame(const MotionServoCmdMsg::SharedPtr & msg, MotionServoResponseMsg & res);
+  void HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr & msg);
   bool CheckPostMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
-  bool isCommandValid(const MotionResultSrv::Request::SharedPtr request);
-  inline void SetWorkStatus(const HandlerStatus status)
+  template<typename CmdRequestT>
+  bool IsCommandValid(const CmdRequestT & request);
+  bool CheckMotors(const int32_t motion_id, int32_t & error_code);
+  inline void SetWorkStatus(const HandlerStatus & status)
   {
     std::unique_lock<std::mutex> lk(status_mutex_);
     status_ = status;
@@ -156,6 +163,7 @@ private:
   }
 
   /* ros members */
+  rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub_ {nullptr};
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
@@ -178,7 +186,9 @@ private:
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
   HandlerStatus status_;
   std::ofstream toml_;
+  std::shared_ptr<MCode> code_ptr_;
   std::string toml_log_dir_;
+  int64_t sequence_total_duration_{0};
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
   int8_t server_check_error_counter_ {0};
@@ -187,6 +197,7 @@ private:
   bool is_servo_need_check_ {false};
   bool premotion_executing_ {false};
   bool post_motion_checked_ {false};
+  bool exec_servo_pre_motion_failed_ {false};
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

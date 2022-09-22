@@ -34,8 +34,6 @@ MotionManager::~MotionManager()
 void MotionManager::Config()
 {
   INFO("Get info from configure");
-  // action_ptr_ = std::make_shared<MotionAction>();
-  // handler_ptr_ = std::make_shared<MotionHandler>(motion_servo_pub_);
 }
 
 bool MotionManager::Init()
@@ -45,15 +43,12 @@ bool MotionManager::Init()
     ERROR("Init failed with nullptr at ros node!");
     return false;
   }
+  code_ptr_ = std::make_shared<MCode>(cyberdog::system::ModuleCode::kMotionManager);
   executor_.reset(new rclcpp::executors::MultiThreadedExecutor);
   callback_group_ = node_ptr_->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
-  motion_servo_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
-    kMotionServoResponseTopicName, 10);
-  motion_status_pub_ = node_ptr_->create_publisher<MotionStatusMsg>(
-    kMotionStatusTopicName, 10);
-  decision_ptr_ = std::make_shared<MotionDecision>();
-  decision_ptr_->Init(motion_servo_pub_, motion_status_pub_);
+  decision_ptr_ = std::make_shared<MotionDecision>(node_ptr_, code_ptr_);
+  decision_ptr_->Init();
 
   motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
     kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS(),
@@ -64,13 +59,24 @@ bool MotionManager::Init()
     std::bind(
       &MotionManager::MotionResultCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
+  motion_custom_srv_ =
+    node_ptr_->create_service<MotionCustomSrv>(
+    kMotionCustomServiceName,
+    std::bind(
+      &MotionManager::MotionCustomCmdCallback, this, std::placeholders::_1,
+      std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
   motion_queue_srv_ =
     node_ptr_->create_service<MotionQueueCustomSrv>(
     kMotionQueueServiceName,
     std::bind(
       &MotionManager::MotionQueueCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
-
+  motion_sequence_srv_ =
+    node_ptr_->create_service<MotionSequenceSrv>(
+    kMotionSequenceServiceName,
+    std::bind(
+      &MotionManager::MotionSequenceCmdCallback, this, std::placeholders::_1,
+      std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
   return true;
 }
 
@@ -140,6 +146,96 @@ void MotionManager::MotionResultCmdCallback(
   }
 
   decision_ptr_->DecideResultCmd(request, response);
+}
+
+void MotionManager::MotionCustomCmdCallback(
+  const MotionCustomSrv::Request::SharedPtr, MotionCustomSrv::Response::SharedPtr)
+{
+  // if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {
+  //   auto lcm = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
+  //   std::ifstream custom_config(kMotionCustomCmdConfigPath);
+  //   std::string s;
+  //   file_send_lcmt lcm_file;
+  //   while (getline(custom_config, s)) {
+  //     INFO("%s", s.c_str());
+  //     lcm_file.data += s + "\n";
+  //   }
+  //   if (0 == lcm->publish(kLCMBridgeFileChannel, &lcm_file)) {
+  //     response->result = true;
+  //     response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+  //   } else {
+  //     response->result = false;
+  //     response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+  //   }
+  //   // TODO (Harvey): motion_id如何返回
+  // } else if (request->cmd_type == MotionCustomSrv::Request::EXECUTION) {
+  //   INFO("Receive Cmd with motion_id: %d", request->motion_id);
+  //   if (!IsStateValid()) {
+  //     INFO("State invalid with current state");
+  //     return;
+  //   }
+  //   auto req = std::make_shared<MotionResultSrv::Request>();
+  //   req->motion_id = request->motion_id;
+  //   req->cmd_source = request->cmd_source;
+  //   auto res = std::make_shared<MotionResultSrv::Response>();
+  //   decision_ptr_->DecideResultCmd(req, res);
+  //   response->motion_id = res->motion_id;
+  //   response->result = res->result;
+  //   response->code = res->code;
+  //   // decision_ptr_->DecideCustomCmd(request, response);
+  // }
+}
+
+
+void MotionManager::MotionSequenceCmdCallback(
+  const MotionSequenceSrv::Request::SharedPtr request,
+  MotionSequenceSrv::Response::SharedPtr response)
+{
+  INFO("Receive SequenceCmd with motion_id: %d", request->motion_id);
+  if (!IsStateValid()) {
+    INFO("State invalid with current state");
+    return;
+  }
+  int64_t total_duration = 0;
+  for (auto & param : request->params) {
+    total_duration += param.duration_ms;
+  }
+  decision_ptr_->SetSequnceTotalDuration(total_duration);
+  decision_ptr_->DecideResultCmd(request, response);
+
+  // if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {
+  //   auto lcm = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
+  //   std::ifstream custom_config(kMotionCustomCmdConfigPath);
+  //   std::string s;
+  //   file_lcmt lcm_file;
+  //   while (getline(custom_config, s)) {
+  //     INFO("%s", s.c_str());
+  //     lcm_file.data += s + "\n";
+  //   }
+  //   if (0 == lcm->publish(kLCMBridgeFileChannel, &lcm_file)) {
+  //     response->result = true;
+  //     response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+  //   } else {
+  //     response->result = false;
+  //     response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+  //   }
+  //   // TODO (Harvey): motion_id如何返回
+  // } else if (request->cmd_type == MotionCustomSrv::Request::EXECUTION) {
+  //   INFO("Receive Cmd with motion_id: %d", request->motion_id);
+  //   if (!IsStateValid()) {
+  //     INFO("State invalid with current state");
+  //     return;
+  //   }
+  //   auto req = std::make_shared<MotionResultSrv::Request>();
+  //   req->motion_id = request->motion_id;
+  //   req->cmd_source = request->cmd_source;
+  //   auto res = std::make_shared<MotionResultSrv::Response>();
+  //   decision_ptr_->DecideResultCmd(req, res);
+  //   response->motion_id = res->motion_id;
+  //   response->result = res->result;
+  //   response->code = res->code;
+  //   // decision_ptr_->DecideCustomCmd(request, response);
+  // }
 }
 
 void MotionManager::MotionQueueCmdCallback(

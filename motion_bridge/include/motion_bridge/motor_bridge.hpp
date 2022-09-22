@@ -11,35 +11,41 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef MOTION_BRIDGE__FILE_BRIDGE_HPP_
-#define MOTION_BRIDGE__FILE_BRIDGE_HPP_
+#ifndef MOTION_BRIDGE__MOTOR_BRIDGE_HPP_
+#define MOTION_BRIDGE__MOTOR_BRIDGE_HPP_
+
 #include <rclcpp/rclcpp.hpp>
 #include <lcm/lcm-cpp.hpp>
-#include <protocol/lcm/file_send_lcmt.hpp>
-#include <protocol/lcm/file_recv_lcmt.hpp>
 #include <cyberdog_common/cyberdog_log.hpp>
-#include <fstream>
 #include <string>
 #include <memory>
 #include "motion_action/motion_macros.hpp"
-
+#include "protocol/lcm/danger_states_lcmt.hpp"
+#include "protocol/srv/motor_temp.hpp"
 namespace cyberdog
 {
 namespace motion
 {
-class FileBridge
+class MotorBridge
 {
 public:
-  explicit FileBridge(const rclcpp::Node::SharedPtr node);
-  ~FileBridge() {}
+  explicit MotorBridge(const rclcpp::Node::SharedPtr node);
+  ~MotorBridge() {}
   void Spin();
 
 private:
-  void HandleFileBridgeCallback();
+  void ReadLcm(
+    const lcm::ReceiveBuffer *, const std::string &,
+    const danger_states_lcmt * msg);
+  void HandleMotorTempCallback(
+    const protocol::srv::MotorTemp_Request::SharedPtr req,
+    protocol::srv::MotorTemp_Response::SharedPtr res);
   rclcpp::Node::SharedPtr node_;
-  std::shared_ptr<lcm::LCM> lcm_;
-  file_send_lcmt file_;
-};  // class FileBridge
+  rclcpp::Service<protocol::srv::MotorTemp>::SharedPtr motor_temp_srv_ {nullptr};
+  std::shared_ptr<lcm::LCM> lcm_subscribe_instance_;
+  danger_states_lcmt motor_temp_;
+  std::thread lcm_handle_thread_;
+};  // class MotorBridge
 }  // namespace motion
 }  // namespace cyberdog
-#endif  // MOTION_BRIDGE__FILE_BRIDGE_HPP_
+#endif  // MOTION_BRIDGE__MOTOR_BRIDGE_HPP_

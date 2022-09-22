@@ -34,7 +34,7 @@ namespace motion
 {
 constexpr int8_t SIZE_X = 80;
 constexpr int8_t SIZE_Y = 80;
-constexpr float RESOLUTION = 0.05;
+constexpr float RESOLUTION = 0.02;
 constexpr const char * LAYER_ELEVATION = "elevation";
 constexpr const char * LAYER_TRAVERSABILITY = " ";
 class ElevationBridge
@@ -55,7 +55,7 @@ private:
   std::shared_ptr<lcm::LCM> lcm_;
   rclcpp::Subscription<grid_map_msgs::msg::GridMap>::SharedPtr gridmap_sub_;
   heightmap_t elevation_;
-  std::string map_frame_{"map"}, odom_frame_{"odom_out"}, base_frame_{"base_link"};
+  std::string map_frame_{"map"}, odom_frame_{"odom"}, base_frame_{"base_link"};
 };  // class ElevationBridge
 }  // namespace motion
 }  // namespace cyberdog

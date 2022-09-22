@@ -23,7 +23,8 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   node_ = node;
   servo_cmd_pub_ = node_->create_publisher<MotionServoCmdMsg>(kMotionServoCommandTopicName, 1);
   result_cmd_client_ = node_->create_client<MotionResultSrv>(kMotionResultServiceName);
-
+  stair_align_srv_ = node->create_service<std_srvs::srv::Trigger>(
+    "stair_align", std::bind(&StairAlign::HandleServiceCallback, this, std::placeholders::_1, std::placeholders::_2));
   servo_cmd_.motion_id = MotionIDMsg::WALK_ADAPTIVELY;
   servo_cmd_.step_height = std::vector<float>{0.05, 0.05};
   servo_cmd_.value = 2;
@@ -36,15 +37,36 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   GET_TOML_VALUE(config, "vel_x", vel_x_);
   GET_TOML_VALUE(config, "vel_omega", vel_omega_);
   GET_TOML_VALUE(config, "jump_after_align", jump_after_align_);
+  GET_TOML_VALUE(config, "auto_start", auto_start_);
   // INFO("%f, %f, %d", vel_x_, vel_omega_, jump_after_align_);
   stair_perception_ = std::make_shared<StairPerception>(node, config);
-  stair_perception_->Launch();
-  std::thread{&StairAlign::Loop, this}.detach();
+  std::thread{std::bind(&StairAlign::Loop, this)}.detach();
+}
+
+void StairAlign::HandleServiceCallback(
+    const std_srvs::srv::Trigger_Request::SharedPtr,
+    std_srvs::srv::Trigger_Response::SharedPtr)
+{
+  auto_start_ = true;
+  cv_.notify_one();
 }
 
 void StairAlign::Loop()
 {
+
   while(rclcpp::ok()){
+    static bool task_waiting = true;
+    if (task_waiting) {
+      std::unique_lock<std::mutex> lk(loop_mutex_);
+      cv_.wait(lk);
+      task_waiting = false;
+    }
+    static bool perception_launched = false;
+    if (!perception_launched) {
+      stair_perception_->Launch(true);
+      perception_launched = false;
+    }
+    INFO("%d", stair_perception_->GetStatus());
     switch (stair_perception_->GetStatus())
     {
       case StairPerception::State::IDLE:
@@ -81,7 +103,9 @@ void StairAlign::Loop()
           req->motion_id = 126;
           result_cmd_client_->async_send_request(req);
         }
-        break;
+        stair_perception_->Launch(false);
+        task_waiting = true;
+        break;;
       }
 
       default:

@@ -51,10 +51,11 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr leg_odom_publisher_;
   nav_msgs::msg::Odometry odom_;
   geometry_msgs::msg::TransformStamped transform_stamped_;
-  std::string map_frame_{"map"}, odom_frame_{"odom_out"}, base_frame_{"base_link_leg"};
+  std::string map_frame_{"map"}, odom_frame_{"odom"}, base_frame_{"base_link_leg"};
   std::condition_variable cv_;
   std::mutex mutex_;
   bool ready_publish_;
+  bool tf_pub_;
 };  // class OdomOutPublisher
 }  // namespace motion
 }  // namespace cyberdog

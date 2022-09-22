@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(motion_bridge)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic -g)
 endif()
 
 # find dependencies
@@ -49,6 +49,12 @@ add_executable(imu_bridge
 target_link_libraries(imu_bridge lcm)
 ament_target_dependencies(imu_bridge ${dependencies})
 
+add_executable(motor_bridge
+  src/motor_bridge.cpp
+)
+target_link_libraries(motor_bridge lcm)
+ament_target_dependencies(motor_bridge ${dependencies})
+
 add_executable(odom_out_publisher
   src/odom_out_publisher.cpp
 )
@@ -87,6 +93,7 @@ endif()
 install(TARGETS
   elevation_bridge
   imu_bridge
+  motor_bridge
   odom_out_publisher
   file_bridge
   as_controller

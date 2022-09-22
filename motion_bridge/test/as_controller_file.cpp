@@ -1,4 +1,4 @@
-#include "protocol/lcm/file_lcmt.hpp"
+#include "protocol/lcm/file_send_lcmt.hpp"
 #include "lcm/lcm-cpp.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
@@ -33,7 +33,7 @@ public:
   }
 
 private:
-  void LCMCallback(const lcm::ReceiveBuffer *, const std::string &, const file_lcmt * msg)
+  void LCMCallback(const lcm::ReceiveBuffer *, const std::string &, const file_send_lcmt * msg)
   {
     INFO("%s", msg->data.c_str());
     // std::ofstream file("/home/harvey/test.toml");
