@@ -348,7 +348,13 @@ void MotionAction::ReadActionResponseLcm(
   for (uint8_t i = 0; i < 12; ++i) {
     lcm_res->motor_error[i] = msg->motor_error[i];
   }
-  if (feedback_func_) {
+  static int8_t count = 5;
+  if (count > 0) {
+    INFO("feedback func: %s", feedback_func_.target_type().name());
+    INFO("%d", feedback_func_ != nullptr);
+    --count;
+  }
+  if (feedback_func_ != nullptr) {
     feedback_func_(lcm_res);
   }
 }
