@@ -78,7 +78,7 @@ void EdgeAlign::Loop()
         if(jump_after_align_&&!edge_perception_->GetEdgeIsDeep()) {
           std::this_thread::sleep_for(std::chrono::milliseconds(2000));
           MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
-          req->motion_id = 133;
+          req->motion_id = 137;
           result_cmd_client_->async_send_request(req);
         }
         break;
