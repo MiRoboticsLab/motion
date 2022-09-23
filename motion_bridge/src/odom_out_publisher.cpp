@@ -27,7 +27,6 @@ OdomOutPublisher::OdomOutPublisher(const rclcpp::Node::SharedPtr node)
   base_frame_ = node_->declare_parameter("base_frame", std::string("base_link_leg"));
   map_frame_ = node_->declare_parameter("map_frame", std::string("map"));
   tf_pub_ = node->declare_parameter("tf_pub", true);
-  INFO("%d", tf_pub_);
   leg_odom_publisher_ = node_->create_publisher<nav_msgs::msg::Odometry>(
     kBridgeOdomTopicName,
     rclcpp::SystemDefaultsQoS());
@@ -72,7 +71,10 @@ void OdomOutPublisher::OdomLCMCabllback(
   const localization_lcmt * msg)
 {
   odom_.header.frame_id = transform_stamped_.header.frame_id = odom_frame_;
-  odom_.header.stamp = transform_stamped_.header.stamp = node_->get_clock()->now();
+  odom_.header.stamp.sec = transform_stamped_.header.stamp.sec =
+    msg->timestamp / 1000000000;
+  odom_.header.stamp.nanosec = transform_stamped_.header.stamp.nanosec =
+    msg->timestamp % 1000000000;
   odom_.child_frame_id = transform_stamped_.child_frame_id = base_frame_;
   odom_.pose.pose.position.x = transform_stamped_.transform.translation.x = msg->xyz[0];
   odom_.pose.pose.position.y = transform_stamped_.transform.translation.y = msg->xyz[1];
