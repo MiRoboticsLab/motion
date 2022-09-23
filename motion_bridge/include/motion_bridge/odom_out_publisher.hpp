@@ -36,6 +36,8 @@ namespace motion
 
 class OdomOutPublisher
 {
+  LOGGER_MINOR_INSTANCE("OdomOutPublisher");
+
 public:
   explicit OdomOutPublisher(const rclcpp::Node::SharedPtr node);
   ~OdomOutPublisher() {}
