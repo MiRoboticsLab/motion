@@ -83,9 +83,9 @@ void OdomOutPublisher::OdomLCMCabllback(
   odom_.pose.pose.orientation.y = transform_stamped_.transform.rotation.y = q.getY();
   odom_.pose.pose.orientation.z = transform_stamped_.transform.rotation.z = q.getZ();
   odom_.pose.pose.orientation.w = transform_stamped_.transform.rotation.w = q.getW();
-  odom_.twist.twist.linear.x = msg->vxyz[0];
-  odom_.twist.twist.linear.y = msg->vxyz[1];
-  odom_.twist.twist.linear.z = msg->vxyz[2];
+  odom_.twist.twist.linear.x = msg->vBody[0];
+  odom_.twist.twist.linear.y = msg->vBody[1];
+  odom_.twist.twist.linear.z = msg->vBody[2];
   odom_.twist.twist.angular.x = msg->omegaBody[0];
   odom_.twist.twist.angular.y = msg->omegaBody[1];
   odom_.twist.twist.angular.z = msg->omegaBody[2];
