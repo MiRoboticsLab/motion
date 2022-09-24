@@ -43,7 +43,10 @@ enum class MotionCode : int32_t
 
   kComLcmTimeout = 10,
 
-  kMotionSwitchError = 20,
+  kMotionSwitchEstop = 20,
+  kMotionSwitchBantrans = 24,
+  kMotionSwitchEdamp = 25,
+  kMotionSwitchLifted = 26,
   kMotionTransitionTimeout = 21,
   kMotionExecuteTimeout = 22,
   kMotionExecuteError = 23,

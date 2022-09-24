@@ -74,41 +74,41 @@ void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr & m
   SetServoNeedCheck(true);
 }
 
-void MotionHandler::HandleServoDataFrame(
-  const MotionServoCmdMsg::SharedPtr & msg,
-  MotionServoResponseMsg & res)
-{
-  if (!AllowServoCmd(msg->motion_id)) {
-    if (retry_ < max_retry_) {
-      MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-      MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
-      request->motion_id = MotionIDMsg::RECOVERYSTAND;
-      INFO("Trying to be ready for ServoCmd");
-      HandleResultCmd(request, response);
-      if (!response->result) {
-        retry_++;
-      } else {
-        retry_ = 0;
-      }
-    } else {
-      res.result = false;
-      res.code = code_ptr_->GetCode(MotionCode::kMotionSwitchError);
-    }
-    return;
-  }
+// void MotionHandler::HandleServoDataFrame(
+//   const MotionServoCmdMsg::SharedPtr & msg,
+//   MotionServoResponseMsg & res)
+// {
+//   if (!AllowServoCmd(msg->motion_id)) {
+//     if (retry_ < max_retry_) {
+//       MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
+//       MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
+//       request->motion_id = MotionIDMsg::RECOVERYSTAND;
+//       INFO("Trying to be ready for ServoCmd");
+//       HandleResultCmd(request, response);
+//       if (!response->result) {
+//         retry_++;
+//       } else {
+//         retry_ = 0;
+//       }
+//     } else {
+//       res.result = false;
+//       res.code = code_ptr_->GetCode(MotionCode::kMotionSwitchError);
+//     }
+//     return;
+//   }
 
-  action_ptr_->Execute(msg);
-  TickServoCmd();
-  SetServoNeedCheck(true);
-}
+//   action_ptr_->Execute(msg);
+//   TickServoCmd();
+//   SetServoNeedCheck(true);
+// }
 
-void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr & msg)
-{
-  // action_ptr_->Execute(msg);
-  (void) msg;
-  WalkStand(msg);
-  SetServoNeedCheck(false);
-}
+// void MotionHandler::HandleServoEndFrame(const MotionServoCmdMsg::SharedPtr & msg)
+// {
+//   // action_ptr_->Execute(msg);
+//   (void) msg;
+//   WalkStand(msg);
+//   SetServoNeedCheck(false);
+// }
 
 void MotionHandler::HandleServoCmd(
   const MotionServoCmdMsg::SharedPtr & msg,
@@ -271,39 +271,84 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   }
   std::unique_lock<std::mutex> check_lk(execute_mutex_);
   wait_id_ = request->motion_id;
-  // TODO(harvey):
-  // INFO("sws:%d", motion_status_ptr_->switch_status);
-  if (motion_status_ptr_->switch_status == MotionStatusMsg::BAN_TRANS ||
-    motion_status_ptr_->switch_status == MotionStatusMsg::EDAMP ||
-    motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP ||
-    motion_status_ptr_->switch_status == MotionStatusMsg::LIFTED)
-  {
-    response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchError);
-    response->result = false;
-    response->motion_id = motion_status_ptr_->motion_id;
-    ERROR("Motion switch error");
-    return;
-  }
-  if (motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING) {
-    is_transitioning_wait_ = true;
-    WARN("Transitioning waiting");
-    if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
-      std::cv_status::timeout)
-    {
-      response->code = code_ptr_->GetCode(MotionCode::kMotionTransitionTimeout);
+  switch (motion_status_ptr_->switch_status) {
+    case MotionStatusMsg::BAN_TRANS:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchBantrans);
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
-      WARN("Transitioning Timeout");
-      is_transitioning_wait_ = false;
+      ERROR("Motion switch BAN_TRANS");
       return;
-    }
+
+    case MotionStatusMsg::EDAMP:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchEdamp);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch EDAMP");
+      return;
+
+    case MotionStatusMsg::ESTOP:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchEstop);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch ESTOP");
+      return;
+
+    case MotionStatusMsg::LIFTED:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchLifted);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch LIFTED");
+      return;
+
+    case MotionStatusMsg::TRANSITIONING:
+      is_transitioning_wait_ = true;
+      WARN("Transitioning waiting");
+      if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
+        std::cv_status::timeout)
+      {
+        response->code = code_ptr_->GetCode(MotionCode::kMotionTransitionTimeout);
+        response->result = false;
+        response->motion_id = motion_status_ptr_->motion_id;
+        WARN("Transitioning Timeout");
+        is_transitioning_wait_ = false;
+        return;
+      }
+      break;
+
+    default:
+      break;
   }
-  INFO("Transitioning finished");
-  if (is_transitioning_wait_) {
-    INFO("Try to relock execute_mutex_");
-    // check_lk.lock();
-    INFO("Relock execute_mutex_");
-  }
+  // if (motion_status_ptr_->switch_status == MotionStatusMsg::BAN_TRANS ||
+  //   motion_status_ptr_->switch_status == MotionStatusMsg::EDAMP ||
+  //   motion_status_ptr_->switch_status == MotionStatusMsg::ESTOP ||
+  //   motion_status_ptr_->switch_status == MotionStatusMsg::LIFTED)
+  // {
+  //   response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchError);
+  //   response->result = false;
+  //   response->motion_id = motion_status_ptr_->motion_id;
+  //   ERROR("Motion switch error");
+  //   return;
+  // }
+  // if (motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING) {
+  //   is_transitioning_wait_ = true;
+  //   WARN("Transitioning waiting");
+  //   if (transitioning_cv_.wait_for(check_lk, std::chrono::milliseconds(kTransitioningTimeout)) ==
+  //     std::cv_status::timeout)
+  //   {
+  //     response->code = code_ptr_->GetCode(MotionCode::kMotionTransitionTimeout);
+  //     response->result = false;
+  //     response->motion_id = motion_status_ptr_->motion_id;
+  //     WARN("Transitioning Timeout");
+  //     is_transitioning_wait_ = false;
+  //     return;
+  //   }
+  // }
+  // INFO("Transitioning finished");
+  // if (is_transitioning_wait_) {
+  //   INFO("Try to relock execute_mutex_");
+  //   // check_lk.lock();
+  //   INFO("Relock execute_mutex_");
+  // }
   is_execute_wait_ = true;
 
   auto wait_timeout = 0;
@@ -472,7 +517,6 @@ void MotionHandler::UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion
     INFO("Get Feedback: %d", count);
     --count;
   }
-  feedback_cv_.notify_one();
   std::unique_lock<std::mutex> lk(execute_mutex_);
   motion_status_ptr_->motion_id = motion_status_ptr->motion_id;
   motion_status_ptr_->contact = motion_status_ptr->contact;
@@ -483,6 +527,7 @@ void MotionHandler::UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion
   for (size_t i = 0; i < motion_status_ptr->motor_error.size(); ++i) {
     motion_status_ptr_->motor_error[i] = motion_status_ptr->motor_error[i];
   }
+  feedback_cv_.notify_one();
   if (is_transitioning_wait_ &&
     motion_status_ptr_->motion_id == wait_id_ &&
     motion_status_ptr_->switch_status == MotionStatusMsg::NORMAL)
