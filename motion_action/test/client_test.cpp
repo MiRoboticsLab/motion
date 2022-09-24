@@ -33,7 +33,10 @@ public:
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwLowBattery), "kHwLowBattery");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwMotorOffline), "kHwMotorOffline");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kComLcmTimeout), "kComLcmTimeout");
-    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionSwitchError), "kMotionSwitchError");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionSwitchBantrans), "kMotionSwitchBantrans");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionSwitchEdamp), "kMotionSwitchEdamp");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionSwitchEstop), "kMotionSwitchEstop");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionSwitchLifted), "kMotionSwitchLifted");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionTransitionTimeout), "kMotionTransitionTimeout");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionExecuteTimeout), "kMotionExecuteTimeout");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionExecuteError), "kMotionExecuteError");
