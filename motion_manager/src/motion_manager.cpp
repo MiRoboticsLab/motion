@@ -128,6 +128,7 @@ void MotionManager::OnActive()
 
 void MotionManager::MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr msg)
 {
+  INFO("Receive ServoCmd from %d with motion_id: %d", msg->cmd_source, msg->motion_id);
   if (!IsStateValid()) {
     INFO("motion state invalid with current state");
     return;
@@ -139,7 +140,7 @@ void MotionManager::MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr ms
 void MotionManager::MotionResultCmdCallback(
   const MotionResultSrv::Request::SharedPtr request, MotionResultSrv::Response::SharedPtr response)
 {
-  INFO("Receive ResultCmd with motion_id: %d", request->motion_id);
+  INFO("Receive ResultCmd from %d with motion_id: %d", request->cmd_source, request->motion_id);
   if (!IsStateValid()) {
     INFO("State invalid with current state");
     return;
