@@ -210,7 +210,7 @@ min_exec_time = -1
 motion_id = 301
 map  = [11, 7]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11]
+post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
 
 # 四足小跳
@@ -218,10 +218,10 @@ min_exec_time = -1
 motion_id = 302
 map  = [11, 2]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11]
+post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
 
-# 自变频行走
+# 普通行走
 [[motion_ids]]
 motion_id = 303
 map = [11, 20]  
@@ -229,25 +229,25 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
 
-# # 遛狗
-# [[motion_ids]]
-# motion_id = 304
-# map = [11, 4]   
-# pre_motion = [111, 201, 202, 211, 212, 304]
-# post_motion = [0, 101, 111, 201, 202, 211, 212, 304]
-# min_exec_time = -1
+# 自变频步态
+[[motion_ids]]
+motion_id = 304
+map = [11, 26]   
+pre_motion = []
+post_motion = [0, 12, 7, 21, 3, 11, 23]
+min_exec_time = -1
 
 # 快跑
 [[motion_ids]]
 motion_id = 305
 map = [11, 5]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11]
+post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
 
 [[motion_ids]]
 motion_id = 400
 map = [11, 110]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11]
+post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = 0
