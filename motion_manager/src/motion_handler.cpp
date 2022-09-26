@@ -187,7 +187,7 @@ void MotionHandler::PoseControlDefinitively()
   ExecuteResultCmd(request, response);
 }
 
-void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd)
+void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr &)
 {
   if (exec_servo_pre_motion_failed_) {
     exec_servo_pre_motion_failed_ = false;
