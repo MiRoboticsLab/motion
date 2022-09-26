@@ -187,21 +187,22 @@ void MotionHandler::PoseControlDefinitively()
   ExecuteResultCmd(request, response);
 }
 
-void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd)
+void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr &)
 {
   if (exec_servo_pre_motion_failed_) {
     exec_servo_pre_motion_failed_ = false;
     return;
   }
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
-  request->motion_id = last_servo_cmd->motion_id;
-  request->step_height = last_servo_cmd->step_height;
-  request->value = last_servo_cmd->value;
-  request->duration = 500;
+  // request->motion_id = last_servo_cmd->motion_id;
+  // request->step_height = last_servo_cmd->step_height;
+  // request->value = last_servo_cmd->value;
+  // request->duration = 500;
+  request->motion_id = MotionIDMsg::WALK_STAND;
   CreateTomlLog(request->motion_id);
   action_ptr_->Execute(request);
-  request->motion_id = MotionIDMsg::WALK_STAND;
-  action_ptr_->Execute(request);
+  // request->motion_id = MotionIDMsg::WALK_STAND;
+  // action_ptr_->Execute(request);
   CloseTomlLog();
   // ExecuteResultCmd(request, response);
 }
