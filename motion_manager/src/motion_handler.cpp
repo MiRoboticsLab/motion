@@ -187,7 +187,7 @@ void MotionHandler::PoseControlDefinitively()
   ExecuteResultCmd(request, response);
 }
 
-void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr &)
+void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd)
 {
   if (exec_servo_pre_motion_failed_) {
     exec_servo_pre_motion_failed_ = false;
@@ -199,6 +199,7 @@ void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr &)
   // request->value = last_servo_cmd->value;
   // request->duration = 500;
   request->motion_id = MotionIDMsg::WALK_STAND;
+  request->step_height = last_servo_cmd->step_height;
   CreateTomlLog(request->motion_id);
   action_ptr_->Execute(request);
   // request->motion_id = MotionIDMsg::WALK_STAND;
