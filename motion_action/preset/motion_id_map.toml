@@ -46,13 +46,21 @@ post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = 5000
 
 # 行走后站立， duration必须为0，与上区别见动作清单文档
-# 该指令只是为了声明步态，无需向运控下发
+# 该指令只是为了注册步态，无需向运控下发
 [[motion_ids]]
 motion_id = 113
 map  = [11, 31]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = 5000
+
+# 提起后的过渡， 该指令只是为了注册步态，无需向运控下发
+[[motion_ids]]
+motion_id = 114
+map  = [9, 0]   
+pre_motion = []
+post_motion = [0, 12, 3, 11]
+min_exec_time = 0
 
 # 后空翻， duration必须为0
 [[motion_ids]]
@@ -224,7 +232,7 @@ min_exec_time = -1
 # 普通行走
 [[motion_ids]]
 motion_id = 303
-map = [11, 20]  
+map = [11, 3]  
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
