@@ -224,7 +224,7 @@ min_exec_time = -1
 # 普通行走
 [[motion_ids]]
 motion_id = 303
-map = [11, 20]  
+map = [11, 3]  
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
