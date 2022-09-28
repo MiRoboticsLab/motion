@@ -78,7 +78,7 @@ void OdomOutPublisher::OdomLCMCabllback(
   odom_.child_frame_id = transform_stamped_.child_frame_id = base_frame_;
   odom_.pose.pose.position.x = transform_stamped_.transform.translation.x = msg->xyz[0];
   odom_.pose.pose.position.y = transform_stamped_.transform.translation.y = msg->xyz[1];
-  odom_.pose.pose.position.z = transform_stamped_.transform.translation.y = msg->xyz[2];
+  odom_.pose.pose.position.z = transform_stamped_.transform.translation.z = msg->xyz[2];
   tf2::Quaternion q;
   q.setRPY(msg->rpy[0], msg->rpy[1], msg->rpy[2]);
   odom_.pose.pose.orientation.x = transform_stamped_.transform.rotation.x = q.getX();
