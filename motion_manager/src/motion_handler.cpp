@@ -139,6 +139,7 @@ void MotionHandler::HandleServoCmd(
       }
       post_motion_checked_ = true;
     }
+    exec_servo_pre_motion_failed_ = false;
     last_servo_cmd_ = msg;
     action_ptr_->Execute(msg);
     TickServoCmd();
@@ -190,7 +191,7 @@ void MotionHandler::PoseControlDefinitively()
 void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd)
 {
   if (exec_servo_pre_motion_failed_) {
-    exec_servo_pre_motion_failed_ = false;
+    WARN("===Will not WalkStand===");
     return;
   }
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
