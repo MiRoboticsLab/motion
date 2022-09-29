@@ -98,17 +98,20 @@ void ElevationBridge::GridMapCallback(const grid_map_msgs::msg::GridMap::SharedP
     Eigen::Isometry3d transform;
     Eigen::Isometry3d transform1;
     // if (!GetTransform(transform, odom_frame_, msg->header.frame_id)) {
-    if (!GetTransform(transform, "odom", "base_link_leg")||!GetTransform(transform1, "odom", "base_link")) {
+    if (!GetTransform(
+        transform, "odom",
+        "base_link_leg") || !GetTransform(transform1, "odom", "base_link"))
+    {
       ERROR("Cannot transform");
     } else {
-    // tranformed_map = map.getTransformedMap(transform, LAYER_ELEVATION, odom_frame_);
-    x_diff = transform.translation().x()-transform1.translation().x();
-    y_diff = transform.translation().y()-transform1.translation().y();
-    z_diff = transform.translation().z()-transform1.translation().z();
+      // tranformed_map = map.getTransformedMap(transform, LAYER_ELEVATION, odom_frame_);
+      x_diff = transform.translation().x() - transform1.translation().x();
+      y_diff = transform.translation().y() - transform1.translation().y();
+      z_diff = transform.translation().z() - transform1.translation().z();
     }
   }
-  double center_pos_x = map.getPosition()(0); //  tranformed_map.getPosition()(0);
-  double center_pos_y = map.getPosition()(1); // tranformed_map.getPosition()(1);
+  double center_pos_x = map.getPosition()(0);  // tranformed_map.getPosition()(0);
+  double center_pos_y = map.getPosition()(1);  // tranformed_map.getPosition()(1);
   elevation_.robot_loc[0] = center_pos_x + x_diff;
   elevation_.robot_loc[1] = center_pos_y + y_diff;
 
