@@ -4,8 +4,8 @@ vel_omega = 0.25 # 角速度
 jump_after_align = false # 对齐边沿后是否执行跳跃动作
 
 # Perception
-radius = 0.07 # 离散点半径
-min_neighbors = 6 # 近邻点最小数量
+radius = 0.055 # 离散点半径
+min_neighbors = 5 # 近邻点最小数量
 orientation_dead_zone = 2 # 角度调整时的死区
 orientation_correction = 0 # 角度调整时对两侧tof点数量的修正
 orientation_filter = false # 角度调整时两侧点的数量是否采用均值滤波
