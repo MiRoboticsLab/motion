@@ -67,6 +67,7 @@ public:
   }
   bool CheckMotionResult();
   bool CheckMotionResult(int32_t motion_id);
+
 private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
