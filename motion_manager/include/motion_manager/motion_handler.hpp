@@ -65,12 +65,11 @@ public:
   {
     sequence_total_duration_ = sequence_total_duration;
   }
-
+  bool CheckMotionResult();
+  bool CheckMotionResult(int32_t motion_id);
 private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
-  bool CheckMotionResult();
-  bool CheckMotionResult(int32_t motion_id);
   void ServoDataCheck();
   void PoseControlDefinitively();
   void WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd);

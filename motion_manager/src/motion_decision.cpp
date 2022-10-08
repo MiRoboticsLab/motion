@@ -74,9 +74,13 @@ void MotionDecision::ServoResponseThread()
     if (servo_response_pub_ != nullptr) {
       // FIXME(harvey): 伺服指令的运行结果判断机制
       if (!handler_ptr_->FeedbackTimeout()) {
-        servo_response_msg_.motion_id = handler_ptr_->GetMotionStatus()->motion_id;
-        servo_response_msg_.order_process_bar = handler_ptr_->GetMotionStatus()->order_process_bar;
-        servo_response_msg_.status = handler_ptr_->GetMotionStatus()->switch_status;
+        auto motion_status = handler_ptr_->GetMotionStatus();
+        servo_response_msg_.motion_id = motion_status->motion_id;
+        servo_response_msg_.order_process_bar = motion_status->order_process_bar;
+        servo_response_msg_.status = motion_status->switch_status;
+        if (!handler_ptr_->CheckMotionResult()) {
+          servo_response_msg_.code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+        }
         servo_response_pub_->publish(servo_response_msg_);
       } else {
         servo_response_msg_.motion_id = -1;

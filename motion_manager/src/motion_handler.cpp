@@ -364,7 +364,7 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   } else {                         // 自定义动作按照设定的参数计算
     wait_timeout = sequence_total_duration_ * 2;
   }
-  INFO("%d", wait_timeout);
+  // INFO("%d", wait_timeout);
   if (execute_cv_.wait_for(
       check_lk,
       std::chrono::milliseconds(wait_timeout)) == std::cv_status::timeout)
