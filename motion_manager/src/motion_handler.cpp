@@ -146,12 +146,14 @@ void MotionHandler::HandleServoCmd(
     SetServoNeedCheck(true);
   } else {
     SetServoNeedCheck(false);
-    WalkStand(last_servo_cmd_);
+    if (last_servo_cmd_ != nullptr) {
+      WalkStand(last_servo_cmd_);
+    }
     SetWorkStatus(HandlerStatus::kIdle);
     post_motion_checked_ = false;
   }
   res.result = true;
-  res.code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+  // res.code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
 }
 
 void MotionHandler::ServoDataCheck()
