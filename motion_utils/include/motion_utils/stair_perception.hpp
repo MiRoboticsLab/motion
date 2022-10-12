@@ -55,6 +55,7 @@ public:
 public:
   StairPerception(const rclcpp::Node::SharedPtr node, const toml::value & config);
   void Launch(bool launch) {launch_ = launch;}
+  bool CheckLaunched() {return launch_;}
   const State & GetStatus() const {return state_;}
   inline void SetStatus(const State & state) {state_ = state;}
 

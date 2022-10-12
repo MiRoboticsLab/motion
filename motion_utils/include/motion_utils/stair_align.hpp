@@ -24,6 +24,8 @@
 #include "motion_action/motion_macros.hpp"
 #include "std_srvs/srv/trigger.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "std_srvs/srv/set_bool.hpp"
+
 namespace cyberdog
 {
 namespace motion
@@ -38,14 +40,19 @@ public:
   }
 
 private:
-  void HandleServiceCallback(
-    const std_srvs::srv::Trigger_Request::SharedPtr request,
-    std_srvs::srv::Trigger_Response::SharedPtr response);
+  void HandleStartAlignCallback(
+    const std_srvs::srv::SetBool_Request::SharedPtr request,
+    std_srvs::srv::SetBool_Response::SharedPtr response);
+  void HandleStopAlignCallback(
+    const std_srvs::srv::Trigger::Request::SharedPtr request,
+    std_srvs::srv::Trigger::Response::SharedPtr response);
   void Loop();
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<MotionServoCmdMsg>::SharedPtr servo_cmd_pub_, align_status_pub_;
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr stair_align_srv_, jump_srv_;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr start_stair_align_srv_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr stop_stair_align_srv_;
+  // rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr jump_srv_;
   rclcpp::Client<MotionResultSrv>::SharedPtr result_cmd_client_;
   MotionServoCmdMsg servo_cmd_;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr align_finish_pub_;
@@ -55,6 +62,8 @@ private:
   std::condition_variable cv_;
   float vel_x_, vel_omega_;
   bool jump_after_align_, auto_start_;
+  bool task_start_{false};
+
 };  // calss StairAlign
 }  // namespace motion
 }  // namespace cyberdog
