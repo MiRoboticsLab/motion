@@ -74,7 +74,6 @@ private:
   float vel_x_, vel_omega_;
   bool jump_after_align_, auto_start_, is_stair_mode;
   bool task_start_{false};
-
 };  // calss StairAlign
 }  // namespace motion
 }  // namespace cyberdog
