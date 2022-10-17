@@ -53,7 +53,8 @@ public:
 
 public:
   EdgePerception(const rclcpp::Node::SharedPtr node, const toml::value & config);
-  void Launch() {}
+  void Launch(bool launch) {launch_ = launch;}
+  bool CheckLaunched() {return launch_;}
   const State & GetStatus() const {return state_;}
   inline void SetStatus(const State & state) {state_ = state;}
   const bool & GetEdgeIsDeep() const {return is_edge_deep_;}
@@ -93,6 +94,7 @@ private:
   int blind_forward_threshold_{15}, approach_threshold_{100};
   bool trigger_ {false}, orientation_filter_ {false};
   double max_depth_{0.5};
+  bool launch_ {false};
 };  // calss EdgePerception
 }  // namespace motion
 }  // namespace cyberdog

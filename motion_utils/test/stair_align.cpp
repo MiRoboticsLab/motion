@@ -39,7 +39,7 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   servo_cmd_.step_height = std::vector<float>{0.05, 0.05};
   servo_cmd_.value = 2;
   align_finish_.data = false;
-  
+  // params config of stair_align
   std::string toml_file = ament_index_cpp::get_package_share_directory(
     "motion_utils") + "/config/stair_align.toml";
   toml::value config;
@@ -51,8 +51,18 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
   GET_TOML_VALUE(config, "vel_omega", vel_omega_);
   GET_TOML_VALUE(config, "jump_after_align", jump_after_align_);
   GET_TOML_VALUE(config, "auto_start", auto_start_);
+  GET_TOML_VALUE(config, "is_stair_mode", is_stair_mode);
   // INFO("%f, %f, %d", vel_x_, vel_omega_, jump_after_align_);
   stair_perception_ = std::make_shared<StairPerception>(node, config);
+
+  // parmas config of edge_align
+  toml_file = ament_index_cpp::get_package_share_directory(
+    "motion_utils") + "/config/edge_align.toml";
+  if(!cyberdog::common::CyberdogToml::ParseFile(toml_file, config)) {
+    FATAL("Cannot parse %s", toml_file.c_str());
+    exit(-1);
+  }
+  edge_perception_ = std::make_shared<EdgePerception>(node, config);
   std::thread{std::bind(&StairAlign::Loop, this)}.detach();
 }
 
@@ -60,14 +70,16 @@ void StairAlign::HandleStartAlignCallback(
     const std_srvs::srv::SetBool_Request::SharedPtr request,
     std_srvs::srv::SetBool_Response::SharedPtr response)
 {
-  auto_start_ = true;
+  // auto_start_ = true;
   if (request->data) {
-    cv_.notify_one();
     INFO("Get request to align upstair");
-    response->success = true;
+    is_stair_mode = true;
   } else {
-    // 下台阶
+    INFO("Get request to align downstair");
+    is_stair_mode = false;
   }
+  cv_.notify_one();
+  response->success = true;
 }
 
 void StairAlign::HandleStopAlignCallback(
@@ -76,49 +88,78 @@ void StairAlign::HandleStopAlignCallback(
 {
   (void)request;
   task_start_= false;
-  stair_perception_->Launch(false);
+  if ( is_stair_mode ) {
+    stair_perception_->Launch(false);
+    stair_perception_->SetStatus(StairPerception::State::IDLE);
+  }
+  else {
+    edge_perception_->Launch(false);
+    edge_perception_->SetStatus(EdgePerception::State::IDLE);
+  }
   response->success = true;
 }
 
 void StairAlign::Loop()
 {
   while(rclcpp::ok()){
-    if (!task_start_) {
+    if (auto_start_ && !task_start_) {
+      task_start_ = true;
+      if ( is_stair_mode ) {
+        if (!stair_perception_->CheckLaunched()) {
+          stair_perception_->Launch(true);
+        }
+      } else {
+        if (!edge_perception_->CheckLaunched()) {
+          edge_perception_->Launch(true);
+        }
+      }
+    }
+    else if (!task_start_) {
       std::unique_lock<std::mutex> lk(loop_mutex_);
       cv_.wait(lk);
       task_start_ = true;
-      if (!stair_perception_->CheckLaunched()) {
-        stair_perception_->Launch(true);
+      if ( is_stair_mode ) {
+        if (!stair_perception_->CheckLaunched()) {
+          stair_perception_->Launch(true);
+        }
+      } else {
+        if (!edge_perception_->CheckLaunched()) {
+          edge_perception_->Launch(true);
+        }
       }
     }
-    switch (stair_perception_->GetStatus())
+    int status = is_stair_mode ? static_cast<int>(stair_perception_->GetStatus()) : static_cast<int>(edge_perception_->GetStatus());
+    switch ( status )
     {
-      case StairPerception::State::IDLE:
+      case static_cast<int>(StairAlign::State::IDLE):
         break;
 
-      case StairPerception::State::BLIND_FORWARD:
+      case static_cast<int>(StairAlign::State::BLIND_FORWARD):
         servo_cmd_.vel_des = std::vector<float>{vel_x_, 0.0, 0.0};
         servo_cmd_pub_->publish(servo_cmd_);
         break;
       
-      case StairPerception::State::TURN_LEFT:
+      case static_cast<int>(StairAlign::State::TURN_LEFT):
         servo_cmd_.vel_des = std::vector<float>{0.0, 0.0, vel_omega_};
         servo_cmd_pub_->publish(servo_cmd_);
         break;
 
-      case StairPerception::State::TURN_RIGHT:
+      case static_cast<int>(StairAlign::State::TURN_RIGHT):
         servo_cmd_.vel_des = std::vector<float>{0.0, 0.0, -vel_omega_};
         servo_cmd_pub_->publish(servo_cmd_);
         break;
 
-      case StairPerception::State::APPROACH:
+      case static_cast<int>(StairAlign::State::APPROACH):
         servo_cmd_.vel_des = std::vector<float>{vel_x_, 0.0, 0.0};
         servo_cmd_pub_->publish(servo_cmd_);
         break;
 
-      case StairPerception::State::FINISH:
+      case static_cast<int>(StairAlign::State::FINISH):
       {
-        stair_perception_->SetStatus(StairPerception::State::IDLE);
+        if (is_stair_mode)
+          stair_perception_->SetStatus(StairPerception::State::IDLE);
+        else
+          edge_perception_->SetStatus(EdgePerception::State::IDLE);
         servo_cmd_.cmd_type = MotionServoCmdMsg::SERVO_END;
         servo_cmd_pub_->publish(servo_cmd_);
         align_finish_.data = true;
@@ -126,10 +167,13 @@ void StairAlign::Loop()
         if(jump_after_align_) {
           std::this_thread::sleep_for(std::chrono::milliseconds(2000));
           MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
-          req->motion_id = 126;
+          req->motion_id = is_stair_mode ? 126 : 137;
           result_cmd_client_->async_send_request(req);
         }
-        stair_perception_->Launch(false);
+        if (is_stair_mode)
+          stair_perception_->Launch(false);
+        else
+          edge_perception_->Launch(false);
         task_start_ = false;
         break;
       }

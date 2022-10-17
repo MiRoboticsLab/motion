@@ -21,6 +21,7 @@
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "cyberdog_common/cyberdog_toml.hpp"
 #include "motion_utils/stair_perception.hpp"
+#include "motion_utils/edge_perception.hpp"
 #include "motion_action/motion_macros.hpp"
 #include "std_srvs/srv/trigger.hpp"
 #include "std_msgs/msg/bool.hpp"
@@ -33,6 +34,15 @@ namespace motion
 class StairAlign
 {
 public:
+  enum class State
+  {
+    IDLE,
+    BLIND_FORWARD,
+    TURN_LEFT,
+    TURN_RIGHT,
+    APPROACH,
+    FINISH
+  };
   explicit StairAlign(rclcpp::Node::SharedPtr node);
   void Spin()
   {
@@ -58,10 +68,11 @@ private:
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr align_finish_pub_;
   std_msgs::msg::Bool align_finish_;
   std::shared_ptr<StairPerception> stair_perception_;
+  std::shared_ptr<EdgePerception> edge_perception_;
   std::mutex loop_mutex_;
   std::condition_variable cv_;
   float vel_x_, vel_omega_;
-  bool jump_after_align_, auto_start_;
+  bool jump_after_align_, auto_start_, is_stair_mode;
   bool task_start_{false};
 
 };  // calss StairAlign

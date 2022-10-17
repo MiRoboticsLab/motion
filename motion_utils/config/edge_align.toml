@@ -2,6 +2,7 @@
 vel_x = 0.1 # 线速度
 vel_omega = 0.25 # 角速度
 jump_after_align = false # 对齐边沿后是否执行跳跃动作
+auto_start = false # 是否自动启动
 
 # Perception
 radius = 0.055 # 离散点半径

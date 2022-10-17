@@ -49,6 +49,9 @@ EdgePerception::EdgePerception(rclcpp::Node::SharedPtr node, const toml::value& 
 
 void EdgePerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg)
 {
+  if(!launch_) {
+    return;
+  }
   INFO("----------------");
   pcl::fromROSMsg(msg, *pc_raw_);
   ro_filter_.setInputCloud(pc_raw_);
