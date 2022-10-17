@@ -21,9 +21,9 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 def generate_launch_description():
     return LaunchDescription([
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                os.path.join(get_package_share_directory('motion_utils'),'launch/tof_node_launch.py')
-            )
+            PythonLaunchDescriptionSource([
+                os.path.join(get_package_share_directory('motion_utils'), 'launch'),
+                '/tof_node_launch.py'])
         ),
         Node(
             package='motion_utils',
