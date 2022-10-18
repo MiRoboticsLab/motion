@@ -80,6 +80,8 @@ void MotionDecision::ServoResponseThread()
         servo_response_msg_.status = motion_status->switch_status;
         if (!handler_ptr_->CheckMotionResult()) {
           servo_response_msg_.code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+        } else {
+          servo_response_msg_.code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
         }
         servo_response_pub_->publish(servo_response_msg_);
       } else {
