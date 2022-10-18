@@ -221,6 +221,7 @@ bool MotionHandler::CheckMotionResult()
          // TODO(harvey): footpos_error需要等到运控组确定策略后再加进来
          //  motion_status_ptr_->footpos_error == 0 &&
          motion_status_ptr_->switch_status == MotionStatusMsg::NORMAL &&
+         motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING &&
          result;
 }
 
