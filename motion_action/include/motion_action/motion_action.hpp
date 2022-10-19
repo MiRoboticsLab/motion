@@ -85,6 +85,7 @@ public:
   std::map<int32_t, MotionIdMap> GetMotionIdMap() {return motion_id_map_;}
   bool SequenceDefImpl(const std::string & toml_data);
   void ShowDebugLog(bool show) {show_ = show;}
+
 private:
   void WriteLcm();
   void ReadActionResponseLcm(
