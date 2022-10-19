@@ -45,6 +45,13 @@ bool MotionHandler::Init()
   }
   motion_status_pub_ = node_ptr_->create_publisher<MotionStatusMsg>(
     kMotionStatusTopicName, 10);
+  ad_srv_ = node_ptr_->create_service<std_srvs::srv::SetBool>(
+    "ad",
+    [this](const std_srvs::srv::SetBool_Request::SharedPtr request,
+    std_srvs::srv::SetBool_Response::SharedPtr) {
+      this->action_ptr_->ShowDebugLog(request->data);
+    }
+  );
   servo_check_click_ = std::make_shared<ServoClick>();
   servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
   servo_data_check_thread_.detach();

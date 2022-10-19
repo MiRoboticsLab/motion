@@ -165,6 +165,7 @@ private:
   /* ros members */
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub_ {nullptr};
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr ad_srv_{nullptr};
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
   std::thread servo_response_thread_;
