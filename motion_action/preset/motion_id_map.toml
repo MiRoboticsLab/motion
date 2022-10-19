@@ -47,7 +47,7 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = 5000
 
-# 提起后的过渡， 该指令只是为了注册步态，无需向运控下发
+# 提起后的过渡，该指令只是为了注册步态，无需向运控下发
 [[motion_ids]]
 motion_id = 114
 map  = [9, 0]   
@@ -55,7 +55,7 @@ pre_motion = []
 post_motion = [0, 12, 3, 11]
 min_exec_time = 0
 
-# 空翻Stand
+# 空翻Stand, 用于触发空翻动作切换
 [[motion_ids]]
 motion_id = 120
 map  = [17, 0]   
