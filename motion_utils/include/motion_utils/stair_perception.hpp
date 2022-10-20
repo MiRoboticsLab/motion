@@ -58,6 +58,7 @@ public:
   bool CheckLaunched() {return launch_;}
   const State & GetStatus() const {return state_;}
   inline void SetStatus(const State & state) {state_ = state;}
+  void SetTrigger() {trigger_ = true;}
 
 private:
   void HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg);

@@ -57,6 +57,7 @@ public:
   bool CheckLaunched() {return launch_;}
   const State & GetStatus() const {return state_;}
   inline void SetStatus(const State & state) {state_ = state;}
+  void SetTrigger() {trigger_ = true;}
   const bool & GetEdgeIsDeep() const {return is_edge_deep_;}
 
 private:

@@ -97,6 +97,7 @@ void StairAlign::HandleStopAlignCallback(
     edge_perception_->SetStatus(EdgePerception::State::IDLE);
   }
   response->success = true;
+  INFO("Get request to stop aligning");
 }
 
 void StairAlign::Loop()
@@ -108,11 +109,14 @@ void StairAlign::Loop()
         if (!stair_perception_->CheckLaunched()) {
           stair_perception_->Launch(true);
         }
+        stair_perception_->SetTrigger();
       } else {
         if (!edge_perception_->CheckLaunched()) {
           edge_perception_->Launch(true);
         }
+        edge_perception_->SetTrigger();
       }
+      servo_cmd_.cmd_type = MotionServoCmdMsg::SERVO_START;
     }
     else if (!task_start_) {
       std::unique_lock<std::mutex> lk(loop_mutex_);
@@ -122,11 +126,14 @@ void StairAlign::Loop()
         if (!stair_perception_->CheckLaunched()) {
           stair_perception_->Launch(true);
         }
+        stair_perception_->SetTrigger();
       } else {
         if (!edge_perception_->CheckLaunched()) {
           edge_perception_->Launch(true);
         }
+        edge_perception_->SetTrigger();
       }
+      servo_cmd_.cmd_type = MotionServoCmdMsg::SERVO_START;
     }
     int status = is_stair_mode ? static_cast<int>(stair_perception_->GetStatus()) : static_cast<int>(edge_perception_->GetStatus());
     switch ( status )
