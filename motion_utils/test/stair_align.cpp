@@ -109,12 +109,10 @@ void StairAlign::Loop()
         if (!stair_perception_->CheckLaunched()) {
           stair_perception_->Launch(true);
         }
-        stair_perception_->SetTrigger();
       } else {
         if (!edge_perception_->CheckLaunched()) {
           edge_perception_->Launch(true);
         }
-        edge_perception_->SetTrigger();
       }
       servo_cmd_.cmd_type = MotionServoCmdMsg::SERVO_START;
     }
