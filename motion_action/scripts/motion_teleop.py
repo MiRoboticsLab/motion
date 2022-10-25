@@ -108,7 +108,7 @@ def main(end=True, auto=True):
     qos = QoSProfile(depth=10)
     node = rclpy.create_node('teleop_keyboard')
     pub = node.create_publisher(MotionServoCmd, 'motion_servo_cmd', qos)
-    service = node.create_service(SetBool, 'enable_teleop', service_callback)
+    service = node.create_service(SetBool, 'tracking_command', service_callback)
     status = 0
     count = 0
     motion_id = 0
