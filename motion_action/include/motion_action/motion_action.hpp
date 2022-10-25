@@ -84,6 +84,7 @@ public:
   bool SelfCheck();
   std::map<int32_t, MotionIdMap> GetMotionIdMap() {return motion_id_map_;}
   bool SequenceDefImpl(const std::string & toml_data);
+  void ShowDebugLog(bool show) {show_ = show;}
 
 private:
   void WriteLcm();
@@ -112,6 +113,7 @@ private:
   int8_t life_count_{0};
   bool lcm_cmd_init_{false}, ins_init_{false};
   bool sequence_recv_result_{false}, sequence_def_result_waiting_{false};
+  bool show_{false};
   LOGGER_MINOR_INSTANCE("MotionAction");
 };  // class MotionAction
 }  // namespace motion

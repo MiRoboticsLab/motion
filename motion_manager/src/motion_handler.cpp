@@ -45,6 +45,13 @@ bool MotionHandler::Init()
   }
   motion_status_pub_ = node_ptr_->create_publisher<MotionStatusMsg>(
     kMotionStatusTopicName, 10);
+  ad_srv_ = node_ptr_->create_service<std_srvs::srv::SetBool>(
+    "ad",
+    [this](const std_srvs::srv::SetBool_Request::SharedPtr request,
+    std_srvs::srv::SetBool_Response::SharedPtr) {
+      this->action_ptr_->ShowDebugLog(request->data);
+    }
+  );
   servo_check_click_ = std::make_shared<ServoClick>();
   servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
   servo_data_check_thread_.detach();
@@ -213,14 +220,15 @@ void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cm
 
 bool MotionHandler::CheckMotionResult()
 {
-  bool result = true;
-  for (auto e : motion_status_ptr_->motor_error) {
-    result = (e == 0 || e == kMotorNormal);
+  if (!CheckMotors()) {
+    return false;
   }
+  bool result = true;
   return motion_status_ptr_->ori_error == 0 &&
          // TODO(harvey): footpos_error需要等到运控组确定策略后再加进来
          //  motion_status_ptr_->footpos_error == 0 &&
-         motion_status_ptr_->switch_status == MotionStatusMsg::NORMAL &&
+         (motion_status_ptr_->switch_status == MotionStatusMsg::NORMAL ||
+         motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING) &&
          result;
 }
 
@@ -419,15 +427,22 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     return;
   }
   if (request->motion_id != MotionIDMsg::ESTOP) {
-    for (auto motor : motion_status_ptr_->motor_error) {
-      if (motor != 0 && motor != kMotorNormal) {
-        response->result = false;
-        response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
-        ERROR("Motor error");
-        SetWorkStatus(HandlerStatus::kIdle);
-        return;
-      }
+    if (!CheckMotors()) {
+      response->result = false;
+      response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+      ERROR("Motor error");
+      SetWorkStatus(HandlerStatus::kIdle);
+      return;
     }
+    // for (auto motor : motion_status_ptr_->motor_error) {
+    //   if (motor != 0 && motor != kMotorNormal) {
+    //     response->result = false;
+    //     response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+    //     ERROR("Motor error");
+    //     SetWorkStatus(HandlerStatus::kIdle);
+    //     return;
+    //   }
+    // }
   }
   CreateTomlLog(request->motion_id);
   if (!CheckPostMotion(request->motion_id)) {
@@ -652,20 +667,20 @@ void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
   toml_ << "\n";
 }
 
-bool MotionHandler::CheckMotors(const int32_t motion_id, int32_t & error_code)
+bool MotionHandler::CheckMotors()
 {
-  if (motion_id == MotionIDMsg::ESTOP) {
-    return true;
-  }
   bool ret = true;
-  for (auto motor : motion_status_ptr_->motor_error) {
-    if (motor != 0 || motor != kMotorNormal) {
-      continue;
-    } else {
-      // 检查电机状态位
-      (void)error_code;
-      ret = false;
+  int motor = 0;
+  for (auto motor_error : motion_status_ptr_->motor_error) {
+    int pos = 0;
+    while (pos <= 17) {
+      if (motor_error & (1 << pos)) {
+        ERROR("Motor %d : %d", motor, pos);
+        ret = false;
+      }
+      ++pos;
     }
+    ++motor;
   }
   return ret;
 }

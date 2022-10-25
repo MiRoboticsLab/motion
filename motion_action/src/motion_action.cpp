@@ -310,7 +310,7 @@ void MotionAction::ReadActionResponseLcm(
   const robot_control_response_lcmt * msg)
 {
   // TODO(harvey):
-  if (getenv("MOTION_DEBUG") != NULL) {
+  if (show_) {
     INFO(
       "bar:%d, mod:%d, gid:%d, sws:%d, fer:%d", msg->order_process_bar, msg->mode, msg->gait_id,
       msg->switch_status, msg->footpos_error);
