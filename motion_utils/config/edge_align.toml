@@ -13,6 +13,6 @@ orientation_filter = false # 角度调整时两侧点的数量是否采用均值
 filter_size = 10 # 均值滤波的步长
 blind_forward_threshold = 95 # 停止盲向行走时点数量的阈值
 
-threshold = 20 # 停止靠近边沿时点数量的阈值
+threshold = 40 # 停止靠近边沿时点数量的阈值
 max_depth = 0.43
 
