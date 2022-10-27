@@ -65,7 +65,7 @@ private:
   inline int GetMeanDiff(int diff)
   {
     diffs_.emplace_back(diff);
-    if (diffs_.size() > filter_size_) {
+    if (static_cast<int>(diffs_.size()) > filter_size_) {
       diffs_.pop_front();
     }
     int sum = 0;

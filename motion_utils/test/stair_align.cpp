@@ -155,7 +155,7 @@ void StairAlign::Loop()
         break;
 
       case static_cast<int>(StairAlign::State::APPROACH):
-        servo_cmd_.vel_des = std::vector<float>{vel_x_, 0.0, 0.0};
+        servo_cmd_.vel_des = std::vector<float>{(is_stair_mode ? vel_x_ : 0.3 * vel_x_), 0.0, 0.0};
         servo_cmd_pub_->publish(servo_cmd_);
         break;
 
