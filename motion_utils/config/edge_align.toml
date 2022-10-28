@@ -2,6 +2,7 @@
 vel_x = 0.1 # 线速度
 vel_omega = 0.25 # 角速度
 jump_after_align = false # 对齐边沿后是否执行跳跃动作
+auto_start = false # 是否自动启动
 
 # Perception
 radius = 0.055 # 离散点半径
@@ -12,6 +13,6 @@ orientation_filter = false # 角度调整时两侧点的数量是否采用均值
 filter_size = 10 # 均值滤波的步长
 blind_forward_threshold = 95 # 停止盲向行走时点数量的阈值
 
-threshold = 20 # 停止靠近边沿时点数量的阈值
+threshold = 40 # 停止靠近边沿时点数量的阈值
 max_depth = 0.43
 

@@ -22,6 +22,8 @@
 #include "cyberdog_common/cyberdog_toml.hpp"
 #include "motion_utils/edge_perception.hpp"
 #include "motion_action/motion_macros.hpp"
+#include "std_srvs/srv/trigger.hpp"
+#include "std_msgs/msg/bool.hpp"
 
 namespace cyberdog
 {
@@ -37,15 +39,23 @@ public:
   }
 
 private:
+  void HandleServiceCallback(
+    const std_srvs::srv::Trigger_Request::SharedPtr request,
+    std_srvs::srv::Trigger_Response::SharedPtr response);
   void Loop();
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<MotionServoCmdMsg>::SharedPtr servo_cmd_pub_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr edge_align_srv_;
   rclcpp::Client<MotionResultSrv>::SharedPtr result_cmd_client_;
   MotionServoCmdMsg servo_cmd_;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr align_finish_pub_;
+  std_msgs::msg::Bool align_finish_;
   std::shared_ptr<EdgePerception> edge_perception_;
+  std::mutex loop_mutex_;
+  std::condition_variable cv_;
   float vel_x_, vel_omega_;
-  bool jump_after_align_;
+  bool jump_after_align_, auto_start_;
 };  // calss EdgeAlign
 }  // namespace motion
 }  // namespace cyberdog

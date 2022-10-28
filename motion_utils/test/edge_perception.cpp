@@ -33,9 +33,13 @@ EdgePerception::EdgePerception(rclcpp::Node::SharedPtr node, const toml::value& 
   GET_TOML_VALUE(config, "threshold", approach_threshold_);
   GET_TOML_VALUE(config, "max_depth", max_depth_);
 
-  pc_filtered_.reset(new pcl::PointCloud<pcl::PointXYZ>);
+  pc_rofiltered_.reset(new pcl::PointCloud<pcl::PointXYZ>);
   ro_filter_.setRadiusSearch(radius_);
   ro_filter_.setMinNeighborsInRadius(min_neighbors_);
+
+  pc_ptfiltered_.reset(new pcl::PointCloud<pcl::PointXYZ>);
+  pt_filter_.setFilterFieldName("z");
+  pt_filter_.setFilterLimits(-0.35, -0.1);
 
   pcl_sub_ = node_->create_subscription<sensor_msgs::msg::PointCloud2>(
     "head_pc",
@@ -49,13 +53,19 @@ EdgePerception::EdgePerception(rclcpp::Node::SharedPtr node, const toml::value& 
 
 void EdgePerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg)
 {
+  if(!launch_) {
+    return;
+  }
   INFO("----------------");
   pcl::fromROSMsg(msg, *pc_raw_);
   ro_filter_.setInputCloud(pc_raw_);
-  ro_filter_.filter(*pc_filtered_);
-  pcl::toROSMsg(*pc_filtered_, pc_filtered_ros_);
+  ro_filter_.filter(*pc_rofiltered_);
+  pt_filter_.setInputCloud(pc_rofiltered_);
+  pt_filter_.filter(*pc_ptfiltered_);
+
+  pcl::toROSMsg(*pc_ptfiltered_, pc_filtered_ros_);
   pc_ro_filtered_pub_->publish(pc_filtered_ros_);
-  int total_points_size = pc_filtered_->size();
+  int total_points_size = pc_ptfiltered_->size();
   int left_point_size = 0;
   int right_point_size = 0;
   // int dead_zone = 2, correction = 0;
@@ -63,7 +73,7 @@ void EdgePerception::HandlePointCloud(const sensor_msgs::msg::PointCloud2 & msg)
   float x_filtered_max = 0;
   float z_beyond_xfmax = 0, sum_beyond_xfmax = 0;
   int beyond_xfmax_point_size = 0;
-  for (auto point : pc_filtered_->points) {
+  for (auto point : pc_ptfiltered_->points) {
     if (point.y > 0) {
       left_point_size++;
     } else {

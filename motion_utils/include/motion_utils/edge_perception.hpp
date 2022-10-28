@@ -22,6 +22,7 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/filters/radius_outlier_removal.h>
+#include <pcl/filters/passthrough.h>
 #include <iostream>
 #include <deque>
 #include <string>
@@ -53,9 +54,11 @@ public:
 
 public:
   EdgePerception(const rclcpp::Node::SharedPtr node, const toml::value & config);
-  void Launch() {}
+  void Launch(bool launch) {launch_ = launch;}
+  bool CheckLaunched() {return launch_;}
   const State & GetStatus() const {return state_;}
   inline void SetStatus(const State & state) {state_ = state;}
+  void SetTrigger() {trigger_ = true;}
   const bool & GetEdgeIsDeep() const {return is_edge_deep_;}
 
 private:
@@ -63,7 +66,7 @@ private:
   inline int GetMeanDiff(int diff)
   {
     diffs_.emplace_back(diff);
-    if (diffs_.size() > filter_size_) {
+    if (static_cast<int>(diffs_.size()) > filter_size_) {
       diffs_.pop_front();
     }
     int sum = 0;
@@ -74,8 +77,10 @@ private:
   }
 
   pcl::RadiusOutlierRemoval<pcl::PointXYZ> ro_filter_;
+  pcl::PassThrough<pcl::PointXYZ> pt_filter_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr pc_raw_;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_filtered_;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_ptfiltered_;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_rofiltered_;
 
   sensor_msgs::msg::PointCloud2 pc_filtered_ros_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_ro_filtered_pub_;
@@ -93,6 +98,7 @@ private:
   int blind_forward_threshold_{15}, approach_threshold_{100};
   bool trigger_ {false}, orientation_filter_ {false};
   double max_depth_{0.5};
+  bool launch_ {false};
 };  // calss EdgePerception
 }  // namespace motion
 }  // namespace cyberdog
