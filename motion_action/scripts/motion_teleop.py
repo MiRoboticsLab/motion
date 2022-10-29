@@ -98,13 +98,25 @@ def service_callback(request:SetBool.Request, response:SetBool.Response):
     response.success = True
     return response
 
-def main(end=True, auto=True):
+def main(args=None):
+    rclpy.init(args=args)
+    end = None
+    opts = None
+    argv = sys.argv[1:]
+    try:
+        opts, args = getopt.getopt(argv, "e:")  # 短选项模式
+    except:
+        print("Error")
+    if opts != None:
+        for opt, arg in opts:
+            if opt in ['-e']:
+                end = arg
+
     global settings
     global triggered
     # print(auto)
     # print(triggered)
     settings = termios.tcgetattr(sys.stdin)
-    rclpy.init()
     qos = QoSProfile(depth=10)
     node = rclpy.create_node('teleop_keyboard')
     pub = node.create_publisher(MotionServoCmd, 'motion_servo_cmd', qos)
@@ -218,14 +230,4 @@ def main(end=True, auto=True):
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 
 if __name__ == '__main__':
-    end = None
-    argv = sys.argv[1:]
- 
-    try:
-        opts, args = getopt.getopt(argv, "e:")  # 短选项模式
-    except:
-        print("Error")
-    for opt, arg in opts:
-        if opt in ['-e']:
-            end = arg
-    main(end)
+    main()
