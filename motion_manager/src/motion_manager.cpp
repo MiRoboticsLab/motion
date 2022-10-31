@@ -22,7 +22,7 @@ namespace cyberdog
 namespace motion
 {
 MotionManager::MotionManager(const std::string & name)
-: manager::ManagerBase(name),
+: machine::MachineActuator(name),
   name_(name)
 {
   node_ptr_ = rclcpp::Node::make_shared(name_);
@@ -31,11 +31,6 @@ MotionManager::MotionManager(const std::string & name)
 MotionManager::~MotionManager()
 {}
 
-void MotionManager::Config()
-{
-  INFO("Get info from configure");
-}
-
 bool MotionManager::Init()
 {
   INFO("Init on call");
@@ -43,6 +38,30 @@ bool MotionManager::Init()
     ERROR("Init failed with nullptr at ros node!");
     return false;
   }
+  // TODO
+  auto local_share_dir = ament_index_cpp::get_package_share_directory("params");
+  auto path = local_share_dir + std::string("/toml_config/manager/state_machine_config.toml");
+  if (!this->MachineActuatorInit(path, node_ptr_))
+  {
+    ERROR("Init failed, actuator init error.");
+    return false;
+  }
+  this->RegisterStateCallback("SetUp", std::bind(&MotionManager::OnSetUp, this));
+  this->RegisterStateCallback("TearDown", std::bind(&MotionManager::OnTearDown, this));
+  this->RegisterStateCallback("SelfCheck", std::bind(&MotionManager::OnSelfCheck, this));
+  this->RegisterStateCallback("Active", std::bind(&MotionManager::OnActive, this));
+  this->RegisterStateCallback("DeActive", std::bind(&MotionManager::OnDeActive, this));
+  this->RegisterStateCallback("Protected", std::bind(&MotionManager::OnProtected, this));
+  this->RegisterStateCallback("LowPower", std::bind(&MotionManager::OnLowPower, this));
+  this->RegisterStateCallback("OTA", std::bind(&MotionManager::OnOTA, this));
+  this->RegisterStateCallback("Error", std::bind(&MotionManager::OnError, this));
+  if (!this->ActuatorStart()) {
+    ERROR("Init failed, actuator start error.");
+    return false;
+  }
+  heart_beats_ptr_ = std::make_unique<cyberdog::machine::HeartBeatsActuator>("motion");
+  heart_beats_ptr_->HeartBeatRun();
+
   code_ptr_ = std::make_shared<MCode>(cyberdog::system::ModuleCode::kMotionManager);
   executor_.reset(new rclcpp::executors::MultiThreadedExecutor);
   callback_group_ = node_ptr_->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
@@ -89,39 +108,54 @@ void MotionManager::Run()
   rclcpp::shutdown();
 }
 
-bool MotionManager::SelfCheck()
-{
-  // check all motions from config
-  return true;
-}
-
 bool MotionManager::IsStateValid()
 {
   // check state from behavior tree
   return true;
 }
 
-void MotionManager::OnError()
+uint32_t MotionManager::OnSetUp()
+{
+  INFO("Get info from configure");
+}
+
+uint32_t MotionManager::OnTearDown()
+{
+  INFO("Get info from teardown");
+}
+
+uint32_t MotionManager::OnSelfCheck()
+{
+  // check all motions from config
+  return true;
+}
+
+uint32_t MotionManager::OnActive()
 {
   INFO("on error");
 }
 
-void MotionManager::OnLowPower()
+uint32_t MotionManager::OnDeActive()
 {
   INFO("on lowpower");
 }
 
-void MotionManager::OnSuspend()
+uint32_t MotionManager::OnProtected()
 {
   INFO("on suspend");
 }
 
-void MotionManager::OnProtected()
+uint32_t MotionManager::OnLowPower()
 {
   INFO("on protect");
 }
 
-void MotionManager::OnActive()
+uint32_t MotionManager::OnOTA()
+{
+  INFO("on active");
+}
+
+uint32_t MotionManager::OnError()
 {
   INFO("on active");
 }

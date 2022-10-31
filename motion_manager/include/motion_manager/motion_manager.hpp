@@ -28,31 +28,32 @@
 #include "motion_manager/motion_decision.hpp"
 #include "motion_action/motion_action.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
+#include "cyberdog_machine/cyberdog_fs_machine.hpp"
+#include "cyberdog_machine/cyberdog_heartbeats.hpp"
 
 namespace cyberdog
 {
 namespace motion
 {
 
-class MotionManager final : public manager::ManagerBase
+class MotionManager final : public machine::MachineActuator
 {
 public:
   explicit MotionManager(const std::string & name);
   ~MotionManager();
-
-  void Config() override;
-  bool Init() override;
-  void Run() override;
-  bool SelfCheck() override;
-
-public:
-  void OnError() override;
-  void OnLowPower() override;
-  void OnSuspend() override;
-  void OnProtected() override;
-  void OnActive() override;
+  bool Init();
+  void Run();
 
 private:
+  uint32_t OnSetUp();
+  uint32_t OnTearDown();
+  uint32_t OnSelfCheck();
+  uint32_t OnActive();
+  uint32_t OnDeActive();
+  uint32_t OnProtected();
+  uint32_t OnLowPower();
+  uint32_t OnOTA();
+  uint32_t OnError();
   bool IsStateValid();
   void MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr msg);
   void MotionResultCmdCallback(
@@ -81,7 +82,8 @@ private:
   rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::CallbackGroup::SharedPtr callback_group_{nullptr};
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
-  std::shared_ptr<MCode> code_ptr_;
+  std::shared_ptr<MCode> code_ptr_{nullptr};
+  std::unique_ptr<cyberdog::machine::HeartBeatsActuator> heart_beats_ptr_{nullptr};
 };  // class MotionManager
 }  // namespace motion
 }  // namespace cyberdog
