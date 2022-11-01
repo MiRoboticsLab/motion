@@ -30,7 +30,12 @@ public:
     motion_queue_client_ = node_ptr_->create_client<protocol::srv::MotionSequence>(cyberdog::motion::kMotionSequenceServiceName);
     code_ptr_ = std::make_shared<cyberdog::motion::MCode>(cyberdog::system::ModuleCode::kMotionManager);
     map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK), "kOK");
-    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwLowBattery), "kHwLowBattery");
+    map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kStateInvalid), "kStateInvalid");
+    map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kUnSupport), "kUnSupport");
+    map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kSelfCheckFailed), "kSelfCheckFailed");
+    map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kParametersInvalid), "kParametersInvalid");
+    map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kTargetBusy), "kTargetBusy");
+    map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kProtectedError), "kProtected");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwMotorOffline), "kHwMotorOffline");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kComLcmTimeout), "kComLcmTimeout");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionSwitchBantrans), "kMotionSwitchBantrans");
@@ -40,10 +45,8 @@ public:
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionTransitionTimeout), "kMotionTransitionTimeout");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionExecuteTimeout), "kMotionExecuteTimeout");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionExecuteError), "kMotionExecuteError");
-    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kCommandInvalid), "kCommandInvalid");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kEstop), "kEstop");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kStuck), "kStuck");
-    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kBusy), "kBusy");
   }
 
   void Run(int argc, char ** argv)

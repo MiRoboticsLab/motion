@@ -102,7 +102,7 @@ public:
   ~MotionDecision();
 
   void Config();
-  bool Init();
+  bool Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr response_msg_pub);
 
 public:
   void DecideServoCmd(const MotionServoCmdMsg::SharedPtr & msg);
@@ -117,15 +117,22 @@ public:
   void DecideSequenceCmd(
     const MotionSequenceSrv::Request::SharedPtr request,
     MotionSequenceSrv::Response::SharedPtr response);
-
   inline void SetMode(uint8_t mode)
   {
     motion_work_mode_ = (DecisionStatus)mode;
   }
-
   inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
   {
     handler_ptr_->SetSequnceTotalDuration(sequence_total_duration);
+  }
+  inline bool SelfCheck()
+  {
+    return handler_ptr_->SelfCheck();
+  }
+
+  inline void SetState(const MotionMgrState & state)
+  {
+    handler_ptr_->SetState(state);
   }
 
 private:

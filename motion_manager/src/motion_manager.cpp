@@ -38,37 +38,15 @@ bool MotionManager::Init()
     ERROR("Init failed with nullptr at ros node!");
     return false;
   }
-  // TODO
-  auto local_share_dir = ament_index_cpp::get_package_share_directory("params");
-  auto path = local_share_dir + std::string("/toml_config/manager/state_machine_config.toml");
-  if (!this->MachineActuatorInit(path, node_ptr_))
-  {
-    ERROR("Init failed, actuator init error.");
-    return false;
-  }
-  this->RegisterStateCallback("SetUp", std::bind(&MotionManager::OnSetUp, this));
-  this->RegisterStateCallback("TearDown", std::bind(&MotionManager::OnTearDown, this));
-  this->RegisterStateCallback("SelfCheck", std::bind(&MotionManager::OnSelfCheck, this));
-  this->RegisterStateCallback("Active", std::bind(&MotionManager::OnActive, this));
-  this->RegisterStateCallback("DeActive", std::bind(&MotionManager::OnDeActive, this));
-  this->RegisterStateCallback("Protected", std::bind(&MotionManager::OnProtected, this));
-  this->RegisterStateCallback("LowPower", std::bind(&MotionManager::OnLowPower, this));
-  this->RegisterStateCallback("OTA", std::bind(&MotionManager::OnOTA, this));
-  this->RegisterStateCallback("Error", std::bind(&MotionManager::OnError, this));
-  if (!this->ActuatorStart()) {
-    ERROR("Init failed, actuator start error.");
-    return false;
-  }
-  heart_beats_ptr_ = std::make_unique<cyberdog::machine::HeartBeatsActuator>("motion");
-  heart_beats_ptr_->HeartBeatRun();
-
   code_ptr_ = std::make_shared<MCode>(cyberdog::system::ModuleCode::kMotionManager);
   executor_.reset(new rclcpp::executors::MultiThreadedExecutor);
   callback_group_ = node_ptr_->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
-  decision_ptr_ = std::make_shared<MotionDecision>(node_ptr_, code_ptr_);
-  decision_ptr_->Init();
+  servo_response_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
+    kMotionServoResponseTopicName, 10);
 
+  decision_ptr_ = std::make_shared<MotionDecision>(node_ptr_, code_ptr_);
+  decision_ptr_->Init(servo_response_pub_);
   motion_servo_sub_ = node_ptr_->create_subscription<MotionServoCmdMsg>(
     kMotionServoCommandTopicName, rclcpp::SystemDefaultsQoS(),
     std::bind(&MotionManager::MotionServoCmdCallback, this, std::placeholders::_1));
@@ -96,6 +74,38 @@ bool MotionManager::Init()
     std::bind(
       &MotionManager::MotionSequenceCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
+
+  auto local_share_dir = ament_index_cpp::get_package_share_directory("params");
+  auto path = local_share_dir + std::string("/toml_config/manager/state_machine_config.toml");
+  if (!this->MachineActuatorInit(path, node_ptr_)) {
+    ERROR("Init failed, actuator init error.");
+    return false;
+  }
+  this->RegisterStateCallback("SetUp", std::bind(&MotionManager::OnSetUp, this));
+  this->RegisterStateCallback("TearDown", std::bind(&MotionManager::OnTearDown, this));
+  this->RegisterStateCallback("SelfCheck", std::bind(&MotionManager::OnSelfCheck, this));
+  this->RegisterStateCallback("Active", std::bind(&MotionManager::OnActive, this));
+  this->RegisterStateCallback("DeActive", std::bind(&MotionManager::OnDeActive, this));
+  this->RegisterStateCallback("Protected", std::bind(&MotionManager::OnProtected, this));
+  this->RegisterStateCallback("LowPower", std::bind(&MotionManager::OnLowPower, this));
+  this->RegisterStateCallback("OTA", std::bind(&MotionManager::OnOTA, this));
+  this->RegisterStateCallback("Error", std::bind(&MotionManager::OnError, this));
+  if (!this->ActuatorStart()) {
+    ERROR("Init failed, actuator start error.");
+    return false;
+  }
+  status_map_.emplace(MotionMgrState::kUninit, "Uninit");
+  status_map_.emplace(MotionMgrState::kSetup, "Setup");
+  status_map_.emplace(MotionMgrState::kTearDown, "TearDown");
+  status_map_.emplace(MotionMgrState::kSelfCheck, "SelfCheck");
+  status_map_.emplace(MotionMgrState::kActive, "Active");
+  status_map_.emplace(MotionMgrState::kDeactive, "Deactive");
+  status_map_.emplace(MotionMgrState::kProtected, "Protected");
+  status_map_.emplace(MotionMgrState::kLowPower, "LowPower");
+  status_map_.emplace(MotionMgrState::kOTA, "OTA");
+  status_map_.emplace(MotionMgrState::kError, "Error");
+  heart_beats_ptr_ = std::make_unique<cyberdog::machine::HeartBeatsActuator>("motion_manager");
+  heart_beats_ptr_->HeartBeatRun();
   return true;
 }
 
@@ -108,66 +118,101 @@ void MotionManager::Run()
   rclcpp::shutdown();
 }
 
-bool MotionManager::IsStateValid()
+bool MotionManager::IsStateValid(int32_t & code)
 {
-  // check state from behavior tree
-  return true;
+  auto state = GetState();
+  if (state == MotionMgrState::kActive) {
+    code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+    return true;
+  } else if (state == MotionMgrState::kProtected) {
+    code = code_ptr_->GetKeyCode(system::KeyCode::kProtectedError);
+  } else {
+    code = code_ptr_->GetKeyCode(system::KeyCode::kStateInvalid);
+  }
+  return false;
 }
 
-uint32_t MotionManager::OnSetUp()
+int32_t MotionManager::OnSetUp()
 {
-  INFO("Get info from configure");
+  INFO("Get fsm: Setup");
+  SetState(MotionMgrState::kSetup);
+  return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
-uint32_t MotionManager::OnTearDown()
+int32_t MotionManager::OnTearDown()
 {
-  INFO("Get info from teardown");
+  INFO("Get fsm: TearDown");
+  SetState(MotionMgrState::kTearDown);
+  return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
-uint32_t MotionManager::OnSelfCheck()
+int32_t MotionManager::OnSelfCheck()
 {
-  // check all motions from config
-  return true;
+  INFO("Get fsm: SelfCheck");
+  SetState(MotionMgrState::kSelfCheck);
+  if (decision_ptr_->SelfCheck()) {
+    INFO("MotionManager SelfCheck OK");
+    return code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  } else {
+    ERROR("MotionManager SelfCheck Error");
+    return code_ptr_->GetKeyCode(system::KeyCode::kSelfCheckFailed);
+  }
 }
 
-uint32_t MotionManager::OnActive()
+int32_t MotionManager::OnActive()
 {
-  INFO("on error");
+  INFO("Get fsm: Active");
+  SetState(MotionMgrState::kActive);
+  return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
-uint32_t MotionManager::OnDeActive()
+int32_t MotionManager::OnDeActive()
 {
-  INFO("on lowpower");
+  INFO("Get fsm: Deactive");
+  SetState(MotionMgrState::kDeactive);
+  return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
-uint32_t MotionManager::OnProtected()
+int32_t MotionManager::OnProtected()
 {
-  INFO("on suspend");
+  INFO("Get fsm: Protected");
+  SetState(MotionMgrState::kProtected);
+  return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
-uint32_t MotionManager::OnLowPower()
+int32_t MotionManager::OnLowPower()
 {
-  INFO("on protect");
+  INFO("Get fsm: LowPower");
+  SetState(MotionMgrState::kLowPower);
+  return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
-uint32_t MotionManager::OnOTA()
+int32_t MotionManager::OnOTA()
 {
-  INFO("on active");
+  INFO("Get fsm: OTA");
+  SetState(MotionMgrState::kOTA);
+  return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
-uint32_t MotionManager::OnError()
+int32_t MotionManager::OnError()
 {
-  INFO("on active");
+  INFO("Get fsm: OTA");
+  SetState(MotionMgrState::kError);
+  return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
 void MotionManager::MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr msg)
 {
   INFO("Receive ServoCmd from %d with motion_id: %d", msg->cmd_source, msg->motion_id);
-  if (!IsStateValid()) {
-    INFO("motion state invalid with current state");
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsStateValid(code)) {
+    ERROR("FSM invalid with current state: %s", status_map_.at(state_).c_str());
+    static auto servo_response_msg = std::make_shared<MotionServoResponseMsg>();
+    servo_response_msg->result = false;
+    servo_response_msg->code = code;
+    servo_response_pub_->publish(*servo_response_msg);
     return;
   }
-
   decision_ptr_->DecideServoCmd(msg);
 }
 
@@ -175,8 +220,11 @@ void MotionManager::MotionResultCmdCallback(
   const MotionResultSrv::Request::SharedPtr request, MotionResultSrv::Response::SharedPtr response)
 {
   INFO("Receive ResultCmd from %d with motion_id: %d", request->cmd_source, request->motion_id);
-  if (!IsStateValid()) {
-    INFO("State invalid with current state");
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsStateValid(code)) {
+    ERROR("FSM invalid with current state: %s", status_map_.at(state_).c_str());
+    response->result = false;
+    response->code = code;
     return;
   }
 
@@ -227,8 +275,11 @@ void MotionManager::MotionSequenceCmdCallback(
   MotionSequenceSrv::Response::SharedPtr response)
 {
   INFO("Receive SequenceCmd with motion_id: %d", request->motion_id);
-  if (!IsStateValid()) {
-    INFO("State invalid with current state");
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsStateValid(code)) {
+    ERROR("FSM invalid with current state: %s", status_map_.at(state_).c_str());
+    response->result = false;
+    response->code = code;
     return;
   }
   int64_t total_duration = 0;
@@ -278,7 +329,8 @@ void MotionManager::MotionQueueCmdCallback(
   MotionQueueCustomSrv::Response::SharedPtr response)
 {
   INFO("Receive QueueCmd");
-  if (!IsStateValid()) {
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsStateValid(code)) {
     INFO("State invalid with current state");
     return;
   }

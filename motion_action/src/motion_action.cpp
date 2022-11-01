@@ -265,8 +265,16 @@ bool MotionAction::Init(
     std::thread(
     [this]() {
       while (rclcpp::ok()) {
-        while (0 == this->lcm_subscribe_instance_->handleTimeout(kAcitonLcmReadTimeout)) {
-          ERROR("Cannot read LCM from MR813");
+        if (0 == this->lcm_subscribe_instance_->handleTimeout(kAcitonLcmReadTimeout)) {
+          this->lcm_ready_ = false;
+          if (state_ == MotionMgrState::kActive ||
+          state_ == MotionMgrState::kSetup ||
+          state_ == MotionMgrState::kSelfCheck)
+          {
+            ERROR("Cannot read LCM from MR813");
+          }
+        } else {
+          this->lcm_ready_ = true;
         }
       }
     });
@@ -290,7 +298,8 @@ bool MotionAction::Init(
 
 bool MotionAction::SelfCheck()
 {
-  return true;
+  INFO("MR813 LCM: %s", lcm_ready_ ? "Ready" : "Offline");
+  return lcm_ready_;
 }
 
 void MotionAction::RegisterFeedback(

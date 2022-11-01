@@ -67,6 +67,14 @@ public:
   }
   bool CheckMotionResult();
   bool CheckMotionResult(int32_t motion_id);
+  bool SelfCheck()
+  {
+    return action_ptr_->SelfCheck();
+  }
+  void SetState(const MotionMgrState & state)
+  {
+    action_ptr_->SetState(state);
+  }
 
 private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);

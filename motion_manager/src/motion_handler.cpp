@@ -123,7 +123,8 @@ void MotionHandler::HandleServoCmd(
 {
   if (GetWorkStatus() == HandlerStatus::kExecutingResultCmd) {
     res.result = false;
-    res.code = code_ptr_->GetCode(MotionCode::kBusy);
+    // res.code = code_ptr_->GetCode(MotionCode::kBusy);
+    res.code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
     ERROR("Busy(Executing ResultCmd) for ServoCmd");
     return;
   }
@@ -413,13 +414,15 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
 {
   if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
     response->result = false;
-    response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    // response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    response->code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
     ERROR("Busy when Getting ResultCmd(%d)", request->motion_id);
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
   if (!IsCommandValid(request)) {
-    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+    // response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+    response->code = code_ptr_->GetKeyCode(system::KeyCode::kParametersInvalid);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("ResultCmd(%d) invalid", request->motion_id);
@@ -484,7 +487,8 @@ void MotionHandler::HandleSequenceCmd(
 {
   if (GetWorkStatus() != HandlerStatus::kIdle) {
     response->result = false;
-    response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    // response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    response->code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
     ERROR("Busy when Getting SequenceCmd(%d)", MotionIDMsg::SEQUENCE_CUSTOM);
     return;
   }
@@ -492,7 +496,8 @@ void MotionHandler::HandleSequenceCmd(
   auto req = std::make_shared<MotionResultSrv::Request>();
   req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
   if (!IsCommandValid(req)) {
-    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+    // response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+    response->code = code_ptr_->GetKeyCode(system::KeyCode::kParametersInvalid);
     response->result = false;
     response->describe = "";
     ERROR("SequenceCmd invalid");

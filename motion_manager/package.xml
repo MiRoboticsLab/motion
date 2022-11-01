@@ -16,6 +16,7 @@
   <depend>manager_base</depend>
   <depend>motion_action</depend>
   <depend>protocol</depend>
+  <depend>cyberdog_machine</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

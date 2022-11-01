@@ -18,6 +18,7 @@
 #include <thread>
 #include <string>
 #include <memory>
+#include <unordered_map>
 #include "pluginlib/class_loader.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
@@ -45,16 +46,28 @@ public:
   void Run();
 
 private:
-  uint32_t OnSetUp();
-  uint32_t OnTearDown();
-  uint32_t OnSelfCheck();
-  uint32_t OnActive();
-  uint32_t OnDeActive();
-  uint32_t OnProtected();
-  uint32_t OnLowPower();
-  uint32_t OnOTA();
-  uint32_t OnError();
-  bool IsStateValid();
+  int32_t OnSetUp();
+  int32_t OnTearDown();
+  int32_t OnSelfCheck();
+  int32_t OnActive();
+  int32_t OnDeActive();
+  int32_t OnProtected();
+  int32_t OnLowPower();
+  int32_t OnOTA();
+  int32_t OnError();
+  void SetState(const MotionMgrState & state)
+  {
+    std::unique_lock<std::mutex> lk(status_mutex_);
+    state_ = state;
+    decision_ptr_->SetState(state_);
+  }
+  MotionMgrState &
+  GetState()
+  {
+    std::unique_lock<std::mutex> lk(status_mutex_);
+    return state_;
+  }
+  bool IsStateValid(int32_t & code);
   void MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr msg);
   void MotionResultCmdCallback(
     const MotionResultSrv::Request::SharedPtr request,
@@ -72,8 +85,7 @@ private:
 private:
   std::string name_;
   std::shared_ptr<MotionDecision> decision_ptr_ {nullptr};
-
-private:
+  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub_;
   rclcpp::Subscription<MotionServoCmdMsg>::SharedPtr motion_servo_sub_ {nullptr};
   rclcpp::Service<MotionResultSrv>::SharedPtr motion_result_srv_ {nullptr};
   rclcpp::Service<MotionCustomSrv>::SharedPtr motion_custom_srv_ {nullptr};
@@ -84,6 +96,9 @@ private:
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   std::shared_ptr<MCode> code_ptr_{nullptr};
   std::unique_ptr<cyberdog::machine::HeartBeatsActuator> heart_beats_ptr_{nullptr};
+  MotionMgrState state_{MotionMgrState::kUninit};
+  std::mutex status_mutex_;
+  std::unordered_map<MotionMgrState, std::string> status_map_;
 };  // class MotionManager
 }  // namespace motion
 }  // namespace cyberdog
