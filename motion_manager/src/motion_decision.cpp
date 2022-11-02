@@ -78,11 +78,9 @@ void MotionDecision::ServoResponseThread()
         servo_response_msg_.motion_id = motion_status->motion_id;
         servo_response_msg_.order_process_bar = motion_status->order_process_bar;
         servo_response_msg_.status = motion_status->switch_status;
-        if (!handler_ptr_->CheckMotionResult()) {
-          servo_response_msg_.code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
-        } else {
-          servo_response_msg_.code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
-        }
+        int32_t code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+        handler_ptr_->CheckMotionResult(code);
+        servo_response_msg_.code = code;
         servo_response_pub_->publish(servo_response_msg_);
       } else {
         servo_response_msg_.motion_id = -1;
