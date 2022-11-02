@@ -1,0 +1,72 @@
+# Testing normal usage STD_CAN with std_frame
+protocol = "can"
+name = "elec_skin"
+
+can_interface = "can0"
+extended_frame = true
+canfd_enable = false
+timeout_us = 1234567
+
+
+[[cmd]]
+description = ""
+cmd_name = "model_on"
+can_id = "0x07802f00"
+ctrl_len = 1
+ctrl_data = ["0x00"]
+
+[[cmd]]
+description = "body middle"
+cmd_name = "body_middle"
+can_id = "0x07802000"
+ctrl_len = 1
+ctrl_data = ["0x00"]
+
+[[cmd]]
+description = "left back leg"
+cmd_name = "left_back_leg"
+can_id = "0x07802100"
+ctrl_len = 1
+ctrl_data = ["0x00"]
+
+[[cmd]]
+description = ""
+cmd_name = "body_left"
+can_id = "0x07802200"
+ctrl_len = 1
+ctrl_data = ["0x00"]
+
+[[cmd]]
+description = ""
+cmd_name = "left_front_leg"
+can_id = "0x07802300"
+ctrl_len = 1
+ctrl_data = ["0x00"]
+
+[[cmd]]
+description = ""
+cmd_name = "front_chest"
+can_id = "0x07802400"
+ctrl_len = 1
+ctrl_data = ["0x00"]
+
+[[cmd]]
+description = ""
+cmd_name = "right_front_leg"
+can_id = "0x07802500"
+ctrl_len = 1
+ctrl_data = ["0x00"]
+
+[[cmd]]
+description = ""
+cmd_name = "body_right"
+can_id = "0x07802600"
+ctrl_len = 1
+ctrl_data = ["0x00"]
+
+[[cmd]]
+description = ""
+cmd_name = "right_back_leg"
+can_id = "0x07802700"
+ctrl_len = 1
+ctrl_data = ["0x00"]
