@@ -218,26 +218,31 @@ void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cm
   // ExecuteResultCmd(request, response);
 }
 
-bool MotionHandler::CheckMotionResult()
+bool MotionHandler::CheckMotionResult(int32_t & code)
 {
   if (!CheckMotors()) {
+    code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
     return false;
   }
-  bool result = true;
-  return motion_status_ptr_->ori_error == 0 &&
-         // TODO(harvey): footpos_error需要等到运控组确定策略后再加进来
-         //  motion_status_ptr_->footpos_error == 0 &&
-         (motion_status_ptr_->switch_status == MotionStatusMsg::NORMAL ||
-         motion_status_ptr_->switch_status == MotionStatusMsg::TRANSITIONING) &&
-         result;
+  if (motion_status_ptr_->ori_error != 0 ||
+    // TODO(harvey): footpos_error需要等到运控组确定策略后再加进来
+    //  motion_status_ptr_->footpos_error == 0 &&
+    (motion_status_ptr_->switch_status != MotionStatusMsg::NORMAL &&
+    motion_status_ptr_->switch_status != MotionStatusMsg::TRANSITIONING))
+  {
+    ERROR("Motion ori error or switch error");
+    code = code_ptr_->GetCode(MotionCode::kMotionExecuteError);
+    return false;
+  }
+  return true;
 }
 
-bool MotionHandler::CheckMotionResult(int32_t motion_id)
+bool MotionHandler::CheckMotionResult(int32_t motion_id, int32_t & code)
 {
   if (motion_id == MotionIDMsg::ESTOP) {
     return true;
   }
-  return CheckMotionResult();
+  return CheckMotionResult(code);
 }
 
 bool MotionHandler::FeedbackTimeout()
@@ -385,8 +390,9 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
     ERROR("Motion execute timeout");
     return;
   }
-  if (!CheckMotionResult(request->motion_id)) {
-    response->code = code_ptr_->GetCode(MotionCode::kMotionExecuteError);
+  int32_t code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
+  if (!CheckMotionResult(request->motion_id, code)) {
+    response->code = code;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
     ERROR("Motion execute error");

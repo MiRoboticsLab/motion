@@ -65,8 +65,8 @@ public:
   {
     sequence_total_duration_ = sequence_total_duration;
   }
-  bool CheckMotionResult();
-  bool CheckMotionResult(int32_t motion_id);
+  bool CheckMotionResult(int32_t & code);
+  bool CheckMotionResult(int32_t motion_id, int32_t & code);
 
 private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
