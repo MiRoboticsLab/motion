@@ -35,6 +35,11 @@ ament_target_dependencies( ${PROJECT_NAME}
   cyberdog_common
   cyberdog_embed_protocol )
 
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
 install(TARGETS ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME})
 

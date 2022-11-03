@@ -30,11 +30,13 @@
 #include "protocol/msg/motion_servo_response.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
+#include "protocol/lcm/state_estimator_lcmt.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "cyberdog_common/cyberdog_toml.hpp"
 #include "motion_action/motion_macros.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "ament_index_cpp/get_package_prefix.hpp"
+#include "elec_skin/elec_skin_base.hpp"
 
 namespace cyberdog
 {
@@ -94,6 +96,9 @@ private:
   void ReadSeqDefResultLcm(
     const lcm::ReceiveBuffer *, const std::string &,
     const file_recv_lcmt * msg);
+  void ReadStateEstimatorLcm(
+    const lcm::ReceiveBuffer *, const std::string &,
+    const state_estimator_lcmt * msg);
   bool ParseMotionIdMap();
 
 private:
@@ -102,6 +107,9 @@ private:
   std::function<void(const robot_control_cmd_lcmt &)> toml_log_func_;
   std::shared_ptr<lcm::LCM> lcm_publish_instance_, lcm_subscribe_instance_;
   std::shared_ptr<lcm::LCM> lcm_recv_subscribe_instance_;
+  std::shared_ptr<lcm::LCM> lcm_state_estimator_subscribe_instance_;
+  std::shared_ptr<ElecSkinBase> elec_skin_{nullptr};
+  std::unordered_map<uint8_t, PositionSkin> position_map;
   std::mutex lcm_write_mutex_;
   std::mutex seq_def_result_mutex_;
   std::condition_variable seq_def_result_cv_;

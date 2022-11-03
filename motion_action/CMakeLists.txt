@@ -23,6 +23,7 @@ find_package(cyberdog_system REQUIRED)
 find_package(cyberdog_debug REQUIRED)
 find_package(cyberdog_common)
 find_package(lcm REQUIRED)
+find_package(elec_skin REQUIRED)
 
 include_directories(include)
 
@@ -34,6 +35,7 @@ ament_target_dependencies(${PROJECT_NAME}
   cyberdog_system
   cyberdog_common
   cyberdog_debug
+  elec_skin
 )
 
 add_executable(manager_test test/manager_test.cpp)
@@ -95,5 +97,5 @@ ament_export_include_directories(
 ament_export_libraries(
   ${PROJECT_NAME}
 )
-ament_export_dependencies(lcm cyberdog_common cyberdog_debug)
+ament_export_dependencies(lcm cyberdog_common cyberdog_debug elec_skin)
 ament_package()

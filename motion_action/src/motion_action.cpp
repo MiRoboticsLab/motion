@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include "motion_action/motion_action.hpp"
+#include "elec_skin/elec_skin.hpp"
 #include <string>
 #include <memory>
 #include <map>
@@ -284,9 +285,66 @@ bool MotionAction::Init(
         while (0 == this->lcm_recv_subscribe_instance_->handle()) {}
       }
     }}.detach();
+
+  lcm_state_estimator_subscribe_instance_ = std::make_shared<lcm::LCM>("udpm://239.255.76.67:7669?ttl=255");
+  if (!lcm_state_estimator_subscribe_instance_->good()) {
+    ERROR("MotionAction read robot state lcm initialized error");
+    return false;
+  }
+  lcm_state_estimator_subscribe_instance_->subscribe(
+    "state_estimator",
+    &MotionAction::ReadStateEstimatorLcm, this);
+  std::thread{[this]() {
+      while (rclcpp::ok()) {
+        while (0 == this->lcm_state_estimator_subscribe_instance_->handle()) {}
+      }
+    }}.detach();
+
+  elec_skin_ = std::make_shared<ElecSkin>();
+  position_map.emplace(0, PositionSkin::PS_RFLEG); 
+  position_map.emplace(1, PositionSkin::PS_LFLEG); 
+  position_map.emplace(2, PositionSkin::PS_RBLEG); 
+  position_map.emplace(3, PositionSkin::PS_LBLEG); 
   ins_init_ = true;
   return true;
 }
+
+void MotionAction::ReadStateEstimatorLcm(
+  const lcm::ReceiveBuffer *, const std::string &,
+  const state_estimator_lcmt * msg)
+{
+  if (!ins_init_) {
+    return;
+  }
+  static auto last_contact = std::vector<uint8_t>(4, 0);
+  auto contact = std::vector<uint8_t>(4, 0);
+  // INFO("%f, %f, %f, %f", msg->contactEstimate[0],msg->contactEstimate[1],msg->contactEstimate[2],msg->contactEstimate[3]);
+  for(uint8_t i = 0; i < 4; ++i) {
+    contact[i] = msg->contactEstimate[i] > 0 ? 1 : 0;
+    if (contact[i] == last_contact[i]) {
+      continue;
+    }
+    last_contact[i] = contact[i];
+    if (contact[i] == 1) {
+      WARN("Leg %d liftdown", i);
+      elec_skin_->PositionContril(
+        position_map[i],
+        PositionColorChangeDirection::PCCD_WTOB,
+        PositionColorStartDirection::PCSD_FRONT,
+        200);
+    } else {
+      WARN("Leg %d liftup", i);
+      elec_skin_->PositionContril(
+        position_map[i],
+        PositionColorChangeDirection::PCCD_BTOW,
+        PositionColorStartDirection::PCSD_FRONT,
+        200);
+    }
+
+  }
+  // INFO("%d, %d, %d, %d", contact[0], contact[1], contact[2], contact[3]);
+}
+
 
 bool MotionAction::SelfCheck()
 {
