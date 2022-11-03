@@ -11,62 +11,62 @@ timeout_us = 1234567
 [[cmd]]
 description = ""
 cmd_name = "model_on"
-can_id = "0x07802f00"
+can_id = "0x0e802f00"
 ctrl_len = 1
 ctrl_data = ["0x00"]
 
 [[cmd]]
 description = "body middle"
 cmd_name = "body_middle"
-can_id = "0x07802000"
+can_id = "0x0e802000"
 ctrl_len = 1
 ctrl_data = ["0x00"]
 
 [[cmd]]
 description = "left back leg"
 cmd_name = "left_back_leg"
-can_id = "0x07802100"
+can_id = "0x0e802100"
 ctrl_len = 1
 ctrl_data = ["0x00"]
 
 [[cmd]]
 description = ""
 cmd_name = "body_left"
-can_id = "0x07802200"
+can_id = "0x0e802200"
 ctrl_len = 1
 ctrl_data = ["0x00"]
 
 [[cmd]]
 description = ""
 cmd_name = "left_front_leg"
-can_id = "0x07802300"
+can_id = "0x0e802300"
 ctrl_len = 1
 ctrl_data = ["0x00"]
 
 [[cmd]]
 description = ""
 cmd_name = "front_chest"
-can_id = "0x07802400"
+can_id = "0x0e802400"
 ctrl_len = 1
 ctrl_data = ["0x00"]
 
 [[cmd]]
 description = ""
 cmd_name = "right_front_leg"
-can_id = "0x07802500"
+can_id = "0x0e802500"
 ctrl_len = 1
 ctrl_data = ["0x00"]
 
 [[cmd]]
 description = ""
 cmd_name = "body_right"
-can_id = "0x07802600"
+can_id = "0x0e802600"
 ctrl_len = 1
 ctrl_data = ["0x00"]
 
 [[cmd]]
 description = ""
 cmd_name = "right_back_leg"
-can_id = "0x07802700"
+can_id = "0x0e802700"
 ctrl_len = 1
 ctrl_data = ["0x00"]
