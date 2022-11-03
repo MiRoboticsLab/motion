@@ -64,7 +64,7 @@ right_R = GetRotationMatrix(-0.296, -0.266, 0.0)
 class MinimalSubscriber(Node):
 
     def __init__(self):
-        super().__init__('minimal_subscriber')
+        super().__init__('head_tof_pc_publisher')
         self.head_subscription = self.create_subscription(
             HeadTofPayload,
             'head_tof_payload',
@@ -76,37 +76,37 @@ class MinimalSubscriber(Node):
         #     'rear_tof_payload',
         #     self.rear_listener_callback,
         #     10)
-        self.pcd_topic = []
-        self.pcd_topic.append('left_head_pcd')
-        self.pcd_topic.append('right_head_pcd')
-        self.pcd_topic.append('left_rear_pcd')
-        self.pcd_topic.append('right_rear_pcd')
+        # self.pcd_topic = []
+        # self.pcd_topic.append('left_head_pcd')
+        # self.pcd_topic.append('right_head_pcd')
+        # self.pcd_topic.append('left_rear_pcd')
+        # self.pcd_topic.append('right_rear_pcd')
         
-        self.pcd_publisher = []
-        for i in range(0,4):
-            pcd_publisher = self.create_publisher(sensor_msgs.PointCloud2, self.pcd_topic[i], 10)
-            self.pcd_publisher.append(pcd_publisher)
+        # self.pcd_publisher = []
+        # for i in range(0,4):
+        #     pcd_publisher = self.create_publisher(sensor_msgs.PointCloud2, self.pcd_topic[i], 10)
+        #     self.pcd_publisher.append(pcd_publisher)
         self.head_pcd_publisher = self.create_publisher(sensor_msgs.PointCloud2, "head_pc", 10)
 
-    def tof_pcd_generate(self,tof_msg):
-        tof_position = tof_msg.tof_position
-        tof_time = tof_msg.header.stamp.nanosec/1000000 + tof_msg.header.stamp.sec * 1000
-        for idx in range(0,64):
-            z_array[idx] =  -tof_msg.data[63-idx]
-            r_array[idx] = -z_array[idx]/math.cos(math.pi*angle_arr[idx]/180)*math.sin(math.pi*angle_arr[idx]/180)
-            if tof_position == SingleTofPayload.RIGHT_HEAD or tof_position == SingleTofPayload.LEFT_HEAD:
-                x_array[idx] = round(r_array[idx]*cos_array_scale[7-idx%8]/math.sqrt(r2_array[idx]),4)
-                y_array[idx] = round(r_array[idx]*sin_array_scale[7-int(idx/8)]/math.sqrt(r2_array[idx]),4)
-            else:
-                x_array[idx] = round(r_array[idx]*cos_array_scale[idx%8]/math.sqrt(r2_array[idx]),4)
-                y_array[idx] = round(r_array[idx]*sin_array_scale[int(idx/8)]/math.sqrt(r2_array[idx]),4)
+    # def tof_pcd_generate(self,tof_msg):
+    #     tof_position = tof_msg.tof_position
+    #     tof_time = tof_msg.header.stamp.nanosec/1000000 + tof_msg.header.stamp.sec * 1000
+    #     for idx in range(0,64):
+    #         z_array[idx] =  -tof_msg.data[63-idx]
+    #         r_array[idx] = -z_array[idx]/math.cos(math.pi*angle_arr[idx]/180)*math.sin(math.pi*angle_arr[idx]/180)
+    #         if tof_position == SingleTofPayload.RIGHT_HEAD or tof_position == SingleTofPayload.LEFT_HEAD:
+    #             x_array[idx] = round(r_array[idx]*cos_array_scale[7-idx%8]/math.sqrt(r2_array[idx]),4)
+    #             y_array[idx] = round(r_array[idx]*sin_array_scale[7-int(idx/8)]/math.sqrt(r2_array[idx]),4)
+    #         else:
+    #             x_array[idx] = round(r_array[idx]*cos_array_scale[idx%8]/math.sqrt(r2_array[idx]),4)
+    #             y_array[idx] = round(r_array[idx]*sin_array_scale[int(idx/8)]/math.sqrt(r2_array[idx]),4)
 
-        points = np.vstack((np.asarray(x_array),np.asarray(y_array),np.asarray(z_array))).T
-        pcd = point_cloud(points, tof_msg.header.frame_id)
-        self.pcd_publisher[tof_position].publish(pcd)
-        # self.left_head_pcd = point_cloud(points, 'left_head')
-        # self.left_head_pcd_publisher.publish(self.left_head_pcd)
-        self.get_logger().info('I heard: "%s"' % tof_msg.header.frame_id + 'timestamp: "%d"' % tof_time)
+    #     points = np.vstack((np.asarray(x_array),np.asarray(y_array),np.asarray(z_array))).T
+    #     pcd = point_cloud(points, tof_msg.header.frame_id)
+    #     self.pcd_publisher[tof_position].publish(pcd)
+    #     # self.left_head_pcd = point_cloud(points, 'left_head')
+    #     # self.left_head_pcd_publisher.publish(self.left_head_pcd)
+    #     self.get_logger().info('I heard: "%s"' % tof_msg.header.frame_id + 'timestamp: "%d"' % tof_time)
 
     def head_tof_pcd_generate(self, msg = HeadTofPayload()):
         for idx in range(0,64):
@@ -157,7 +157,8 @@ class MinimalSubscriber(Node):
         #     points = np.concatenate((points, tmp_points), axis=0)
         points = np.concatenate((left_points, right_points), axis=0)
         pcd = point_cloud(points, "robot")
-        self.head_pcd_publisher.publish(pcd)
+        if self.head_pcd_publisher.get_subscription_count > 0:
+            self.head_pcd_publisher.publish(pcd)
         return
 
     def head_listener_callback(self, msg):
@@ -165,9 +166,9 @@ class MinimalSubscriber(Node):
         # self.tof_pcd_generate(msg.right_head)
         self.head_tof_pcd_generate(msg)
         
-    def rear_listener_callback(self, msg):
-        self.tof_pcd_generate(msg.left_rear)
-        self.tof_pcd_generate(msg.right_rear)
+    # def rear_listener_callback(self, msg):
+    #     self.tof_pcd_generate(msg.left_rear)
+    #     self.tof_pcd_generate(msg.right_rear)
 
 def point_cloud(points, parent_frame):
     ros_dtype = sensor_msgs.PointField.FLOAT32
