@@ -38,6 +38,11 @@ ament_target_dependencies( ${PROJECT_NAME}
 install(TARGETS ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME})
 
+install(
+  DIRECTORY include/
+  DESTINATION include/
+)
+
 install(DIRECTORY toml_config/
   DESTINATION share/${PROJECT_NAME}/toml_config/
 )

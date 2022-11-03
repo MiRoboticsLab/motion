@@ -16,6 +16,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include "elec_skin/elec_skin_base.hpp"
 #include "elec_skin/elec_skin.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "std_msgs/msg/string.hpp"
@@ -103,7 +104,7 @@ public:
 
 private:
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subscription_;
-  std::unique_ptr<cyberdog::motion::ElecSkin> can_control_;
+  std::unique_ptr<cyberdog::motion::ElecSkinBase> can_control_;
 };
 
 int main(int argc, char ** argv)
