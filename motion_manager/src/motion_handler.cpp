@@ -450,9 +450,6 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     //   }
     // }
   }
-  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
-    action_ptr_->ShowDefaultSkin(false, false);
-  }
   CreateTomlLog(request->motion_id);
   if (!CheckPostMotion(request->motion_id)) {
     MotionResultSrv::Request::SharedPtr req(new MotionResultSrv::Request);
@@ -481,6 +478,9 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       CloseTomlLog();
       return;
     }
+  }
+  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    action_ptr_->ShowDefaultSkin(false, false);
   }
   ExecuteResultCmd(request, response);
   if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
