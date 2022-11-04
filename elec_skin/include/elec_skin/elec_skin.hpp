@@ -42,7 +42,7 @@ class ElecSkin final : public ElecSkinBase
 {
 public:
   ElecSkin()
-  : ms_(ModelSwitch::MS_CONTROL)
+  : ms_(ModelSwitch::MS_FLASH)
   {
     std::string path = ament_index_cpp::get_package_share_directory("elec_skin") +
       "/toml_config/elec_skin.toml";
@@ -61,8 +61,8 @@ public:
   {
     ms_ = ms;
     uint8_t wave_mode = static_cast<uint8_t>(ms_);
-    uint8_t wave_cycle_time_low = *(reinterpret_cast<uint8_t *>(&milsecs));
-    uint8_t wave_cycle_time_high = *(reinterpret_cast<uint8_t *>(&milsecs) + 1);
+    uint8_t wave_cycle_time_high = *(reinterpret_cast<uint8_t *>(&milsecs));
+    uint8_t wave_cycle_time_low = *(reinterpret_cast<uint8_t *>(&milsecs) + 1);
     ptr_can_protocol_->Operate(
       "model_on",
       std::vector<uint8_t>{wave_mode, wave_cycle_time_low, wave_cycle_time_high});
@@ -77,8 +77,8 @@ public:
     }
     uint8_t change_direction = static_cast<uint8_t>(pccd);
     uint8_t start_direction = static_cast<uint8_t>(pcsd);
-    uint8_t wave_cycle_time_low = *(reinterpret_cast<uint8_t *>(&milsecs));
-    uint8_t wave_cycle_time_high = *(reinterpret_cast<uint8_t *>(&milsecs) + 1);
+    uint8_t wave_cycle_time_high = *(reinterpret_cast<uint8_t *>(&milsecs));
+    uint8_t wave_cycle_time_low = *(reinterpret_cast<uint8_t *>(&milsecs) + 1);
     ptr_can_protocol_->Operate(
       control_dog_action_map.at(ps),
       std::vector<uint8_t>{change_direction, start_direction,
