@@ -100,6 +100,7 @@ private:
     const lcm::ReceiveBuffer *, const std::string &,
     const state_estimator_lcmt * msg);
   bool ParseMotionIdMap();
+  bool ParseElecSkin();
 
 private:
   std::thread control_thread_, response_thread_;
@@ -109,13 +110,16 @@ private:
   std::shared_ptr<lcm::LCM> lcm_recv_subscribe_instance_;
   std::shared_ptr<lcm::LCM> lcm_state_estimator_subscribe_instance_;
   std::shared_ptr<ElecSkinBase> elec_skin_{nullptr};
-  std::unordered_map<uint8_t, PositionSkin> position_map;
+  std::unordered_map<uint8_t, std::vector<PositionSkin>> position_map;
   std::mutex lcm_write_mutex_;
   std::mutex seq_def_result_mutex_;
   std::condition_variable seq_def_result_cv_;
   robot_control_cmd_lcmt lcm_cmd_;
   std::map<int32_t, MotionIdMap> motion_id_map_;
+  std::vector<PositionColorChangeDirection> change_dir_;
+  PositionColorStartDirection start_dir_;
   int32_t last_motion_id_{0};
+  int32_t gradual_duration_{0};
   uint8_t lcm_publish_duration_;
   int8_t last_res_mode_{0}, last_res_gait_id_{0};
   int8_t life_count_{0};

@@ -239,6 +239,43 @@ bool MotionAction::ParseMotionIdMap()
   return true;
 }
 
+bool MotionAction::ParseElecSkin()
+{
+  std::string elec_skin_config = ament_index_cpp::get_package_share_directory("motion_action") +
+    "/preset/" + "elec_skin.toml";
+  toml::value elec_skin_value;
+  if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin_config, elec_skin_value)) {
+    FATAL("Cannot parse %s", elec_skin_config.c_str());
+    return false;
+  }
+  // if (!motion_ids.is_table()) {
+  //   FATAL("Toml format error");
+  //   exit(-1);
+  // }
+  // toml::value values;
+  int8_t default_color = 0;
+  int8_t start_direction = 0;
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
+  INFO("Default color: %d", default_color);
+  INFO("Start direction: %d", start_direction);
+  INFO("Gradual duration: %d", gradual_duration_);
+  if (default_color == 0) {
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
+  } else {
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
+  }
+  if (start_direction == 0) {
+    start_dir_ = PositionColorStartDirection::PCSD_FRONT;
+  } else {
+    start_dir_ = PositionColorStartDirection::PCSD_BACK;
+  }
+  return true;
+}
+
 bool MotionAction::Init(
   const std::string & publish_url, const std::string & subscribe_url)
 {
@@ -301,10 +338,11 @@ bool MotionAction::Init(
     }}.detach();
 
   elec_skin_ = std::make_shared<ElecSkin>();
-  position_map.emplace(0, PositionSkin::PS_RFLEG); 
-  position_map.emplace(1, PositionSkin::PS_LFLEG); 
-  position_map.emplace(2, PositionSkin::PS_RBLEG); 
-  position_map.emplace(3, PositionSkin::PS_LBLEG); 
+  ParseElecSkin();
+  position_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT}); 
+  position_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
+  position_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
+  position_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
   ins_init_ = true;
   return true;
 }
@@ -327,18 +365,22 @@ void MotionAction::ReadStateEstimatorLcm(
     last_contact[i] = contact[i];
     if (contact[i] == 1) {
       WARN("Leg %d liftdown", i);
-      elec_skin_->PositionContril(
-        position_map[i],
-        PositionColorChangeDirection::PCCD_WTOB,
-        PositionColorStartDirection::PCSD_FRONT,
-        200);
+      for (auto p : position_map[i]) {
+        elec_skin_->PositionContril(
+          p,
+          change_dir_.front(),
+          start_dir_,
+          gradual_duration_);
+      }
     } else {
       WARN("Leg %d liftup", i);
-      elec_skin_->PositionContril(
-        position_map[i],
-        PositionColorChangeDirection::PCCD_BTOW,
-        PositionColorStartDirection::PCSD_FRONT,
-        200);
+      for (auto p : position_map[i]) {
+        elec_skin_->PositionContril(
+          p,
+          change_dir_.back(),
+          start_dir_,
+          gradual_duration_);
+      }
     }
 
   }

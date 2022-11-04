@@ -148,7 +148,7 @@ def main(args=None):
             if not triggered:
                 sleep(0.1)
                 continue
-            motion_id = MotionID.WALK_ADAPTIVELY
+            motion_id = MotionID.WALK_USERTROT
             key = getKey()
             if key in moveBindings.keys():
                 x = moveBindings[key][0]
