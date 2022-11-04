@@ -87,6 +87,21 @@ public:
   std::map<int32_t, MotionIdMap> GetMotionIdMap() {return motion_id_map_;}
   bool SequenceDefImpl(const std::string & toml_data);
   void ShowDebugLog(bool show) {show_ = show;}
+  void ShowDefaultSkin(bool default_color, bool align_contact)
+  {
+    align_contact_ = align_contact;
+    PositionColorChangeDirection dir;
+    dir = default_color ? change_dir_.front() : change_dir_.back();
+    for (auto leg : leg_map) {
+      for (auto p : leg.second) {
+        elec_skin_->PositionContril(
+          p,
+          dir,
+          start_dir_,
+          gradual_duration_);
+      }
+    }
+  }
 
 private:
   void WriteLcm();
@@ -101,6 +116,7 @@ private:
     const state_estimator_lcmt * msg);
   bool ParseMotionIdMap();
   bool ParseElecSkin();
+  void ShowStandElecSkin();
 
 private:
   std::thread control_thread_, response_thread_;
@@ -110,7 +126,7 @@ private:
   std::shared_ptr<lcm::LCM> lcm_recv_subscribe_instance_;
   std::shared_ptr<lcm::LCM> lcm_state_estimator_subscribe_instance_;
   std::shared_ptr<ElecSkinBase> elec_skin_{nullptr};
-  std::unordered_map<uint8_t, std::vector<PositionSkin>> position_map;
+  std::unordered_map<uint8_t, std::vector<PositionSkin>> leg_map;
   std::mutex lcm_write_mutex_;
   std::mutex seq_def_result_mutex_;
   std::condition_variable seq_def_result_cv_;
@@ -126,6 +142,7 @@ private:
   bool lcm_cmd_init_{false}, ins_init_{false};
   bool sequence_recv_result_{false}, sequence_def_result_waiting_{false};
   bool show_{false};
+  bool align_contact_{true};
   LOGGER_MINOR_INSTANCE("MotionAction");
 };  // class MotionAction
 }  // namespace motion

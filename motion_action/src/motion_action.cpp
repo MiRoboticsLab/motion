@@ -339,10 +339,10 @@ bool MotionAction::Init(
 
   elec_skin_ = std::make_shared<ElecSkin>();
   ParseElecSkin();
-  position_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT}); 
-  position_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
-  position_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
-  position_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
+  leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT}); 
+  leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
+  leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
+  leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
   ins_init_ = true;
   return true;
 }
@@ -352,6 +352,9 @@ void MotionAction::ReadStateEstimatorLcm(
   const state_estimator_lcmt * msg)
 {
   if (!ins_init_) {
+    return;
+  }
+  if (!align_contact_) {
     return;
   }
   static auto last_contact = std::vector<uint8_t>(4, 0);
@@ -365,7 +368,7 @@ void MotionAction::ReadStateEstimatorLcm(
     last_contact[i] = contact[i];
     if (contact[i] == 1) {
       WARN("Leg %d liftdown", i);
-      for (auto p : position_map[i]) {
+      for (auto p : leg_map[i]) {
         elec_skin_->PositionContril(
           p,
           change_dir_.front(),
@@ -374,7 +377,7 @@ void MotionAction::ReadStateEstimatorLcm(
       }
     } else {
       WARN("Leg %d liftup", i);
-      for (auto p : position_map[i]) {
+      for (auto p : leg_map[i]) {
         elec_skin_->PositionContril(
           p,
           change_dir_.back(),
