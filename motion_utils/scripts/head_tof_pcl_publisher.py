@@ -157,7 +157,7 @@ class MinimalSubscriber(Node):
         #     points = np.concatenate((points, tmp_points), axis=0)
         points = np.concatenate((left_points, right_points), axis=0)
         pcd = point_cloud(points, "robot")
-        if self.head_pcd_publisher.get_subscription_count > 0:
+        if self.head_pcd_publisher.get_subscription_count() > 0:
             self.head_pcd_publisher.publish(pcd)
         return
 
