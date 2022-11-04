@@ -57,6 +57,11 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr & msg)
     ERROR("Forbidden ServoCmd when estop");
     return;
   }
+  if (!IsModeValid(msg->cmd_source)) {
+    servo_response_msg_.code = code_ptr_->GetKeyCode(system::KeyCode::kFailed);
+    ERROR("Mode error, %d in control when get %d", (int32_t)motion_work_mode_, msg->cmd_source);
+  }
+  SetMode((DecisionStatus)msg->cmd_source);
   handler_ptr_->HandleServoCmd(msg, servo_response_msg_);
 }
 

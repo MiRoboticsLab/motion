@@ -165,14 +165,6 @@ enum class MotionID : int32_t
   kPoseControlRelatively = 212
 };  // enmu calss MotionID
 
-enum class DecisionStatus : uint8_t
-{
-  kIdle = 0,
-  kExecutingApp = 1,
-  kExecutingAudio = 2,
-  kExecutingVis = 3,
-};  // enum class DecisionStatus
-
 enum class HandlerStatus : uint8_t
 {
   kIdle = 0,
