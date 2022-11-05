@@ -35,7 +35,7 @@ StairAlign::StairAlign(rclcpp::Node::SharedPtr node)
     "stop_stair_align",
     std::bind(&StairAlign::HandleStopAlignCallback,
       this, std::placeholders::_1, std::placeholders::_2));
-  servo_cmd_.motion_id = MotionIDMsg::WALK_ADAPTIVELY;
+  servo_cmd_.motion_id = MotionIDMsg::WALK_USERTROT;
   servo_cmd_.step_height = std::vector<float>{0.05, 0.05};
   servo_cmd_.value = 2;
   align_finish_.data = false;
