@@ -64,12 +64,12 @@ post_motion = [0, 3, 12, 21]
 min_exec_time = 8000
 
 # 后空翻， duration必须为0
-# [[motion_ids]]
-# motion_id = 121
-# map  = [17, 1]   
-# pre_motion = []
-# post_motion = [0, 3, 12, 21]
-# min_exec_time = 8000
+[[motion_ids]]
+motion_id = 121
+map  = [17, 1]   
+pre_motion = []
+post_motion = [0, 3, 12, 21]
+min_exec_time = 8000
 
 # 前空翻
 [[motion_ids]]
@@ -184,12 +184,12 @@ post_motion = [0, 12, 7, 3, 21, 11]
 min_exec_time = 1500
 
 # 3D跳跃向上30cm, duration 不需要用户设置，必须为0
-[[motion_ids]]
-motion_id = 136
-map = [16, 6]   
-pre_motion = []
-post_motion = [0, 12, 7, 3, 21, 11]
-min_exec_time = 1500
+# [[motion_ids]]
+# motion_id = 136
+# map = [16, 6]   
+# pre_motion = []
+# post_motion = [0, 12, 7, 3, 21, 11]
+# min_exec_time = 1500
 
 # 跳下台阶, duration 不需要用户设置，必须为0
 [[motion_ids]]
@@ -209,7 +209,7 @@ min_exec_time = 20000
 
 # 舞蹈集合
 [[motion_ids]]
-motion_id = 121
+motion_id = 136
 map = [62, 0]   
 pre_motion = []
 post_motion = [0, 12, 7, 3, 21]
