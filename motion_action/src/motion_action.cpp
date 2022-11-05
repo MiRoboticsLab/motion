@@ -263,6 +263,7 @@ bool MotionAction::ParseElecSkin()
   INFO("Default color: %d", default_color);
   INFO("Start direction: %d", start_direction);
   INFO("Gradual duration: %d", gradual_duration_);
+  INFO("StandGradual duration: %d", stand_gradual_duration_);
   if (default_color == 0) {
     change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
     change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
