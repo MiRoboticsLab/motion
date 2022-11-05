@@ -482,6 +482,9 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
     action_ptr_->ShowDefaultSkin(false, false);
   }
+  if (request->motion_id == MotionIDMsg::RECOVERYSTAND) {
+    action_ptr_->ShowStandElecSkin();
+  }
   ExecuteResultCmd(request, response);
   if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
     action_ptr_->ShowDefaultSkin(true, true);

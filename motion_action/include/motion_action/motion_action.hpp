@@ -102,6 +102,10 @@ public:
       }
     }
   }
+  void ShowStandElecSkin()
+  {
+    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, 500);
+  }
 
 private:
   void WriteLcm();
@@ -116,7 +120,6 @@ private:
     const state_estimator_lcmt * msg);
   bool ParseMotionIdMap();
   bool ParseElecSkin();
-  void ShowStandElecSkin();
 
 private:
   std::thread control_thread_, response_thread_;
