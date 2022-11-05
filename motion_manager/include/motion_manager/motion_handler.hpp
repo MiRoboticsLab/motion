@@ -168,8 +168,8 @@ private:
   {
     auto request = std::make_shared<protocol::srv::AudioTextPlay_Request>();
     if (!enable) {
-      request->is_online = true;
-      request->text = "拜拜";
+      request->is_online = false;
+      request->speech.play_id = 9999;
     } else {
       request->is_online = false;
       request->speech.play_id = 6000;
