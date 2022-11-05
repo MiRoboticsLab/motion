@@ -258,6 +258,8 @@ bool MotionAction::ParseElecSkin()
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "stand_gradual_duration_", stand_gradual_duration_);
+  
   INFO("Default color: %d", default_color);
   INFO("Start direction: %d", start_direction);
   INFO("Gradual duration: %d", gradual_duration_);

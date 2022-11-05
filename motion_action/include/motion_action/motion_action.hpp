@@ -104,7 +104,7 @@ public:
   }
   void ShowStandElecSkin()
   {
-    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, 500);
+    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, stand_gradual_duration_);
   }
 
 private:
@@ -139,6 +139,7 @@ private:
   PositionColorStartDirection start_dir_;
   int32_t last_motion_id_{0};
   int32_t gradual_duration_{0};
+  int32_t stand_gradual_duration_{0};
   uint8_t lcm_publish_duration_;
   int8_t last_res_mode_{0}, last_res_gait_id_{0};
   int8_t life_count_{0};
