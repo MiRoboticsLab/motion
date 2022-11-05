@@ -783,10 +783,18 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
 
+# # 慢速行走
+# [[motion_ids]]
+# motion_id = 303
+# map = [11, 3]  
+# pre_motion = []
+# post_motion = [0, 12, 7, 21, 3, 11, 23]
+# min_exec_time = -1
+
 # 慢速行走
 [[motion_ids]]
 motion_id = 303
-map = [11, 3]  
+map = [11, 25]  
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
@@ -799,10 +807,18 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
 
+# # 快速行走
+# [[motion_ids]]
+# motion_id = 305
+# map = [11, 11]   
+# pre_motion = []
+# post_motion = [0, 12, 7, 21, 3, 11, 23]
+# min_exec_time = -1
+
 # 快速行走
 [[motion_ids]]
 motion_id = 305
-map = [11, 11]   
+map = [11, 9]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
@@ -815,10 +831,18 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
 
+# # 中速行走
+# [[motion_ids]]
+# motion_id = 308
+# map = [11, 9]   
+# pre_motion = []
+# post_motion = [0, 12, 7, 21, 3, 11, 23]
+# min_exec_time = -1
+
 # 中速行走
 [[motion_ids]]
 motion_id = 308
-map = [11, 9]   
+map = [11, 3]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1

@@ -497,9 +497,9 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     Sing(false);
     sing_ = false;
   }
-  if (request->motion_id == MotionIDMsg::BACK_FLIP) {
-    action_ptr_->ShowDefaultSkin(true, true);
-  }
+  // if (request->motion_id == MotionIDMsg::BACK_FLIP) {
+  //   action_ptr_->ShowDefaultSkin(true, true);
+  // }
   ExecuteResultCmd(request, response);
   if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
     action_ptr_->ShowDefaultSkin(true, true);
