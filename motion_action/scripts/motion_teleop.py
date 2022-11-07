@@ -100,18 +100,20 @@ def service_callback(request:SetBool.Request, response:SetBool.Response):
 
 def main(args=None):
     rclpy.init(args=args)
-    end = None
+    end = False
+    motion_id = MotionID.WALK_ADAPTIVELY
     opts = None
     argv = sys.argv[1:]
     try:
-        opts, args = getopt.getopt(argv, "e:")  # 短选项模式
+        opts, args = getopt.getopt(argv, "ei:")  # 短选项模式
     except:
         print("Error")
     if opts != None:
         for opt, arg in opts:
             if opt in ['-e']:
-                end = arg
-
+                end = True
+            if opt in ['-i']:
+                motion_id = int(arg)
     global settings
     global triggered
     # print(auto)
@@ -123,7 +125,6 @@ def main(args=None):
     service = node.create_service(SetBool, 'tracking_command', service_callback)
     status = 0
     count = 0
-    motion_id = 0
     life_count = 0
     speed = .2
     speed_y = .2
@@ -148,7 +149,6 @@ def main(args=None):
             if not triggered:
                 sleep(0.1)
                 continue
-            motion_id = 999
             key = getKey()
             if key in moveBindings.keys():
                 x = moveBindings[key][0]
