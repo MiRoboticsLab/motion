@@ -128,6 +128,13 @@ void MotionHandler::HandleServoCmd(
     ERROR("Busy(Executing ResultCmd) for ServoCmd");
     return;
   }
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsCommandValid(msg, code)) {
+    res.result = false;
+    // res.code = code_ptr_->GetCode(MotionCode::kBusy);
+    res.code = code;
+    return;
+  }
   SetWorkStatus(HandlerStatus::kExecutingServoCmd);
   if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
     if (!AllowServoCmd(msg->motion_id)) {
@@ -426,12 +433,12 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
-  if (!IsCommandValid(request)) {
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsCommandValid(request, code)) {
     // response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
-    response->code = code_ptr_->GetKeyCode(system::KeyCode::kParametersInvalid);
+    response->code = code;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
-    ERROR("ResultCmd(%d) invalid", request->motion_id);
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
@@ -501,12 +508,12 @@ void MotionHandler::HandleSequenceCmd(
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
   auto req = std::make_shared<MotionResultSrv::Request>();
   req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
-  if (!IsCommandValid(req)) {
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsCommandValid(req, code)) {
     // response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
-    response->code = code_ptr_->GetKeyCode(system::KeyCode::kParametersInvalid);
+    response->code = code;
     response->result = false;
     response->describe = "";
-    ERROR("SequenceCmd invalid");
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
@@ -605,10 +612,12 @@ bool MotionHandler::AllowServoCmd(int32_t motion_id)
   return CheckPostMotion(motion_id);
 }
 template<typename CmdRequestT>
-bool MotionHandler::IsCommandValid(const CmdRequestT & request)
+bool MotionHandler::IsCommandValid(const CmdRequestT & request, int32_t & code)
 {
   if (request->motion_id != MotionIDMsg::SEQUENCE_CUSTOM) {
     if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
+      ERROR("Command %d not support", request->motion_id);
+      code = code_ptr_->GetKeyCode(system::KeyCode::kUnSupport);
       return false;
     }
     bool result = true;
@@ -619,6 +628,8 @@ bool MotionHandler::IsCommandValid(const CmdRequestT & request)
       result = request->duration > 0;
     } else {}
     if (!result) {
+      ERROR("Command %d not valid", request->motion_id);
+      code = code_ptr_->GetKeyCode(system::KeyCode::kParametersInvalid);
       return false;
     }
     return true;
