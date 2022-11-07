@@ -74,6 +74,45 @@ bool MotionHandler::Init()
   return true;
 }
 
+template<>
+bool MotionHandler::IsCommandValid(const MotionServoCmdMsg::SharedPtr & request, int32_t & code)
+{
+  if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
+    ERROR("Command %d not support", request->motion_id);
+    code = code_ptr_->GetKeyCode(system::KeyCode::kUnSupport);
+    return false;
+  }
+  return true;
+}
+
+template<typename CmdRequestT>
+bool MotionHandler::IsCommandValid(const CmdRequestT & request, int32_t & code)
+{
+  if (request->motion_id != MotionIDMsg::SEQUENCE_CUSTOM) {
+    if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
+      ERROR("Command %d not support", request->motion_id);
+      code = code_ptr_->GetKeyCode(system::KeyCode::kUnSupport);
+      return false;
+    }
+    bool result = true;
+    auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
+    if (min_exec_time > 0) {
+      result = request->duration == 0;
+    } else if (min_exec_time < 0) {
+      result = request->duration > 0;
+    } else {}
+    if (!result) {
+      ERROR("Command %d not valid", request->motion_id);
+      code = code_ptr_->GetKeyCode(system::KeyCode::kParametersInvalid);
+      return false;
+    }
+    return true;
+  } else {
+    // TODO(Harvey): 判断自定义动作的指令有效
+    return true;
+  }
+}
+
 void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr & msg)
 {
   action_ptr_->Execute(msg);
@@ -610,33 +649,6 @@ bool MotionHandler::AllowServoCmd(int32_t motion_id)
   // TODO(harvey): 判断当前状态是否能够行走
   if (post_motion_checked_) {return true;}
   return CheckPostMotion(motion_id);
-}
-template<typename CmdRequestT>
-bool MotionHandler::IsCommandValid(const CmdRequestT & request, int32_t & code)
-{
-  if (request->motion_id != MotionIDMsg::SEQUENCE_CUSTOM) {
-    if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
-      ERROR("Command %d not support", request->motion_id);
-      code = code_ptr_->GetKeyCode(system::KeyCode::kUnSupport);
-      return false;
-    }
-    bool result = true;
-    auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
-    if (min_exec_time > 0) {
-      result = request->duration == 0;
-    } else if (min_exec_time < 0) {
-      result = request->duration > 0;
-    } else {}
-    if (!result) {
-      ERROR("Command %d not valid", request->motion_id);
-      code = code_ptr_->GetKeyCode(system::KeyCode::kParametersInvalid);
-      return false;
-    }
-    return true;
-  } else {
-    // TODO(Harvey): 判断自定义动作的指令有效
-    return true;
-  }
 }
 
 void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
