@@ -77,6 +77,8 @@ bool MotionManager::Init()
 
   auto local_share_dir = ament_index_cpp::get_package_share_directory("params");
   auto path = local_share_dir + std::string("/toml_config/manager/state_machine_config.toml");
+  heart_beats_ptr_ = std::make_unique<cyberdog::machine::HeartBeatsActuator>("motion_manager");
+  heart_beats_ptr_->HeartBeatRun();
   if (!this->MachineActuatorInit(path, node_ptr_)) {
     ERROR("Init failed, actuator init error.");
     return false;
@@ -104,8 +106,6 @@ bool MotionManager::Init()
   status_map_.emplace(MotionMgrState::kLowPower, "LowPower");
   status_map_.emplace(MotionMgrState::kOTA, "OTA");
   status_map_.emplace(MotionMgrState::kError, "Error");
-  heart_beats_ptr_ = std::make_unique<cyberdog::machine::HeartBeatsActuator>("motion_manager");
-  heart_beats_ptr_->HeartBeatRun();
   return true;
 }
 
