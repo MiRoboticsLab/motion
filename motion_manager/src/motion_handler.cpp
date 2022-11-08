@@ -74,6 +74,45 @@ bool MotionHandler::Init()
   return true;
 }
 
+template<>
+bool MotionHandler::IsCommandValid(const MotionServoCmdMsg::SharedPtr & request, int32_t & code)
+{
+  if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
+    ERROR("Command %d not support", request->motion_id);
+    code = code_ptr_->GetKeyCode(system::KeyCode::kUnSupport);
+    return false;
+  }
+  return true;
+}
+
+template<typename CmdRequestT>
+bool MotionHandler::IsCommandValid(const CmdRequestT & request, int32_t & code)
+{
+  if (request->motion_id != MotionIDMsg::SEQUENCE_CUSTOM) {
+    if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
+      ERROR("Command %d not support", request->motion_id);
+      code = code_ptr_->GetKeyCode(system::KeyCode::kUnSupport);
+      return false;
+    }
+    bool result = true;
+    auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
+    if (min_exec_time > 0) {
+      result = request->duration == 0;
+    } else if (min_exec_time < 0) {
+      result = request->duration > 0;
+    } else {}
+    if (!result) {
+      ERROR("Command %d not valid", request->motion_id);
+      code = code_ptr_->GetKeyCode(system::KeyCode::kParametersInvalid);
+      return false;
+    }
+    return true;
+  } else {
+    // TODO(Harvey): 判断自定义动作的指令有效
+    return true;
+  }
+}
+
 void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr & msg)
 {
   action_ptr_->Execute(msg);
@@ -123,8 +162,16 @@ void MotionHandler::HandleServoCmd(
 {
   if (GetWorkStatus() == HandlerStatus::kExecutingResultCmd) {
     res.result = false;
-    res.code = code_ptr_->GetCode(MotionCode::kBusy);
+    // res.code = code_ptr_->GetCode(MotionCode::kBusy);
+    res.code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
     ERROR("Busy(Executing ResultCmd) for ServoCmd");
+    return;
+  }
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsCommandValid(msg, code)) {
+    res.result = false;
+    // res.code = code_ptr_->GetCode(MotionCode::kBusy);
+    res.code = code;
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingServoCmd);
@@ -419,16 +466,18 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
 {
   if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
     response->result = false;
-    response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    // response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    response->code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
     ERROR("Busy when Getting ResultCmd(%d)", request->motion_id);
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
-  if (!IsCommandValid(request)) {
-    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsCommandValid(request, code)) {
+    // response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+    response->code = code;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
-    ERROR("ResultCmd(%d) invalid", request->motion_id);
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
@@ -490,18 +539,20 @@ void MotionHandler::HandleSequenceCmd(
 {
   if (GetWorkStatus() != HandlerStatus::kIdle) {
     response->result = false;
-    response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    // response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    response->code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
     ERROR("Busy when Getting SequenceCmd(%d)", MotionIDMsg::SEQUENCE_CUSTOM);
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
   auto req = std::make_shared<MotionResultSrv::Request>();
   req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
-  if (!IsCommandValid(req)) {
-    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsCommandValid(req, code)) {
+    // response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+    response->code = code;
     response->result = false;
     response->describe = "";
-    ERROR("SequenceCmd invalid");
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
@@ -598,29 +649,6 @@ bool MotionHandler::AllowServoCmd(int32_t motion_id)
   // TODO(harvey): 判断当前状态是否能够行走
   if (post_motion_checked_) {return true;}
   return CheckPostMotion(motion_id);
-}
-template<typename CmdRequestT>
-bool MotionHandler::IsCommandValid(const CmdRequestT & request)
-{
-  if (request->motion_id != MotionIDMsg::SEQUENCE_CUSTOM) {
-    if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
-      return false;
-    }
-    bool result = true;
-    auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
-    if (min_exec_time > 0) {
-      result = request->duration == 0;
-    } else if (min_exec_time < 0) {
-      result = request->duration > 0;
-    } else {}
-    if (!result) {
-      return false;
-    }
-    return true;
-  } else {
-    // TODO(Harvey): 判断自定义动作的指令有效
-    return true;
-  }
 }
 
 void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)

@@ -67,6 +67,14 @@ public:
   }
   bool CheckMotionResult(int32_t & code);
   bool CheckMotionResult(int32_t motion_id, int32_t & code);
+  bool SelfCheck()
+  {
+    return action_ptr_->SelfCheck();
+  }
+  void SetState(const MotionMgrState & state)
+  {
+    action_ptr_->SetState(state);
+  }
 
 private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
@@ -80,7 +88,7 @@ private:
   bool CheckPostMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
   template<typename CmdRequestT>
-  bool IsCommandValid(const CmdRequestT & request);
+  bool IsCommandValid(const CmdRequestT & request, int32_t & code);
   bool CheckMotors();
   inline void SetWorkStatus(const HandlerStatus & status)
   {

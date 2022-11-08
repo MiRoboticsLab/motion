@@ -38,25 +38,21 @@ namespace motion
 // 所有的motion相关code都从3000开始，该值为全局架构设计分配
 enum class MotionCode : int32_t
 {
-  kHwLowBattery = 0,
-  kHwMotorOffline = 1,
+  kMotionSwitchEstop = 21,
+  kMotionSwitchBantrans = 22,
+  kMotionSwitchEdamp = 23,
+  kMotionSwitchLifted = 24,
+  kMotionTransitionTimeout = 25,
+  kMotionExecuteTimeout = 26,
+  kMotionExecuteError = 27,
 
-  kComLcmTimeout = 10,
-
-  kMotionSwitchEstop = 20,
-  kMotionSwitchBantrans = 24,
-  kMotionSwitchEdamp = 25,
-  kMotionSwitchLifted = 26,
-  kMotionTransitionTimeout = 21,
-  kMotionExecuteTimeout = 22,
-  kMotionExecuteError = 23,
-
-  kCommandInvalid = 30,
+  // kCommandInvalid = 30,
   kSequenceDefError = 31,
-
+  kHwMotorOffline = 32,
+  kComLcmTimeout = 33,
   kEstop = 40,
   kStuck = 41,
-  kBusy = 42
+  // kBusy = 42
 };  // enum class MotionCode
 
 using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
@@ -164,6 +160,20 @@ enum class MotionID : int32_t
   kPoseControlDefinitively = 211,
   kPoseControlRelatively = 212
 };  // enmu calss MotionID
+
+enum class MotionMgrState : uint8_t
+{
+  kUninit,
+  kSetup,
+  kTearDown,
+  kSelfCheck,
+  kActive,
+  kDeactive,
+  kProtected,
+  kLowPower,
+  kOTA,
+  kError
+};
 
 enum class DecisionStatus : uint8_t
 {

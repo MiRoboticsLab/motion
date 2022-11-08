@@ -18,6 +18,7 @@
 #include <thread>
 #include <string>
 #include <memory>
+#include <unordered_map>
 #include "pluginlib/class_loader.hpp"
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
@@ -28,32 +29,45 @@
 #include "motion_manager/motion_decision.hpp"
 #include "motion_action/motion_action.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
+#include "cyberdog_machine/cyberdog_fs_machine.hpp"
+#include "cyberdog_machine/cyberdog_heartbeats.hpp"
 
 namespace cyberdog
 {
 namespace motion
 {
 
-class MotionManager final : public manager::ManagerBase
+class MotionManager final : public machine::MachineActuator
 {
 public:
   explicit MotionManager(const std::string & name);
   ~MotionManager();
-
-  void Config() override;
-  bool Init() override;
-  void Run() override;
-  bool SelfCheck() override;
-
-public:
-  void OnError() override;
-  void OnLowPower() override;
-  void OnSuspend() override;
-  void OnProtected() override;
-  void OnActive() override;
+  bool Init();
+  void Run();
 
 private:
-  bool IsStateValid();
+  int32_t OnSetUp();
+  int32_t OnTearDown();
+  int32_t OnSelfCheck();
+  int32_t OnActive();
+  int32_t OnDeActive();
+  int32_t OnProtected();
+  int32_t OnLowPower();
+  int32_t OnOTA();
+  int32_t OnError();
+  void SetState(const MotionMgrState & state)
+  {
+    std::unique_lock<std::mutex> lk(status_mutex_);
+    state_ = state;
+    decision_ptr_->SetState(state_);
+  }
+  MotionMgrState &
+  GetState()
+  {
+    std::unique_lock<std::mutex> lk(status_mutex_);
+    return state_;
+  }
+  bool IsStateValid(int32_t & code);
   void MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr msg);
   void MotionResultCmdCallback(
     const MotionResultSrv::Request::SharedPtr request,
@@ -71,8 +85,7 @@ private:
 private:
   std::string name_;
   std::shared_ptr<MotionDecision> decision_ptr_ {nullptr};
-
-private:
+  rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub_;
   rclcpp::Subscription<MotionServoCmdMsg>::SharedPtr motion_servo_sub_ {nullptr};
   rclcpp::Service<MotionResultSrv>::SharedPtr motion_result_srv_ {nullptr};
   rclcpp::Service<MotionCustomSrv>::SharedPtr motion_custom_srv_ {nullptr};
@@ -81,7 +94,11 @@ private:
   rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::CallbackGroup::SharedPtr callback_group_{nullptr};
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
-  std::shared_ptr<MCode> code_ptr_;
+  std::shared_ptr<MCode> code_ptr_{nullptr};
+  std::unique_ptr<cyberdog::machine::HeartBeatsActuator> heart_beats_ptr_{nullptr};
+  MotionMgrState state_{MotionMgrState::kUninit};
+  std::mutex status_mutex_;
+  std::unordered_map<MotionMgrState, std::string> status_map_;
 };  // class MotionManager
 }  // namespace motion
 }  // namespace cyberdog

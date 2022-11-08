@@ -85,6 +85,10 @@ public:
   std::map<int32_t, MotionIdMap> GetMotionIdMap() {return motion_id_map_;}
   bool SequenceDefImpl(const std::string & toml_data);
   void ShowDebugLog(bool show) {show_ = show;}
+  void SetState(const MotionMgrState & state)
+  {
+    state_ = state;
+  }
 
 private:
   void WriteLcm();
@@ -107,6 +111,7 @@ private:
   std::condition_variable seq_def_result_cv_;
   robot_control_cmd_lcmt lcm_cmd_;
   std::map<int32_t, MotionIdMap> motion_id_map_;
+  MotionMgrState state_;
   int32_t last_motion_id_{0};
   uint8_t lcm_publish_duration_;
   int8_t last_res_mode_{0}, last_res_gait_id_{0};
@@ -114,6 +119,7 @@ private:
   bool lcm_cmd_init_{false}, ins_init_{false};
   bool sequence_recv_result_{false}, sequence_def_result_waiting_{false};
   bool show_{false};
+  bool lcm_ready_{false};
   LOGGER_MINOR_INSTANCE("MotionAction");
 };  // class MotionAction
 }  // namespace motion
