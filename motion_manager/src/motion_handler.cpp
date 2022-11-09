@@ -365,6 +365,20 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
       ERROR("Motion switch LIFTED");
       return;
 
+    case MotionStatusMsg::OVER_HEAT:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchOverHeat);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch OVER_HEAT");
+      return;
+
+    case MotionStatusMsg::LOW_BAT:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchLowBat);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch LOW_BAT");
+      return;
+
     case MotionStatusMsg::TRANSITIONING:
       is_transitioning_wait_ = true;
       WARN("Transitioning waiting");
