@@ -52,6 +52,9 @@ bool MotionHandler::Init()
       this->action_ptr_->ShowDebugLog(request->data);
     }
   );
+  audio_play_ = node_ptr_->create_client<protocol::srv::AudioTextPlay>(
+    "speech_text_play",
+    rmw_qos_profile_services_default);
   servo_check_click_ = std::make_shared<ServoClick>();
   servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
   servo_data_check_thread_.detach();
@@ -196,6 +199,10 @@ void MotionHandler::HandleServoCmd(
     exec_servo_pre_motion_failed_ = false;
     last_servo_cmd_ = msg;
     action_ptr_->Execute(msg);
+    if (!sing_) {
+      Sing(true);
+      sing_ = true;
+    }
     TickServoCmd();
     SetServoNeedCheck(true);
   } else {
@@ -542,7 +549,24 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       return;
     }
   }
+  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    action_ptr_->ShowDefaultSkin(false, false);
+  }
+  if (request->motion_id == MotionIDMsg::RECOVERYSTAND) {
+    action_ptr_->ShowStandElecSkin();
+  }
+  if (request->motion_id == MotionIDMsg::GETDOWN) {
+    action_ptr_->ShowDefaultSkin(true, true);
+    Sing(false);
+    sing_ = false;
+  }
+  // if (request->motion_id == MotionIDMsg::BACK_FLIP) {
+  //   action_ptr_->ShowDefaultSkin(true, true);
+  // }
   ExecuteResultCmd(request, response);
+  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    action_ptr_->ShowDefaultSkin(true, true);
+  }
   CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
 }

@@ -30,11 +30,13 @@
 #include "protocol/msg/motion_servo_response.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
+#include "protocol/lcm/state_estimator_lcmt.hpp"
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "cyberdog_common/cyberdog_toml.hpp"
 #include "motion_action/motion_macros.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "ament_index_cpp/get_package_prefix.hpp"
+#include "elec_skin/elec_skin_base.hpp"
 
 namespace cyberdog
 {
@@ -85,6 +87,25 @@ public:
   std::map<int32_t, MotionIdMap> GetMotionIdMap() {return motion_id_map_;}
   bool SequenceDefImpl(const std::string & toml_data);
   void ShowDebugLog(bool show) {show_ = show;}
+  void ShowDefaultSkin(bool default_color, bool align_contact)
+  {
+    align_contact_ = align_contact;
+    PositionColorChangeDirection dir;
+    dir = default_color ? change_dir_.front() : change_dir_.back();
+    for (auto leg : leg_map) {
+      for (auto p : leg.second) {
+        elec_skin_->PositionContril(
+          p,
+          dir,
+          start_dir_,
+          gradual_duration_);
+      }
+    }
+  }
+  void ShowStandElecSkin()
+  {
+    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, stand_gradual_duration_);
+  }
   void SetState(const MotionMgrState & state)
   {
     state_ = state;
@@ -98,7 +119,11 @@ private:
   void ReadSeqDefResultLcm(
     const lcm::ReceiveBuffer *, const std::string &,
     const file_recv_lcmt * msg);
+  void ReadStateEstimatorLcm(
+    const lcm::ReceiveBuffer *, const std::string &,
+    const state_estimator_lcmt * msg);
   bool ParseMotionIdMap();
+  bool ParseElecSkin();
 
 private:
   std::thread control_thread_, response_thread_;
@@ -106,19 +131,27 @@ private:
   std::function<void(const robot_control_cmd_lcmt &)> toml_log_func_;
   std::shared_ptr<lcm::LCM> lcm_publish_instance_, lcm_subscribe_instance_;
   std::shared_ptr<lcm::LCM> lcm_recv_subscribe_instance_;
+  std::shared_ptr<lcm::LCM> lcm_state_estimator_subscribe_instance_;
+  std::shared_ptr<ElecSkinBase> elec_skin_{nullptr};
+  std::unordered_map<uint8_t, std::vector<PositionSkin>> leg_map;
   std::mutex lcm_write_mutex_;
   std::mutex seq_def_result_mutex_;
   std::condition_variable seq_def_result_cv_;
   robot_control_cmd_lcmt lcm_cmd_;
   std::map<int32_t, MotionIdMap> motion_id_map_;
+  std::vector<PositionColorChangeDirection> change_dir_;
+  PositionColorStartDirection start_dir_;
   MotionMgrState state_;
   int32_t last_motion_id_{0};
+  int32_t gradual_duration_{0};
+  int32_t stand_gradual_duration_{0};
   uint8_t lcm_publish_duration_;
   int8_t last_res_mode_{0}, last_res_gait_id_{0};
   int8_t life_count_{0};
   bool lcm_cmd_init_{false}, ins_init_{false};
   bool sequence_recv_result_{false}, sequence_def_result_waiting_{false};
   bool show_{false};
+  bool align_contact_{true};
   bool lcm_ready_{false};
   LOGGER_MINOR_INSTANCE("MotionAction");
 };  // class MotionAction

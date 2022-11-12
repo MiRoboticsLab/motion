@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include "motion_action/motion_action.hpp"
+#include "elec_skin/elec_skin.hpp"
 #include <string>
 #include <memory>
 #include <map>
@@ -238,6 +239,46 @@ bool MotionAction::ParseMotionIdMap()
   return true;
 }
 
+bool MotionAction::ParseElecSkin()
+{
+  std::string elec_skin_config = ament_index_cpp::get_package_share_directory("motion_action") +
+    "/preset/" + "elec_skin.toml";
+  toml::value elec_skin_value;
+  if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin_config, elec_skin_value)) {
+    FATAL("Cannot parse %s", elec_skin_config.c_str());
+    return false;
+  }
+  // if (!motion_ids.is_table()) {
+  //   FATAL("Toml format error");
+  //   exit(-1);
+  // }
+  // toml::value values;
+  int8_t default_color = 0;
+  int8_t start_direction = 0;
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "stand_gradual_duration_", stand_gradual_duration_);
+  
+  INFO("Default color: %d", default_color);
+  INFO("Start direction: %d", start_direction);
+  INFO("Gradual duration: %d", gradual_duration_);
+  INFO("StandGradual duration: %d", stand_gradual_duration_);
+  if (default_color == 0) {
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
+  } else {
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
+  }
+  if (start_direction == 0) {
+    start_dir_ = PositionColorStartDirection::PCSD_FRONT;
+  } else {
+    start_dir_ = PositionColorStartDirection::PCSD_BACK;
+  }
+  return true;
+}
+
 bool MotionAction::Init(
   const std::string & publish_url, const std::string & subscribe_url)
 {
@@ -292,9 +333,74 @@ bool MotionAction::Init(
         while (0 == this->lcm_recv_subscribe_instance_->handle()) {}
       }
     }}.detach();
+
+  lcm_state_estimator_subscribe_instance_ = std::make_shared<lcm::LCM>("udpm://239.255.76.67:7669?ttl=255");
+  if (!lcm_state_estimator_subscribe_instance_->good()) {
+    ERROR("MotionAction read robot state lcm initialized error");
+    return false;
+  }
+  lcm_state_estimator_subscribe_instance_->subscribe(
+    "state_estimator",
+    &MotionAction::ReadStateEstimatorLcm, this);
+  std::thread{[this]() {
+      while (rclcpp::ok()) {
+        while (0 == this->lcm_state_estimator_subscribe_instance_->handle()) {}
+      }
+    }}.detach();
+
+  elec_skin_ = std::make_shared<ElecSkin>();
+  ParseElecSkin();
+  leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT}); 
+  leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
+  leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
+  leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
   ins_init_ = true;
   return true;
 }
+
+void MotionAction::ReadStateEstimatorLcm(
+  const lcm::ReceiveBuffer *, const std::string &,
+  const state_estimator_lcmt * msg)
+{
+  if (!ins_init_) {
+    return;
+  }
+  if (!align_contact_) {
+    return;
+  }
+  static auto last_contact = std::vector<uint8_t>(4, 0);
+  auto contact = std::vector<uint8_t>(4, 0);
+  // INFO("%f, %f, %f, %f", msg->contactEstimate[0],msg->contactEstimate[1],msg->contactEstimate[2],msg->contactEstimate[3]);
+  for(uint8_t i = 0; i < 4; ++i) {
+    contact[i] = msg->contactEstimate[i] > 0 ? 1 : 0;
+    if (contact[i] == last_contact[i]) {
+      continue;
+    }
+    last_contact[i] = contact[i];
+    if (contact[i] == 1) {
+      WARN("Leg %d liftdown", i);
+      for (auto p : leg_map[i]) {
+        elec_skin_->PositionContril(
+          p,
+          change_dir_.front(),
+          start_dir_,
+          gradual_duration_);
+      }
+    } else {
+      WARN("Leg %d liftup", i);
+      for (auto p : leg_map[i]) {
+        elec_skin_->PositionContril(
+          p,
+          change_dir_.back(),
+          start_dir_,
+          gradual_duration_);
+      }
+    }
+
+  }
+  // INFO("%d, %d, %d, %d", contact[0], contact[1], contact[2], contact[3]);
+}
+
 
 bool MotionAction::SelfCheck()
 {

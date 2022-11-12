@@ -30,6 +30,8 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
+#include "protocol/srv/audio_text_play.hpp"
+#include "protocol/msg/audio_play.hpp"
 
 namespace cyberdog
 {
@@ -170,10 +172,24 @@ private:
     toml_.close();
   }
 
+  inline void Sing(bool enable)
+  {
+    auto request = std::make_shared<protocol::srv::AudioTextPlay_Request>();
+    if (!enable) {
+      request->is_online = false;
+      request->speech.play_id = 9999;
+    } else {
+      request->is_online = false;
+      request->speech.play_id = 6000;
+    }
+    audio_play_->async_send_request(request);
+  }
+
   /* ros members */
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub_ {nullptr};
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr ad_srv_{nullptr};
+  rclcpp::Client<protocol::srv::AudioTextPlay>::SharedPtr audio_play_{nullptr};
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
   std::thread servo_response_thread_;
@@ -207,6 +223,7 @@ private:
   bool premotion_executing_ {false};
   bool post_motion_checked_ {false};
   bool exec_servo_pre_motion_failed_ {false};
+  bool sing_{false};
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog
