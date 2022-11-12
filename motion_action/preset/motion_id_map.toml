@@ -786,7 +786,7 @@ min_exec_time = -1
 # 慢速行走
 [[motion_ids]]
 motion_id = 303
-map = [11, 24]  
+map = [11, 3]  
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
@@ -826,7 +826,7 @@ min_exec_time = -1
 # 跟随专用自变频步态
 [[motion_ids]]
 motion_id = 309
-map = [11, 24]   
+map = [11, 3]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
@@ -834,7 +834,7 @@ min_exec_time = -1
 # 跟随专用定频步态
 [[motion_ids]]
 motion_id = 310
-map = [11, 3]  
+map = [11, 24]  
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 11, 23]
 min_exec_time = -1
