@@ -200,7 +200,7 @@ void MotionHandler::HandleServoCmd(
     last_servo_cmd_ = msg;
     action_ptr_->Execute(msg);
     if (!sing_) {
-      Sing(true);
+      // Sing(true);
       sing_ = true;
     }
     TickServoCmd();
@@ -557,7 +557,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   }
   if (request->motion_id == MotionIDMsg::GETDOWN) {
     action_ptr_->ShowDefaultSkin(true, true);
-    Sing(false);
+    // Sing(false);
     sing_ = false;
   }
   // if (request->motion_id == MotionIDMsg::BACK_FLIP) {
