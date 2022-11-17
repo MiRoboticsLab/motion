@@ -721,7 +721,7 @@ bool MotionHandler::CheckMotors()
   int motor = 0;
   for (auto motor_error : motion_status_ptr_->motor_error) {
     int pos = 0;
-    while (pos <= 17) {
+    while (pos <= 29) {
       if (motor_error & (1 << pos)) {
         ERROR("Motor %d : %d", motor, pos);
         ret = false;
