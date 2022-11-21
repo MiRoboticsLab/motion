@@ -23,6 +23,7 @@
 #include "protocol/msg/motion_servo_cmd.hpp"
 #include "protocol/msg/motion_servo_response.hpp"
 #include "protocol/srv/motion_result_cmd.hpp"
+#include "protocol/srv/audio_text_play.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
 #include "manager_base/manager_base.hpp"
@@ -67,7 +68,15 @@ private:
     std::unique_lock<std::mutex> lk(status_mutex_);
     return state_;
   }
-  bool IsStateValid(int32_t & code);
+  /**
+   * @brief
+   *
+   * @param code
+   * @param protected_cmd 除行走、站立、趴下、急停以外的所有动作
+   * @return true
+   * @return false
+   */
+  bool IsStateValid(int32_t & code, bool protected_cmd = true);
   void MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr msg);
   void MotionResultCmdCallback(
     const MotionResultSrv::Request::SharedPtr request,
@@ -81,6 +90,27 @@ private:
   void MotionSequenceCmdCallback(
     const MotionSequenceSrv::Request::SharedPtr request,
     MotionSequenceSrv::Response::SharedPtr response);
+  void OnlineAudioPlay(const std::string & text)
+  {
+    static bool playing = false;
+    if (playing) {
+      return;
+    }
+    auto request = std::make_shared<protocol::srv::AudioTextPlay::Request>();
+    request->is_online = true;
+    request->module_name = "Motion";
+    request->text = text;
+    playing = true;
+    auto callback = [](rclcpp::Client<protocol::srv::AudioTextPlay>::SharedFuture future) {
+        playing = false;
+        INFO("Audio play result: %s", future.get()->status == 0 ? "success" : "failed");
+      };
+    auto future = audio_client_->async_send_request(request, callback);
+    if (future.wait_for(std::chrono::milliseconds(2000)) == std::future_status::timeout) {
+      playing = false;
+      ERROR("Cannot get response from AudioPlay");
+    }
+  }
 
 private:
   std::string name_;
@@ -91,6 +121,7 @@ private:
   rclcpp::Service<MotionCustomSrv>::SharedPtr motion_custom_srv_ {nullptr};
   rclcpp::Service<MotionQueueCustomSrv>::SharedPtr motion_queue_srv_ {nullptr};
   rclcpp::Service<MotionSequenceSrv>::SharedPtr motion_sequence_srv_ {nullptr};
+  rclcpp::Client<protocol::srv::AudioTextPlay>::SharedPtr audio_client_{nullptr};
   rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::CallbackGroup::SharedPtr callback_group_{nullptr};
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
