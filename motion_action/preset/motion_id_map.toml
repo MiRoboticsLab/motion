@@ -707,21 +707,21 @@ min_exec_time = 15000
 # 2 特殊的力控和位控指令
 ###################################################################
 
-# 绝对量力控姿态,保证崎岖地面能够站立，绝对量力控，运控内部限制了站立的速度，duration必须为0
+# 绝对量力控姿态,保证崎岖地面能够站立，绝对量力控，运控内部限制了站立的速度，duration >= 0
 [[motion_ids]]
 motion_id = 201
 map = [3, 0]    
 pre_motion = []
 post_motion = [0, 7, 12, 11, 21, 3]
-min_exec_time = 5000
+min_exec_time = 0
 
-# 增量力控姿态,保证崎岖地面能够站立，增量力控, duration控制站立速度，duration必须大于0
+# 增量力控姿态,保证崎岖地面能够站立，增量力控, duration控制站立速度，duration >= 0
 [[motion_ids]]
 motion_id = 202
 map = [3, 3]    
 pre_motion = []
 post_motion = [0, 7, 12, 11, 21, 3]
-min_exec_time = -1
+min_exec_time = 0
 
 # 运控插值的增量力控姿态, 不开放，仅注册步态用
 [[motion_ids]]
