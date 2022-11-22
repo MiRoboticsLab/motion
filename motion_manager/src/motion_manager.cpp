@@ -74,7 +74,10 @@ bool MotionManager::Init()
     std::bind(
       &MotionManager::MotionSequenceCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
-
+  audio_client_ = node_ptr_->create_client<protocol::srv::AudioTextPlay>(
+    "speech_text_play",
+    rmw_qos_profile_services_default,
+    callback_group_);
   auto local_share_dir = ament_index_cpp::get_package_share_directory("params");
   auto path = local_share_dir + std::string("/toml_config/manager/state_machine_config.toml");
   heart_beats_ptr_ = std::make_unique<cyberdog::machine::HeartBeatsActuator>("motion_manager");
@@ -118,17 +121,20 @@ void MotionManager::Run()
   rclcpp::shutdown();
 }
 
-bool MotionManager::IsStateValid(int32_t & code)
+bool MotionManager::IsStateValid(int32_t & code, bool protected_cmd)
 {
   auto state = GetState();
-  if (state == MotionMgrState::kActive) {
+  if (state == MotionMgrState::kActive ||
+    (state == MotionMgrState::kProtected && !protected_cmd))
+  {
     code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
     return true;
-  } else if (state == MotionMgrState::kProtected) {
-    code = code_ptr_->GetKeyCode(system::KeyCode::kProtectedError);
-  } else {
-    code = code_ptr_->GetKeyCode(system::KeyCode::kStateInvalid);
   }
+  if (state == MotionMgrState::kProtected) {
+    code = code_ptr_->GetKeyCode(system::KeyCode::kProtectedError);
+    return false;
+  }
+  code = code_ptr_->GetKeyCode(system::KeyCode::kStateInvalid);
   return false;
 }
 
@@ -184,6 +190,10 @@ int32_t MotionManager::OnLowPower()
 {
   INFO("Get fsm: LowPower");
   SetState(MotionMgrState::kLowPower);
+  while (!TryGetDownOnLowPower() && rclcpp::ok()) {
+    INFO("Target Busy when GetDown on LowPower, Will retry");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
   return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
@@ -205,7 +215,7 @@ void MotionManager::MotionServoCmdCallback(const MotionServoCmdMsg::SharedPtr ms
 {
   INFO("Receive ServoCmd from %d with motion_id: %d", msg->cmd_source, msg->motion_id);
   int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
-  if (!IsStateValid(code)) {
+  if (!IsStateValid(code, false)) {
     ERROR("FSM invalid with current state: %s", status_map_.at(state_).c_str());
     static auto servo_response_msg = std::make_shared<MotionServoResponseMsg>();
     servo_response_msg->result = false;
@@ -221,8 +231,15 @@ void MotionManager::MotionResultCmdCallback(
 {
   INFO("Receive ResultCmd from %d with motion_id: %d", request->cmd_source, request->motion_id);
   int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
-  if (!IsStateValid(code)) {
+  bool protected_cmd =
+    (request->motion_id != MotionIDMsg::RECOVERYSTAND &&
+    request->motion_id != MotionIDMsg::GETDOWN &&
+    request->motion_id != MotionIDMsg::ESTOP);
+  if (!IsStateValid(code, protected_cmd)) {
     ERROR("FSM invalid with current state: %s", status_map_.at(state_).c_str());
+    if (code == code_ptr_->GetKeyCode(system::KeyCode::kProtectedError)) {
+      OnlineAudioPlay("电量低，请充电后尝试");
+    }
     response->result = false;
     response->code = code;
     return;

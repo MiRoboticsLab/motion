@@ -27,7 +27,7 @@ min_exec_time = 5000
 motion_id = 111
 map  = [12, 0]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 62, 5, 64, 16]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 62, 5, 64, 16, 17, 23, 9]
 min_exec_time = 5000
 
 # 行走后站立， duration必须为0
@@ -35,7 +35,7 @@ min_exec_time = 5000
 motion_id = 112
 map  = [11, 1]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 5000
 
 # 行走后站立， duration必须为0，与上区别见动作清单文档
@@ -44,7 +44,7 @@ min_exec_time = 5000
 motion_id = 113
 map  = [11, 31]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 5000
 
 # 提起后的过渡，该指令只是为了注册步态，无需向运控下发
@@ -52,7 +52,7 @@ min_exec_time = 5000
 motion_id = 114
 map  = [9, 0]   
 pre_motion = []
-post_motion = [0, 12, 3, 11]
+post_motion = [0, 12, 7, 3, 11]
 min_exec_time = 0
 
 # 空翻Stand, 用于触发空翻动作切换
@@ -60,7 +60,7 @@ min_exec_time = 0
 motion_id = 120
 map  = [17, 0]   
 pre_motion = []
-post_motion = [0, 3, 12, 21]
+post_motion = [0, 7, 12, 21]
 min_exec_time = 8000
 
 # 后空翻， duration必须为0
@@ -68,7 +68,7 @@ min_exec_time = 8000
 motion_id = 121
 map  = [17, 1]   
 pre_motion = []
-post_motion = [0, 3, 12, 21]
+post_motion = [0, 7, 12, 21]
 min_exec_time = 8000
 
 # 前空翻
@@ -76,7 +76,7 @@ min_exec_time = 8000
 motion_id = 122
 map  = [17, 2]   
 pre_motion = []
-post_motion = [0, 3, 12, 21]
+post_motion = [0, 7, 12, 21]
 min_exec_time = 8000
 
 # 作揖， duration必须为0
@@ -92,7 +92,7 @@ min_exec_time = 10000
 motion_id = 124
 map  = [12, 17]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 62, 5, 64, 16]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 62, 5, 64, 16, 17, 23, 9]
 min_exec_time = 20000
 
 # 遛狗, duration 不需要用户设置，必须为0
@@ -100,7 +100,7 @@ min_exec_time = 20000
 motion_id = 125
 map = [11, 4]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23] 
 min_exec_time = 1000
 
 # 跳上台阶, duration 不需要用户设置，必须为0
@@ -116,7 +116,7 @@ min_exec_time = 5000
 motion_id = 127
 map  = [17, 4]   
 pre_motion = []
-post_motion = [0, 3, 12, 21]
+post_motion = [0, 7, 12, 21]
 min_exec_time = 8000
 
 # 左侧空翻
@@ -124,7 +124,7 @@ min_exec_time = 8000
 motion_id = 128
 map  = [17, 5]   
 pre_motion = []
-post_motion = [0, 3, 12, 21]
+post_motion = [0, 7, 12, 21]
 min_exec_time = 8000
 
 # 跑跳前空翻
@@ -132,7 +132,7 @@ min_exec_time = 8000
 motion_id = 129
 map  = [17, 6]   
 pre_motion = []
-post_motion = [0, 3, 12, 21]
+post_motion = [0, 7, 12, 21]
 min_exec_time = 8000
 
 # 3D跳跃左转90度, duration 不需要用户设置，必须为0
@@ -140,7 +140,7 @@ min_exec_time = 8000
 motion_id = 130
 map = [16, 0]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21, 11]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 1500
 
 # 3D跳跃右转90度, duration 不需要用户设置，必须为0
@@ -148,7 +148,7 @@ min_exec_time = 1500
 motion_id = 131
 map = [16, 3]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21, 11]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 1500
 
 # 3D跳跃前跳60cm, duration 不需要用户设置，必须为0
@@ -156,7 +156,7 @@ min_exec_time = 1500
 motion_id = 132
 map = [16, 1]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21, 11]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 1500
 
 # 3D跳跃前跳30cm, duration 不需要用户设置，必须为0
@@ -164,7 +164,7 @@ min_exec_time = 1500
 motion_id = 133
 map = [16, 4]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21, 11]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 1500
 
 # 3D跳跃左跳20cm, duration 不需要用户设置，必须为0
@@ -172,7 +172,7 @@ min_exec_time = 1500
 motion_id = 134
 map = [16, 2]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21, 11]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 1500
 
 # 3D跳跃右跳20cm, duration 不需要用户设置，必须为0
@@ -180,7 +180,7 @@ min_exec_time = 1500
 motion_id = 135
 map = [16, 5]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21, 11]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 1500
 
 # 3D跳跃向上30cm, duration 不需要用户设置，必须为0
@@ -188,7 +188,7 @@ min_exec_time = 1500
 motion_id = 136
 map = [16, 6]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21, 11]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 1500
 
 # 跳下台阶, duration 不需要用户设置，必须为0
@@ -196,7 +196,7 @@ min_exec_time = 1500
 motion_id = 137
 map = [16, 9]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21, 11]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 5000
 
 # 向右侧躺下后恢复站立， duration必须为0
@@ -204,7 +204,7 @@ min_exec_time = 5000
 motion_id = 138
 map  = [12, 18]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 62, 5, 64, 16]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 62, 5, 64, 16, 17, 23, 9]
 min_exec_time = 20000
 
 # 舞蹈集合
@@ -212,15 +212,15 @@ min_exec_time = 20000
 motion_id = 140
 map = [62, 0]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
-min_exec_time = 15000
+post_motion = [0, 12, 7, 21]
+min_exec_time = 30000
 
 # 握左手
 [[motion_ids]]
 motion_id = 141
 map = [62, 1]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 握右手
@@ -228,7 +228,7 @@ min_exec_time = 15000
 motion_id = 142
 map = [62, 2]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 坐下
@@ -236,7 +236,7 @@ min_exec_time = 15000
 motion_id = 143
 map = [62, 3]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 屁股画圆
@@ -244,7 +244,7 @@ min_exec_time = 15000
 motion_id = 144
 map = [62, 4]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 头画圆
@@ -252,15 +252,15 @@ min_exec_time = 15000
 motion_id = 145
 map = [62, 5]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 预留6206
+# 伸展身体
 [[motion_ids]]
 motion_id = 146
 map = [62, 6]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 预留6207
@@ -268,7 +268,7 @@ min_exec_time = 15000
 motion_id = 147
 map = [62, 7]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 预留6208
@@ -276,7 +276,7 @@ min_exec_time = 15000
 motion_id = 148
 map = [62, 8]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 预留6209
@@ -284,7 +284,7 @@ min_exec_time = 15000
 motion_id = 149
 map = [62, 9]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 预留6210
@@ -292,7 +292,7 @@ min_exec_time = 15000
 motion_id = 150
 map = [62, 10]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 芭蕾舞
@@ -300,15 +300,15 @@ min_exec_time = 15000
 motion_id = 151
 map = [62, 11]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
-min_exec_time = 15000
+post_motion = [0, 12, 7, 21]
+min_exec_time = 30000
 
 # 太空步
 [[motion_ids]]
 motion_id = 152
 map = [62, 12]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 前腿起开合跳
@@ -316,7 +316,7 @@ min_exec_time = 15000
 motion_id = 153
 map = [62, 13]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 后退开合跳
@@ -324,7 +324,7 @@ min_exec_time = 15000
 motion_id = 154
 map = [62, 14]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 左腿抬起并点头
@@ -332,7 +332,7 @@ min_exec_time = 15000
 motion_id = 155
 map = [62, 15]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 右腿抬起并点头
@@ -340,7 +340,7 @@ min_exec_time = 15000
 motion_id = 156
 map = [62, 16]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 左前后右岔开腿
@@ -348,7 +348,7 @@ min_exec_time = 15000
 motion_id = 157
 map = [62, 17]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 右前左后岔开腿
@@ -356,7 +356,7 @@ min_exec_time = 15000
 motion_id = 158
 map = [62, 18]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 走路点头
@@ -364,7 +364,7 @@ min_exec_time = 15000
 motion_id = 159
 map = [62, 19]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 岔开内收交替走路
@@ -372,7 +372,7 @@ min_exec_time = 15000
 motion_id = 160
 map = [62, 20]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 原地踏步点头
@@ -380,7 +380,7 @@ min_exec_time = 15000
 motion_id = 161
 map = [62, 21]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 前腿前后跳
@@ -388,7 +388,7 @@ min_exec_time = 15000
 motion_id = 162
 map = [62, 22]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 后腿前后跳
@@ -396,7 +396,7 @@ min_exec_time = 15000
 motion_id = 163
 map = [62, 23]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 前腿交替抬起
@@ -404,7 +404,7 @@ min_exec_time = 15000
 motion_id = 164
 map = [62, 24]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 后腿交替抬起
@@ -412,7 +412,7 @@ min_exec_time = 15000
 motion_id = 165
 map = [62, 25]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 跳跃合集
@@ -420,15 +420,15 @@ min_exec_time = 15000
 motion_id = 166
 map = [62, 26]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 前后摆腿踏步
+# 左右伸腿踏步
 [[motion_ids]]
 motion_id = 167
 map = [62, 27]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 前后摆腿跳跃
@@ -436,31 +436,31 @@ min_exec_time = 15000
 motion_id = 168
 map = [62, 28]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 左后摆腿踏步
+# 左右摆腿踏步
 [[motion_ids]]
 motion_id = 169
 map = [62, 29]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 预留6230
+# 右腿前后踏步
 [[motion_ids]]
 motion_id = 170
 map = [62, 30]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 预留6231
+# 左腿前后踏步
 [[motion_ids]]
 motion_id = 171
 map = [62, 31]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 预留6232
@@ -468,7 +468,7 @@ min_exec_time = 15000
 motion_id = 172
 map = [62, 32]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 预留6233
@@ -476,7 +476,7 @@ min_exec_time = 15000
 motion_id = 173
 map = [62, 33]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 预留6234
@@ -484,7 +484,7 @@ min_exec_time = 15000
 motion_id = 174
 map = [62, 34]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 作揖比心
@@ -492,7 +492,7 @@ min_exec_time = 15000
 motion_id = 175
 map = [64, 1]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 16]
 min_exec_time = 15000
 
 # 作揖预留6402
@@ -500,7 +500,7 @@ min_exec_time = 15000
 motion_id = 176
 map = [64, 2]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 16]
 min_exec_time = 15000
 
 # 作揖预留6403
@@ -508,7 +508,7 @@ min_exec_time = 15000
 motion_id = 177
 map = [62, 3]   
 pre_motion = []
-post_motion = [0, 12, 7, 3, 21]
+post_motion = [0, 12, 7, 16]
 min_exec_time = 15000
 
 # 预留2400
@@ -548,7 +548,7 @@ min_exec_time = 15000
 motion_id = 115
 map = [11, 80]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义1
@@ -556,7 +556,7 @@ min_exec_time = 15000
 motion_id = 116
 map = [11, 81]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义2
@@ -564,7 +564,7 @@ min_exec_time = 15000
 motion_id = 182
 map = [11, 82]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义3
@@ -572,7 +572,7 @@ min_exec_time = 15000
 motion_id = 183
 map = [11, 83]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义4
@@ -580,7 +580,7 @@ min_exec_time = 15000
 motion_id = 184
 map = [11, 84]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义5
@@ -588,7 +588,7 @@ min_exec_time = 15000
 motion_id = 185
 map = [11, 85]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义6
@@ -596,7 +596,7 @@ min_exec_time = 15000
 motion_id = 186
 map = [11, 86]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义7
@@ -604,7 +604,7 @@ min_exec_time = 15000
 motion_id = 187
 map = [11, 87]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义8
@@ -612,7 +612,7 @@ min_exec_time = 15000
 motion_id = 188
 map = [11, 88]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义9
@@ -620,7 +620,7 @@ min_exec_time = 15000
 motion_id = 189
 map = [11, 89]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义10
@@ -628,7 +628,7 @@ min_exec_time = 15000
 motion_id = 190
 map = [11, 90]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义11
@@ -636,7 +636,7 @@ min_exec_time = 15000
 motion_id = 191
 map = [11, 91]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义12
@@ -644,7 +644,7 @@ min_exec_time = 15000
 motion_id = 192
 map = [11, 92]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义13
@@ -652,7 +652,7 @@ min_exec_time = 15000
 motion_id = 193
 map = [11, 93]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义14
@@ -660,7 +660,7 @@ min_exec_time = 15000
 motion_id = 194
 map = [11, 94]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义15
@@ -668,7 +668,7 @@ min_exec_time = 15000
 motion_id = 195
 map = [11, 95]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义16
@@ -676,7 +676,7 @@ min_exec_time = 15000
 motion_id = 196
 map = [11, 96]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义17
@@ -684,7 +684,7 @@ min_exec_time = 15000
 motion_id = 197
 map = [11, 97]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义18
@@ -692,7 +692,7 @@ min_exec_time = 15000
 motion_id = 198
 map = [11, 98]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 # 预制自定义19
@@ -700,35 +700,35 @@ min_exec_time = 15000
 motion_id = 199
 map = [11, 99]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 15000
 
 ###################################################################
 # 2 特殊的力控和位控指令
 ###################################################################
 
-# 绝对量力控姿态,保证崎岖地面能够站立，绝对量力控，运控内部限制了站立的速度，duration必须为0
+# 绝对量力控姿态,保证崎岖地面能够站立，绝对量力控，运控内部限制了站立的速度，duration >= 0
 [[motion_ids]]
 motion_id = 201
 map = [3, 0]    
 pre_motion = []
-post_motion = [0, 62, 7, 5, 12, 11, 21, 3]
-min_exec_time = 5000
+post_motion = [0, 7, 12, 11, 21, 3]
+min_exec_time = 0
 
-# 增量力控姿态,保证崎岖地面能够站立，增量力控, duration控制站立速度，duration必须大于0
+# 增量力控姿态,保证崎岖地面能够站立，增量力控, duration控制站立速度，duration >= 0
 [[motion_ids]]
 motion_id = 202
 map = [3, 3]    
 pre_motion = []
-post_motion = [0, 12, 7, 2, 11, 16, 3]
-min_exec_time = -1
+post_motion = [0, 7, 12, 11, 21, 3]
+min_exec_time = 0
 
 # 运控插值的增量力控姿态, 不开放，仅注册步态用
 [[motion_ids]]
 motion_id = 203
 map = [3, 1]    
 pre_motion = []
-post_motion = [0, 12, 7, 2, 11, 16, 3]
+post_motion = [0, 7, 12, 11, 21, 3]
 min_exec_time = -1
 
 # 位控姿态-绝对姿态，需要给定姿态，duration控制站立的速度，duration必须大于0
@@ -736,7 +736,7 @@ min_exec_time = -1
 motion_id = 211
 map = [21, 5]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 62, 5, 64, 16]
+post_motion = [0, 12, 7, 21, 5, 64]
 min_exec_time = -1
 
 # 位控姿态-相对姿态, duration控制站立的速度，duration必须大于0
@@ -744,7 +744,7 @@ min_exec_time = -1
 motion_id = 212
 map = [21, 0]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 62, 5, 64, 16]
+post_motion = [0, 12, 7, 21, 5, 64]
 min_exec_time = -1
 
 # 位控姿态-相对姿态, 用于握手，抬起腿低刚度，duration控制站立的速度，duration必须大于0
@@ -752,7 +752,7 @@ min_exec_time = -1
 motion_id = 213
 map = [21, 2]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 62, 5, 64, 16]
+post_motion = [0, 12, 7, 21, 5, 64]
 min_exec_time = -1
 
 # 位控姿态-相对姿态, 任务空时插值(可视化编程)，duration控制站立的速度，duration必须大于0
@@ -760,7 +760,7 @@ min_exec_time = -1
 motion_id = 214
 map = [21, 3]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 62, 5, 64, 16]
+post_motion = [0, 12, 7, 21, 5, 64]
 min_exec_time = -1
 
 ###################################################################
@@ -772,7 +772,7 @@ min_exec_time = -1
 motion_id = 301
 map  = [11, 7]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # 四足小跳
@@ -780,15 +780,15 @@ min_exec_time = -1
 motion_id = 302
 map  = [11, 2]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # 慢速行走
 [[motion_ids]]
 motion_id = 303
-map = [11, 3]  
+map = [11, 27]  
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # 自变频步态
@@ -796,15 +796,15 @@ min_exec_time = -1
 motion_id = 304
 map = [11, 24]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # 快速行走
 [[motion_ids]]
 motion_id = 305
-map = [11, 11]   
+map = [11, 10]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # 三足步态
@@ -812,31 +812,23 @@ min_exec_time = -1
 motion_id = 306
 map = [11, 6]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # 中速行走
 [[motion_ids]]
 motion_id = 308
-map = [11, 9]   
-pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
-min_exec_time = -1
-
-# 跟随专用定频步态
-[[motion_ids]]
-motion_id = 309
 map = [11, 3]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
-# 跟随专用自变频步态
+# 跟随步态
 [[motion_ids]]
-motion_id = 310
-map = [11, 24]  
+motion_id = 309
+map = [11, 28]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # 上楼梯专用
@@ -844,7 +836,7 @@ min_exec_time = -1
 motion_id = 340
 map = [11, 120]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # 下楼梯专用
@@ -852,7 +844,7 @@ min_exec_time = -1
 motion_id = 341
 map = [11, 121]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # 斜坡步态
@@ -860,7 +852,7 @@ min_exec_time = -1
 motion_id = 342
 map = [11, 122]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # TOF楼梯
@@ -868,7 +860,7 @@ min_exec_time = -1
 motion_id = 343
 map = [11, 123]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
 # 视觉楼梯
@@ -876,7 +868,7 @@ min_exec_time = -1
 motion_id = 344
 map = [6, 0]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 23]
+post_motion = [0, 12, 7, 21, 3, 11, 6]
 min_exec_time = -1
 
 # 适应性walk步态
@@ -884,12 +876,12 @@ min_exec_time = -1
 motion_id = 345
 map = [25, 0]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3]
+post_motion = [0, 12, 7, 21, 3, 11, 25]
 min_exec_time = -1
 
 [[motion_ids]]
 motion_id = 400
 map = [11, 110]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 11, 23]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = 0
