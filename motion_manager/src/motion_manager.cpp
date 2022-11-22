@@ -124,19 +124,17 @@ void MotionManager::Run()
 bool MotionManager::IsStateValid(int32_t & code, bool protected_cmd)
 {
   auto state = GetState();
-  if (state == MotionMgrState::kActive) {
+  if (state == MotionMgrState::kActive ||
+    (state == MotionMgrState::kProtected && !protected_cmd))
+  {
     code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
     return true;
   }
   if (state == MotionMgrState::kProtected) {
-    if (!protected_cmd) {
-      code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
-      return true;
-    }
     code = code_ptr_->GetKeyCode(system::KeyCode::kProtectedError);
-  } else {
-    code = code_ptr_->GetKeyCode(system::KeyCode::kStateInvalid);
+    return false;
   }
+  code = code_ptr_->GetKeyCode(system::KeyCode::kStateInvalid);
   return false;
 }
 
