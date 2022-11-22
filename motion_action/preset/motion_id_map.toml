@@ -794,7 +794,7 @@ min_exec_time = -1
 # 自变频步态
 [[motion_ids]]
 motion_id = 304
-map = [11, 24]   
+map = [11, 26]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
