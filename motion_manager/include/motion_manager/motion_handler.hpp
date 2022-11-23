@@ -77,6 +77,10 @@ public:
   {
     action_ptr_->SetState(state);
   }
+  void RegisterModeFunction(std::function<void()> function)
+  {
+    reset_decision_f_ = function;
+  }
 
 private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
@@ -129,7 +133,7 @@ private:
   {
     return servo_check_click_->Tock();
   }
-
+  void StopServoCmd();
   inline std::string GetCurrentTime()
   {
     struct timeval tv;
@@ -213,6 +217,7 @@ private:
   std::ofstream toml_;
   std::shared_ptr<MCode> code_ptr_;
   std::string toml_log_dir_;
+  std::function<void()> reset_decision_f_;
   int64_t sequence_total_duration_{0};
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};

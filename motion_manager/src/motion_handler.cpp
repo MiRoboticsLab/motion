@@ -206,12 +206,7 @@ void MotionHandler::HandleServoCmd(
     TickServoCmd();
     SetServoNeedCheck(true);
   } else {
-    SetServoNeedCheck(false);
-    if (last_servo_cmd_ != nullptr) {
-      WalkStand(last_servo_cmd_);
-    }
-    SetWorkStatus(HandlerStatus::kIdle);
-    post_motion_checked_ = false;
+    StopServoCmd();
   }
   res.result = true;
   // res.code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
@@ -228,16 +223,23 @@ void MotionHandler::ServoDataCheck()
     }
     if (server_check_error_counter_ >= kServoDataLostTimesThreshold) {
       WARN("Servo data lost time with %d times", kServoDataLostTimesThreshold);
-      // StopServoResponse();
-      // SetServoDataLost(); TODO(harvey): 是否通知Decision？
-      SetServoNeedCheck(false);
-      WalkStand(last_servo_cmd_);
-      // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
-      SetWorkStatus(HandlerStatus::kIdle);
-      post_motion_checked_ = false;
+      StopServoCmd();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
+}
+
+void MotionHandler::StopServoCmd()
+{
+  SetServoNeedCheck(false);
+  if (last_servo_cmd_ != nullptr) {
+    WalkStand(last_servo_cmd_);
+  }
+  SetWorkStatus(HandlerStatus::kIdle);
+  if (reset_decision_f_ != nullptr) {
+    reset_decision_f_();
+  }
+  post_motion_checked_ = false;
 }
 
 void MotionHandler::PoseControlDefinitively()
