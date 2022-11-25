@@ -223,7 +223,8 @@ def main(args=None):
         if end:
             cmd = MotionServoCmd()
             cmd.cmd_type = MotionServoCmd.SERVO_END
-            # cmd.motion_id = MotionID.FORCECONTROL_RELATIVEYLY
+            cmd.motion_id = motion_id
+            cmd.cmd_source = -1 # 最高调试优先级
             # cmd.mode = 3; cmd.gait_id = 0; cmd.life_count = life_count + 1
             # cmd.pos_des.fromlist([0.0, 0.0, 0.3])
             # cmd.vel_des.fromlist([0.0, 0.0, 0.0])
