@@ -13,6 +13,7 @@
 // limitations under the License.
 #include <memory>
 #include <vector>
+#include <string>
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "motion_manager/motion_decision.hpp"
 
@@ -38,6 +39,22 @@ bool MotionDecision::Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr s
     ERROR("Fail to initialize MotionHandler");
     return false;
   }
+  handler_ptr_->RegisterModeFunction(std::bind(&MotionDecision::ResetMode, this));
+  std::string toml_file = ament_index_cpp::get_package_share_directory(
+    "motion_manager") + "/config/priority.toml";
+  toml::value config;
+  if (!cyberdog::common::CyberdogToml::ParseFile(toml_file, config)) {
+    FATAL("Cannot parse %s", toml_file.c_str());
+    exit(-1);
+  }
+  GET_TOML_VALUE(config, "App", priority_map_[int32_t(DecisionStatus::kExecutingApp)]);
+  GET_TOML_VALUE(config, "Audio", priority_map_[int32_t(DecisionStatus::kExecutingAudio)]);
+  GET_TOML_VALUE(config, "Vis", priority_map_[int32_t(DecisionStatus::kExecutingVis)]);
+  GET_TOML_VALUE(config, "BluTele", priority_map_[int32_t(DecisionStatus::kExecutingBluTele)]);
+  GET_TOML_VALUE(config, "Algo", priority_map_[int32_t(DecisionStatus::kExecutingAlgo)]);
+  priority_map_[int32_t(DecisionStatus::kIdle)] = int32_t(DecisionStatus::kIdle);
+  priority_map_[int32_t(DecisionStatus::kExecutingKeyBoardDebug)] =
+    int32_t(DecisionStatus::kExecutingKeyBoardDebug);
   servo_response_pub_ = servo_response_pub;
   servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponseThread, this));
   servo_response_thread_.detach();
@@ -56,6 +73,12 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr & msg)
     ERROR("Forbidden ServoCmd when estop");
     return;
   }
+  if (!IsModeValid(msg->cmd_source)) {
+    servo_response_msg_.code = code_ptr_->GetKeyCode(system::KeyCode::kFailed);
+    ERROR("Mode error, %d in control when get %d", (int32_t)motion_work_mode_, msg->cmd_source);
+    return;
+  }
+  SetMode((DecisionStatus)msg->cmd_source);
   handler_ptr_->HandleServoCmd(msg, servo_response_msg_);
 }
 
