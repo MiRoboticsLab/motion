@@ -186,10 +186,10 @@ min_exec_time = 1500
 # 3D跳跃向上30cm, duration 不需要用户设置，必须为0
 [[motion_ids]]
 motion_id = 136
-map = [16, 6]   
+map = [62, 0]   # 替换为舞蹈集合
 pre_motion = []
 post_motion = [0, 12, 7, 21]
-min_exec_time = 1500
+min_exec_time = 50000
 
 # 跳下台阶, duration 不需要用户设置，必须为0
 [[motion_ids]]
@@ -770,7 +770,7 @@ min_exec_time = -1
 # 前后跳, 以下均为locomotion, Service请求时duration必须大于0
 [[motion_ids]]
 motion_id = 301
-map  = [11, 7]   
+map  = [11, 6]   # 替换为猫步
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
