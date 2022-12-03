@@ -198,6 +198,7 @@ void MotionHandler::HandleServoCmd(
     }
     exec_servo_pre_motion_failed_ = false;
     last_servo_cmd_ = msg;
+    action_ptr_->SetAlignContact(true);
     action_ptr_->Execute(msg);
     if (!sing_) {
       // Sing(true);

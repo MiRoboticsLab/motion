@@ -89,6 +89,7 @@ public:
   void ShowDebugLog(bool show) {show_ = show;}
   void ShowDefaultSkin(bool default_color, bool align_contact)
   {
+    INFO("ShowDefaultSkin");
     align_contact_ = align_contact;
     PositionColorChangeDirection dir;
     dir = default_color ? change_dir_.front() : change_dir_.back();
@@ -104,7 +105,13 @@ public:
   }
   void ShowStandElecSkin()
   {
+    INFO("ShowStandElecSkin");
+    align_contact_ = false;
     elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, stand_gradual_duration_);
+  }
+  void SetAlignContact(bool align_contact)
+  {
+    align_contact_ = align_contact;
   }
   void SetState(const MotionMgrState & state)
   {
