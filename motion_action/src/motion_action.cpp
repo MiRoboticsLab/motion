@@ -259,11 +259,15 @@ bool MotionAction::ParseElecSkin()
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "stand_gradual_duration_", stand_gradual_duration_);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "twink_gradual_duration_", twink_gradual_duration_);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "random_gradual_duration_", random_gradual_duration_);
   
   INFO("Default color: %d", default_color);
   INFO("Start direction: %d", start_direction);
   INFO("Gradual duration: %d", gradual_duration_);
   INFO("StandGradual duration: %d", stand_gradual_duration_);
+  INFO("TwinkGradual duration: %d", twink_gradual_duration_);
+  INFO("RandomGradual duration: %d", random_gradual_duration_);
   if (default_color == 0) {
     change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
     change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);

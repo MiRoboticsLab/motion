@@ -209,10 +209,10 @@ void MotionHandler::HandleServoCmd(
     last_servo_cmd_ = msg;
     action_ptr_->SetAlignContact(true);
     action_ptr_->Execute(msg);
-    if (!sing_) {
-      // Sing(true);
-      sing_ = true;
-    }
+    // if (!sing_) {
+    //   // Sing(true);
+    //   sing_ = true;
+    // }
     TickServoCmd();
     SetServoNeedCheck(true);
   } else {
@@ -562,21 +562,59 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     }
   }
   if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    elec_skin_id_ = 0;
     action_ptr_->ShowDefaultSkin(false, false);
   }
   if (request->motion_id == MotionIDMsg::RECOVERYSTAND) {
+    if(elec_skin_id_ >= 3) {
+      elec_skin_id_ = 0;
+    }
+    switch (elec_skin_id_)
+    {
+      case 0:
+        action_ptr_->ShowStandElecSkin();
+        break;
+
+      case 1:
+        action_ptr_->ShowTwinkElecSkin();
+        break;
+
+      case 2:
+        action_ptr_->ShowRandomElecSkin();
+        break;
+
+      default:
+        break;
+    }
+    elec_skin_id_++;
+  }
+  if (request->motion_id == MotionIDMsg::GETDOWN ||
+    request->motion_id == 143) { // 坐下
+    elec_skin_id_ = 0;
     action_ptr_->ShowStandElecSkin();
   }
+  if (request->motion_id == 136) { // 原地跳起，映射到运控的跳舞
+    // if (!sing_) {
+    //   INFO("Will sing");
+    //   Sing(true);
+    //   sing_ = true;
+    // }
+    INFO("Will sing");
+    Sing(true);
+    action_ptr_->SetAlignContact(true);
+  }
   if (request->motion_id == MotionIDMsg::GETDOWN) {
-    action_ptr_->ShowDefaultSkin(true, true);
-    // Sing(false);
-    sing_ = false;
+    // action_ptr_->ShowDefaultSkin(true, true);
+    INFO("Stop sing");
+    Sing(false);
+    // sing_ = false;
   }
   // if (request->motion_id == MotionIDMsg::BACK_FLIP) {
   //   action_ptr_->ShowDefaultSkin(true, true);
   // }
   ExecuteResultCmd(request, response);
   if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    elec_skin_id_ = 0;
     action_ptr_->ShowDefaultSkin(true, true);
   }
   CloseTomlLog();

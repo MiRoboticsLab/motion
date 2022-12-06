@@ -109,6 +109,18 @@ public:
     align_contact_ = false;
     elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, stand_gradual_duration_);
   }
+  void ShowTwinkElecSkin()
+  {
+    INFO("ShowTwinkElecSkin");
+    align_contact_ = false;
+    elec_skin_->ModelControl(ModelSwitch::MS_FLASH, twink_gradual_duration_);
+  }
+  void ShowRandomElecSkin()
+  {
+    INFO("ShowRandomElecSkin");
+    align_contact_ = false;
+    elec_skin_->ModelControl(ModelSwitch::MS_RANDOM, random_gradual_duration_);
+  }
   void SetAlignContact(bool align_contact)
   {
     align_contact_ = align_contact;
@@ -152,6 +164,8 @@ private:
   int32_t last_motion_id_{0};
   int32_t gradual_duration_{0};
   int32_t stand_gradual_duration_{0};
+  int32_t twink_gradual_duration_{0};
+  int32_t random_gradual_duration_{0};
   uint8_t lcm_publish_duration_;
   int8_t last_res_mode_{0}, last_res_gait_id_{0};
   int8_t life_count_{0};

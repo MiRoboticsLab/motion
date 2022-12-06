@@ -222,6 +222,7 @@ private:
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
   int8_t server_check_error_counter_ {0};
+  int8_t elec_skin_id_{0};
   bool is_transitioning_wait_ {false};
   bool is_execute_wait_ {false};
   bool is_servo_need_check_ {false};
