@@ -168,6 +168,9 @@ void MotionHandler::HandleServoCmd(
     // res.code = code_ptr_->GetCode(MotionCode::kBusy);
     res.code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
     ERROR("Busy(Executing ResultCmd) for ServoCmd");
+    if (reset_decision_f_ != nullptr) {
+      reset_decision_f_();
+    }
     return;
   }
   int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
@@ -175,6 +178,9 @@ void MotionHandler::HandleServoCmd(
     res.result = false;
     // res.code = code_ptr_->GetCode(MotionCode::kBusy);
     res.code = code;
+    if (reset_decision_f_ != nullptr) {
+      reset_decision_f_();
+    }
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingServoCmd);
@@ -192,6 +198,9 @@ void MotionHandler::HandleServoCmd(
         res.code = response->code;
         exec_servo_pre_motion_failed_ = true;
         ERROR("Get error when trying to be ready for ServoCmd");
+        if (reset_decision_f_ != nullptr) {
+          reset_decision_f_();
+        }
         return;
       }
       post_motion_checked_ = true;
