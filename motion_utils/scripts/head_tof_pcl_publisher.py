@@ -109,6 +109,10 @@ class MinimalSubscriber(Node):
     #     self.get_logger().info('I heard: "%s"' % tof_msg.header.frame_id + 'timestamp: "%d"' % tof_time)
 
     def head_tof_pcd_generate(self, msg = HeadTofPayload()):
+        if len(msg.left_head.data) != 64 or len(msg.right_head.data) != 64:
+            self.get_logger().info("Invalid lenth of tof data: {}, {}".format(
+                len(msg.left_head.data), len(msg.right_head.data)))
+            return
         for idx in range(0,64):
             z_array[idx] =  -msg.left_head.data[63-idx]
             r_array[idx] = -z_array[idx]/math.cos(math.pi*angle_arr[idx]/180)*math.sin(math.pi*angle_arr[idx]/180)
