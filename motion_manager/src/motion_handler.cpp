@@ -234,7 +234,9 @@ void MotionHandler::ServoDataCheck()
 void MotionHandler::StopServoCmd()
 {
   SetServoNeedCheck(false);
-  if (last_servo_cmd_ != nullptr) {
+  if (last_servo_cmd_ != nullptr && last_servo_cmd_->motion_id !=
+    MotionIDMsg::FORCECONTROL_DEFINITIVELY)
+  {
     WalkStand(last_servo_cmd_);
   }
   SetWorkStatus(HandlerStatus::kIdle);
