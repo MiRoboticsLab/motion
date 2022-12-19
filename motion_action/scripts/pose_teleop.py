@@ -155,67 +155,68 @@ def main(args=None):
                 pitch = moveBindings[key][2]
                 yaw = moveBindings[key][3]
                 count = 0
-            # elif key == ' ' or key == 'k' :
-            #     pos_z = 0.0
-            #     roll = 0.0
-            #     pitch = 0.0
-            #     yaw = 0.0
-            #     control_pos_z = default_pos_z
-            #     control_yaw = 0.0
-            #     control_pitch = 0.0
-            #     control_roll = 0.0
+            elif key == ' ' or key == 'k' :
+                pos_z = 0.0
+                roll = 0.0
+                pitch = 0.0
+                yaw = 0.0
+                control_pos_z = default_pos_z
+                control_yaw = 0.0
+                control_pitch = 0.0
+                control_roll = 0.0
             else:
                 count = count + 1
-                if count > 4:
-                    pos_z = 0.0
-                    roll = 0.0
-                    pitch = 0.0
-                    yaw = 0.0
+                # if count > 4:
+                #     pos_z = 0.0
+                #     roll = 0.0
+                #     pitch = 0.0
+                #     yaw = 0.0
                 if (key == '\x03'):
                     break
 
-            if pos_z > 0:
-                target_pos_z = max_pos_z * pos_z
-            elif pos_z < 0:
-                target_pos_z = -min_pos_z * pos_z
-            elif pos_z == 0:
-                target_pos_z = default_pos_z
-            target_roll = max_roll * roll
-            if pitch > 0:
-                target_pitch = max_pitch * pitch
-            elif pitch < 0:
-                target_pitch = -min_pitch * pitch
-            elif pitch == 0:
-                target_pitch = 0.0
-            target_yaw = max_yaw * yaw
+            if count == 0:
+                if pos_z > 0:
+                    target_pos_z = max_pos_z * pos_z
+                elif pos_z < 0:
+                    target_pos_z = -min_pos_z * pos_z
+                elif pos_z == 0:
+                    target_pos_z = default_pos_z
+                target_roll = max_roll * roll
+                if pitch > 0:
+                    target_pitch = max_pitch * pitch
+                elif pitch < 0:
+                    target_pitch = -min_pitch * pitch
+                elif pitch == 0:
+                    target_pitch = 0.0
+                target_yaw = max_yaw * yaw
 
-            if target_pos_z > control_pos_z:
-                control_pos_z = min( target_pos_z, control_pos_z + resolution )
-            elif target_pos_z < control_pos_z:
-                control_pos_z = max( target_pos_z, control_pos_z - resolution )
-            else:
-                control_pos_z = target_pos_z
+                if target_pos_z > control_pos_z:
+                    control_pos_z = min( target_pos_z, control_pos_z + resolution )
+                elif target_pos_z < control_pos_z:
+                    control_pos_z = max( target_pos_z, control_pos_z - resolution )
+                else:
+                    control_pos_z = target_pos_z
 
-            if target_roll > control_roll:
-                control_roll = min( target_roll, control_roll + resolution )
-            elif target_roll < control_roll:
-                control_roll = max( target_roll, control_roll - resolution )
-            else:
-                control_roll = target_roll
+                if target_roll > control_roll:
+                    control_roll = min( target_roll, control_roll + resolution )
+                elif target_roll < control_roll:
+                    control_roll = max( target_roll, control_roll - resolution )
+                else:
+                    control_roll = target_roll
 
-            if target_pitch > control_pitch:
-                control_pitch = min( target_pitch, control_pitch + resolution )
-            elif target_pitch < control_pitch:
-                control_pitch = max( target_pitch, control_pitch - resolution )
-            else:
-                control_pitch = target_pitch
+                if target_pitch > control_pitch:
+                    control_pitch = min( target_pitch, control_pitch + resolution )
+                elif target_pitch < control_pitch:
+                    control_pitch = max( target_pitch, control_pitch - resolution )
+                else:
+                    control_pitch = target_pitch
 
-            if target_yaw > control_yaw:
-                control_yaw = min( target_yaw, control_yaw + resolution )
-            elif target_yaw < control_yaw:
-                control_yaw = max( target_yaw, control_yaw - resolution )
-            else:
-                control_yaw = target_yaw
+                if target_yaw > control_yaw:
+                    control_yaw = min( target_yaw, control_yaw + resolution )
+                elif target_yaw < control_yaw:
+                    control_yaw = max( target_yaw, control_yaw - resolution )
+                else:
+                    control_yaw = target_yaw
 
             cmd = MotionServoCmd()
             cmd.motion_id = motion_id
