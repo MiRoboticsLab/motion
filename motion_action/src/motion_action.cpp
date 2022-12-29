@@ -37,21 +37,21 @@ void MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
   if (motion_id_map_.empty()) {
     return;
   }
-  robot_control_cmd_lcmt lcm_cmd;
-  lcm_cmd.mode = motion_id_map_.at(msg->motion_id).map.front();
-  lcm_cmd.gait_id = motion_id_map_.at(msg->motion_id).map.back();
-  lcm_cmd.contact = 0;
-  lcm_cmd.value = msg->value;
-  lcm_cmd.duration = 0;
-  GET_VALUE(msg->step_height, lcm_cmd.step_height, 2, "step_height");
-  GET_VALUE(msg->vel_des, lcm_cmd.vel_des, 3, "vel_des");
-  GET_VALUE(msg->rpy_des, lcm_cmd.rpy_des, 3, "rpy_des");
-  GET_VALUE(msg->pos_des, lcm_cmd.pos_des, 3, "pos_des");
-  GET_VALUE(msg->ctrl_point, lcm_cmd.ctrl_point, 3, "ctrl_point");
-  GET_VALUE(msg->acc_des, lcm_cmd.acc_des, 6, "acc_des");
-  GET_VALUE(msg->foot_pose, lcm_cmd.foot_pose, 6, "foot_pose");
+  static auto lcm_cmd = std::make_shared<robot_control_cmd_lcmt>();
+  lcm_cmd->mode = motion_id_map_.at(msg->motion_id).map.front();
+  lcm_cmd->gait_id = motion_id_map_.at(msg->motion_id).map.back();
+  lcm_cmd->contact = 0;
+  lcm_cmd->value = msg->value;
+  lcm_cmd->duration = 0;
+  GET_VALUE(msg->step_height, lcm_cmd->step_height, 2, "step_height");
+  GET_VALUE(msg->vel_des, lcm_cmd->vel_des, 3, "vel_des");
+  GET_VALUE(msg->rpy_des, lcm_cmd->rpy_des, 3, "rpy_des");
+  GET_VALUE(msg->pos_des, lcm_cmd->pos_des, 3, "pos_des");
+  GET_VALUE(msg->ctrl_point, lcm_cmd->ctrl_point, 3, "ctrl_point");
+  GET_VALUE(msg->acc_des, lcm_cmd->acc_des, 6, "acc_des");
+  GET_VALUE(msg->foot_pose, lcm_cmd->foot_pose, 6, "foot_pose");
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
-  lcm_cmd_ = lcm_cmd;
+  lcm_cmd_ = *lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
   lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
   lk.unlock();
