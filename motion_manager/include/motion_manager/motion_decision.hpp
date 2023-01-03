@@ -127,10 +127,10 @@ public:
   void DecideSequenceCmd(
     const MotionSequenceSrv::Request::SharedPtr request,
     MotionSequenceSrv::Response::SharedPtr response);
-  inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
-  {
-    handler_ptr_->SetSequnceTotalDuration(sequence_total_duration);
-  }
+  // inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
+  // {
+  //   handler_ptr_->SetSequnceTotalDuration(sequence_total_duration);
+  // }
   inline bool SelfCheck()
   {
     return handler_ptr_->SelfCheck();

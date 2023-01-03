@@ -299,11 +299,11 @@ void MotionManager::MotionSequenceShowCmdCallback(
     response->code = code;
     return;
   }
-  int64_t total_duration = 0;
-  for (auto & pace : request->pace_list) {
-    total_duration += pace.duration;
-  }
-  decision_ptr_->SetSequnceTotalDuration(total_duration);
+  // int64_t total_duration = 0;
+  // for (auto & pace : request->pace_list) {
+  //   total_duration += pace.duration;
+  // }
+  // decision_ptr_->SetSequnceTotalDuration(total_duration);
   decision_ptr_->DecideResultCmd(request, response);
 
   // if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {

@@ -451,7 +451,7 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   } else if (min_exec_time < 0) {  // 增量力控、增量位控、绝对位控、行走duration必须大于0
     wait_timeout = request->duration;
   } else {                         // 自定义动作按照设定的参数计算
-    wait_timeout = sequence_total_duration_ * 2;
+    wait_timeout = request->duration == 0 ? 0.5 : request->duration * 2;
   }
   // INFO("%d", wait_timeout);
   if (execute_cv_.wait_for(
@@ -484,9 +484,9 @@ void MotionHandler::HandleResultCmd<MotionResultSrv::Request::SharedPtr,
   MotionResultSrv::Response::SharedPtr);
 
 template
-void MotionHandler::HandleResultCmd<MotionSequenceSrv::Request::SharedPtr,
-  MotionSequenceSrv::Response::SharedPtr>(MotionSequenceSrv::Request::SharedPtr,
-  MotionSequenceSrv::Response::SharedPtr);
+void MotionHandler::HandleResultCmd<MotionSequenceShowSrv::Request::SharedPtr,
+  MotionSequenceShowSrv::Response::SharedPtr>(MotionSequenceShowSrv::Request::SharedPtr,
+  MotionSequenceShowSrv::Response::SharedPtr);
 
 template<typename CmdRequestT, typename CmdResponseT>
 void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT response)
@@ -560,34 +560,34 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   SetWorkStatus(HandlerStatus::kIdle);
 }
 
-void MotionHandler::HandleSequenceCmd(
-  const MotionSequenceSrv::Request::SharedPtr request,
-  MotionSequenceSrv::Response::SharedPtr response)
-{
-  if (GetWorkStatus() != HandlerStatus::kIdle) {
-    response->result = false;
-    // response->code = code_ptr_->GetCode(MotionCode::kBusy);
-    response->code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
-    ERROR("Busy when Getting SequenceCmd(%d)", MotionIDMsg::SEQUENCE_CUSTOM);
-    return;
-  }
-  SetWorkStatus(HandlerStatus::kExecutingResultCmd);
-  auto req = std::make_shared<MotionResultSrv::Request>();
-  req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
-  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
-  if (!IsCommandValid(req, code)) {
-    // response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
-    response->code = code;
-    response->result = false;
-    response->describe = "";
-    SetWorkStatus(HandlerStatus::kIdle);
-    return;
-  }
-  CreateTomlLog(req->motion_id);
-  ExecuteResultCmd(request, response);
-  CloseTomlLog();
-  SetWorkStatus(HandlerStatus::kIdle);
-}
+// void MotionHandler::HandleSequenceCmd(
+//   const MotionSequenceSrv::Request::SharedPtr request,
+//   MotionSequenceSrv::Response::SharedPtr response)
+// {
+//   if (GetWorkStatus() != HandlerStatus::kIdle) {
+//     response->result = false;
+//     // response->code = code_ptr_->GetCode(MotionCode::kBusy);
+//     response->code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
+//     ERROR("Busy when Getting SequenceCmd(%d)", MotionIDMsg::SEQUENCE_CUSTOM);
+//     return;
+//   }
+//   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
+//   auto req = std::make_shared<MotionResultSrv::Request>();
+//   req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
+//   int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+//   if (!IsCommandValid(req, code)) {
+//     // response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+//     response->code = code;
+//     response->result = false;
+//     response->describe = "";
+//     SetWorkStatus(HandlerStatus::kIdle);
+//     return;
+//   }
+//   CreateTomlLog(req->motion_id);
+//   ExecuteResultCmd(request, response);
+//   CloseTomlLog();
+//   SetWorkStatus(HandlerStatus::kIdle);
+// }
 
 
 void MotionHandler::HandleQueueCmd(
