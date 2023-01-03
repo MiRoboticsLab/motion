@@ -87,9 +87,9 @@ private:
   void MotionQueueCmdCallback(
     const MotionQueueCustomSrv::Request::SharedPtr request,
     MotionQueueCustomSrv::Response::SharedPtr response);
-  void MotionSequenceCmdCallback(
-    const MotionSequenceSrv::Request::SharedPtr request,
-    MotionSequenceSrv::Response::SharedPtr response);
+  void MotionSequenceShowCmdCallback(
+    const MotionSequenceShowSrv::Request::SharedPtr request,
+    MotionSequenceShowSrv::Response::SharedPtr response);
   void OnlineAudioPlay(const std::string & text)
   {
     static bool playing = false;
@@ -132,6 +132,7 @@ private:
   rclcpp::Service<MotionCustomSrv>::SharedPtr motion_custom_srv_ {nullptr};
   rclcpp::Service<MotionQueueCustomSrv>::SharedPtr motion_queue_srv_ {nullptr};
   rclcpp::Service<MotionSequenceSrv>::SharedPtr motion_sequence_srv_ {nullptr};
+  rclcpp::Service<MotionSequenceShowSrv>::SharedPtr motion_sequence_show_srv_ {nullptr};
   rclcpp::Client<protocol::srv::AudioTextPlay>::SharedPtr audio_client_{nullptr};
   rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_{nullptr};
   rclcpp::CallbackGroup::SharedPtr callback_group_{nullptr};

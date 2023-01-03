@@ -27,6 +27,7 @@
 #include "protocol/srv/motion_queue_custom_cmd.hpp"
 #include "protocol/srv/motion_custom_cmd.hpp"
 #include "protocol/srv/motion_sequence.hpp"
+#include "protocol/srv/motion_sequence_show.hpp"
 #include "protocol/lcm/file_send_lcmt.hpp"
 #include "protocol/lcm/file_recv_lcmt.hpp"
 
@@ -62,6 +63,7 @@ using LcmResponse = robot_control_response_lcmt;
 using MotionResultSrv = protocol::srv::MotionResultCmd;
 using MotionQueueCustomSrv = protocol::srv::MotionQueueCustomCmd;
 using MotionSequenceSrv = protocol::srv::MotionSequence;
+using MotionSequenceShowSrv = protocol::srv::MotionSequenceShow;
 using MotionCustomSrv = protocol::srv::MotionCustomCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;

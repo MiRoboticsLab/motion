@@ -115,7 +115,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
 }
 
 
-void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
+void MotionAction::Execute(const MotionSequenceShowSrv::Request::SharedPtr request)
 {
   if (!ins_init_) {
     ERROR("MotionAction has not been initialized when execute QueueSrv");
@@ -124,7 +124,7 @@ void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
   if (motion_id_map_.empty()) {
     return;
   }
-  for (auto cmd : request->params) {
+  for (auto cmd : request->pace_list) {
     robot_control_cmd_lcmt lcm_cmd;
     lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
     lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
@@ -133,12 +133,12 @@ void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
     lcm_cmd.vel_des[0] = cmd.twist.linear.x;
     lcm_cmd.vel_des[1] = cmd.twist.linear.y;
     lcm_cmd.vel_des[2] = cmd.twist.linear.z;
-    lcm_cmd.rpy_des[0] = cmd.twist.angular.x;
-    lcm_cmd.rpy_des[1] = cmd.twist.angular.y;
-    lcm_cmd.rpy_des[2] = cmd.twist.angular.z;
-    lcm_cmd.pos_des[0] = cmd.centroid_height.x;
-    lcm_cmd.pos_des[1] = cmd.centroid_height.y;
-    lcm_cmd.pos_des[2] = cmd.centroid_height.z;
+    lcm_cmd.rpy_des[0] = cmd.centroid.orientation.x;
+    lcm_cmd.rpy_des[1] = cmd.centroid.orientation.y;
+    lcm_cmd.rpy_des[2] = cmd.centroid.orientation.z;
+    lcm_cmd.pos_des[0] = cmd.centroid.position.x;
+    lcm_cmd.pos_des[1] = cmd.centroid.position.y;
+    lcm_cmd.pos_des[2] = cmd.centroid.position.z;
     lcm_cmd.foot_pose[0] = cmd.right_forefoot.x;
     lcm_cmd.foot_pose[1] = cmd.right_forefoot.y;
     lcm_cmd.foot_pose[2] = cmd.left_forefoot.x;
@@ -148,10 +148,15 @@ void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
     lcm_cmd.ctrl_point[0] = cmd.left_hindfoot.x;
     lcm_cmd.ctrl_point[1] = cmd.left_hindfoot.y;
     lcm_cmd.ctrl_point[2] = cmd.friction_coefficient;
-    for (int i = 0; i < 6; ++i) {
-      lcm_cmd.acc_des[i] = 1.0;
-    }
-    lcm_cmd.duration = cmd.duration_ms;
+    lcm_cmd.acc_des[0] = cmd.weight.linear.x;
+    lcm_cmd.acc_des[1] = cmd.weight.linear.y;
+    lcm_cmd.acc_des[2] = cmd.weight.linear.z;
+    lcm_cmd.acc_des[3] = cmd.weight.angular.x;
+    lcm_cmd.acc_des[4] = cmd.weight.angular.y;
+    lcm_cmd.acc_des[5] = cmd.weight.angular.z;
+    lcm_cmd.value = cmd.use_mpc_track;
+    lcm_cmd.contact = cmd.landing_gain;
+    lcm_cmd.duration = cmd.duration;
     std::unique_lock<std::mutex> lk(lcm_write_mutex_);
     lcm_cmd_ = lcm_cmd;
     lcm_cmd_.life_count = life_count_++;

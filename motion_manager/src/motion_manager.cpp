@@ -68,11 +68,11 @@ bool MotionManager::Init()
     std::bind(
       &MotionManager::MotionQueueCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
-  motion_sequence_srv_ =
-    node_ptr_->create_service<MotionSequenceSrv>(
+  motion_sequence_show_srv_ =
+    node_ptr_->create_service<MotionSequenceShowSrv>(
     kMotionSequenceServiceName,
     std::bind(
-      &MotionManager::MotionSequenceCmdCallback, this, std::placeholders::_1,
+      &MotionManager::MotionSequenceShowCmdCallback, this, std::placeholders::_1,
       std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
   audio_client_ = node_ptr_->create_client<protocol::srv::AudioTextPlay>(
     "speech_text_play",
@@ -287,11 +287,11 @@ void MotionManager::MotionCustomCmdCallback(
 }
 
 
-void MotionManager::MotionSequenceCmdCallback(
-  const MotionSequenceSrv::Request::SharedPtr request,
-  MotionSequenceSrv::Response::SharedPtr response)
+void MotionManager::MotionSequenceShowCmdCallback(
+  const MotionSequenceShowSrv::Request::SharedPtr request,
+  MotionSequenceShowSrv::Response::SharedPtr response)
 {
-  INFO("Receive SequenceCmd with motion_id: %d", request->motion_id);
+  INFO("Receive SequenceShowCmd with motion_id: %d", request->motion_id);
   int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
   if (!IsStateValid(code)) {
     ERROR("FSM invalid with current state: %s", status_map_.at(state_).c_str());
@@ -300,8 +300,8 @@ void MotionManager::MotionSequenceCmdCallback(
     return;
   }
   int64_t total_duration = 0;
-  for (auto & param : request->params) {
-    total_duration += param.duration_ms;
+  for (auto & pace : request->pace_list) {
+    total_duration += pace.duration;
   }
   decision_ptr_->SetSequnceTotalDuration(total_duration);
   decision_ptr_->DecideResultCmd(request, response);

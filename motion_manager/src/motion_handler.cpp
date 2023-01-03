@@ -544,8 +544,8 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     }
   }
   if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
-    INFO("\n%s", request->toml_data.c_str());
-    if (!action_ptr_->SequenceDefImpl(request->toml_data)) {
+    INFO("\n%s", request->gait_toml.c_str());
+    if (!action_ptr_->SequenceDefImpl(request->gait_toml)) {
       response->code = code_ptr_->GetCode(MotionCode::kSequenceDefError);
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
