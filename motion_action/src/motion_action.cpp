@@ -125,7 +125,7 @@ void MotionAction::Execute(const MotionSequenceShowSrv::Request::SharedPtr reque
     return;
   }
   INFO("SequenceCmd: \n%s", request->pace_toml.c_str());
-  if(!SequenceDefImpl(request->pace_toml)) {
+  if (!SequenceDefImpl(request->pace_toml)) {
     ERROR("SequenceCmd(%d) transmission error", request->motion_id);
   }
 }
