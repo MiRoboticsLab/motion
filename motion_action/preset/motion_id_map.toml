@@ -744,7 +744,7 @@ min_exec_time = -1
 motion_id = 212
 map = [21, 0]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 5, 64]
+post_motion = [0, 12, 7, 21, 5, 64, 62]
 min_exec_time = -1
 
 # 位控姿态-相对姿态, 用于握手，抬起腿低刚度，duration控制站立的速度，duration必须大于0
@@ -760,7 +760,7 @@ min_exec_time = -1
 motion_id = 214
 map = [21, 3]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 5, 64]
+post_motion = [0, 12, 7, 21, 5, 64, 62]
 min_exec_time = -1
 
 ###################################################################
@@ -826,7 +826,7 @@ min_exec_time = -1
 # 跟随步态
 [[motion_ids]]
 motion_id = 309
-map = [11, 28]   
+map = [11, 27]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
