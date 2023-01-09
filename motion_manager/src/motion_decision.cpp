@@ -122,9 +122,9 @@ void MotionDecision::DecideResultCmd<MotionResultSrv::Request::SharedPtr,
   MotionResultSrv::Response::SharedPtr);
 
 template
-void MotionDecision::DecideResultCmd<MotionSequenceSrv::Request::SharedPtr,
-  MotionSequenceSrv::Response::SharedPtr>(MotionSequenceSrv::Request::SharedPtr,
-  MotionSequenceSrv::Response::SharedPtr);
+void MotionDecision::DecideResultCmd<MotionSequenceShowSrv::Request::SharedPtr,
+  MotionSequenceShowSrv::Response::SharedPtr>(MotionSequenceShowSrv::Request::SharedPtr,
+  MotionSequenceShowSrv::Response::SharedPtr);
 
 /**
  * @brief 执行结果指令

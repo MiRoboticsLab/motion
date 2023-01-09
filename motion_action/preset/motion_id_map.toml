@@ -271,7 +271,7 @@ pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 预留6208
+# 坐下左摆头
 [[motion_ids]]
 motion_id = 148
 map = [62, 8]   
@@ -279,7 +279,7 @@ pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 预留6209
+# 坐下右摆头
 [[motion_ids]]
 motion_id = 149
 map = [62, 9]   
@@ -287,7 +287,7 @@ pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 预留6210
+# 坐下左右摆头
 [[motion_ids]]
 motion_id = 150
 map = [62, 10]   
@@ -471,7 +471,7 @@ pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 预留6233
+# 俯卧撑
 [[motion_ids]]
 motion_id = 173
 map = [62, 33]   
@@ -736,7 +736,7 @@ min_exec_time = -1
 motion_id = 211
 map = [21, 5]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 5, 64]
+post_motion = [0, 12, 7, 21, 5, 64, 62]
 min_exec_time = -1
 
 # 位控姿态-相对姿态, duration控制站立的速度，duration必须大于0
@@ -744,7 +744,7 @@ min_exec_time = -1
 motion_id = 212
 map = [21, 0]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 5, 64]
+post_motion = [0, 12, 7, 21, 5, 64, 62]
 min_exec_time = -1
 
 # 位控姿态-相对姿态, 用于握手，抬起腿低刚度，duration控制站立的速度，duration必须大于0
@@ -752,7 +752,7 @@ min_exec_time = -1
 motion_id = 213
 map = [21, 2]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 5, 64]
+post_motion = [0, 12, 7, 21, 5, 64, 62]
 min_exec_time = -1
 
 # 位控姿态-相对姿态, 任务空时插值(可视化编程)，duration控制站立的速度，duration必须大于0
@@ -760,7 +760,7 @@ min_exec_time = -1
 motion_id = 214
 map = [21, 3]   
 pre_motion = []
-post_motion = [0, 12, 7, 21, 5, 64]
+post_motion = [0, 12, 7, 21, 5, 64, 62]
 min_exec_time = -1
 
 ###################################################################
@@ -826,7 +826,7 @@ min_exec_time = -1
 # 跟随步态
 [[motion_ids]]
 motion_id = 309
-map = [11, 28]   
+map = [11, 27]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
