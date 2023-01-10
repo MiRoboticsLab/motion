@@ -826,7 +826,7 @@ min_exec_time = -1
 # 跟随步态
 [[motion_ids]]
 motion_id = 309
-map = [11, 27]   
+map = [11, 28]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
@@ -881,6 +881,13 @@ min_exec_time = -1
 
 [[motion_ids]]
 motion_id = 400
+map = [62, 110]   
+pre_motion = []
+post_motion = [0, 12, 7, 21]
+min_exec_time = 15000
+
+[[motion_ids]]
+motion_id = 401
 map = [11, 110]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
