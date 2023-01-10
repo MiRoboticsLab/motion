@@ -340,6 +340,11 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   //   }
   // }
   action_ptr_->Execute(request);
+  if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
+    auto req = std::make_shared<MotionResultSrv::Request>();
+    req->motion_id = request->motion_id;
+    action_ptr_->Execute(req);
+  }
   if (FeedbackTimeout()) {
     response->code = code_ptr_->GetCode(MotionCode::kComLcmTimeout);
     response->result = false;
