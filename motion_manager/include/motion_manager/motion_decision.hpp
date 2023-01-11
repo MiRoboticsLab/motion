@@ -135,7 +135,10 @@ public:
   {
     return handler_ptr_->SelfCheck();
   }
-
+  inline int32_t GetMotionID()
+  {
+    return handler_ptr_->GetMotionStatus()->motion_id;
+  }
   inline void SetState(const MotionMgrState & state)
   {
     handler_ptr_->SetState(state);

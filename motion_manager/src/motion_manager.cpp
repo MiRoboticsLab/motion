@@ -190,9 +190,15 @@ int32_t MotionManager::OnLowPower()
 {
   INFO("Get fsm: LowPower");
   SetState(MotionMgrState::kLowPower);
-  while (!TryGetDownOnLowPower() && rclcpp::ok()) {
-    INFO("Target Busy when GetDown on LowPower, Will retry");
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  if (decision_ptr_->GetMotionID() != MotionIDMsg::ESTOP &&
+    decision_ptr_->GetMotionID() != MotionIDMsg::GETDOWN)
+  {
+    while (!TryGetDownOnLowPower() && rclcpp::ok()) {
+      INFO("Target Busy when GetDown on LowPower, Will retry");
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+  } else {
+    INFO("Estop or Getdown, will do nothing when into LowPower");
   }
   return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
