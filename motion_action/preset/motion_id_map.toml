@@ -831,6 +831,30 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
 min_exec_time = -1
 
+# 注册步态
+[[motion_ids]]
+motion_id = 390
+map = [11, 5]   
+pre_motion = []
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
+min_exec_time = -1
+
+# 注册步态
+[[motion_ids]]
+motion_id = 391
+map = [11, 9]   
+pre_motion = []
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
+min_exec_time = -1
+
+# 注册步态
+[[motion_ids]]
+motion_id = 392
+map = [11, 11]   
+pre_motion = []
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
+min_exec_time = -1
+
 # 上楼梯专用
 [[motion_ids]]
 motion_id = 340
