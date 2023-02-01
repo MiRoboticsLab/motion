@@ -471,7 +471,7 @@ pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 俯卧撑
+# 四足蹲起
 [[motion_ids]]
 motion_id = 173
 map = [62, 33]   
@@ -479,7 +479,7 @@ pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 预留6234
+# 仿人俯卧撑
 [[motion_ids]]
 motion_id = 174
 map = [62, 34]   
