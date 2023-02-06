@@ -90,7 +90,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
   }
   lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
   lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
-  lcm_cmd.contact = 15;
+  lcm_cmd.contact = request->contact == 0 ? 15 : request->contact;
   lcm_cmd.value = request->value;
   lcm_cmd.duration = request->duration;
   GET_VALUE(request->step_height, lcm_cmd.step_height, 2, "step_height");

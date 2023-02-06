@@ -148,6 +148,7 @@ void MotionDecision::DecideResultCmd(
   }
   estop_ = request->motion_id == MotionIDMsg::ESTOP;
   handler_ptr_->HandleResultCmd(request, response);
+  INFO("Will return DecideResultCmd");
 }
 
 // /**

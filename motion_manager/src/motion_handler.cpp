@@ -563,6 +563,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   ExecuteResultCmd(request, response);
   CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
+  INFO("Will return HandleResultCmd");
 }
 
 // void MotionHandler::HandleSequenceCmd(
