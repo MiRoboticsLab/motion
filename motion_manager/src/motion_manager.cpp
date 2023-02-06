@@ -252,6 +252,7 @@ void MotionManager::MotionResultCmdCallback(
   }
 
   decision_ptr_->DecideResultCmd(request, response);
+  INFO("Will return MotionResultCmdCallback");
 }
 
 void MotionManager::MotionCustomCmdCallback(
