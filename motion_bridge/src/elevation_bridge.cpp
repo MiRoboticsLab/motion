@@ -100,7 +100,7 @@ void ElevationBridge::GridMapCallback(const grid_map_msgs::msg::GridMap::SharedP
     // if (!GetTransform(transform, odom_frame_, msg->header.frame_id)) {
     if (!GetTransform(
         transform, "odom",
-        "base_link_leg") || !GetTransform(transform1, "odom", "base_link"))
+        "base_link_leg") || !GetTransform(transform1, "vodom", "base_link"))
     {
       ERROR("Cannot transform");
     } else {
