@@ -340,11 +340,13 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   //   }
   // }
   action_ptr_->Execute(request);
+  INFO("Wait 15ms start");
   if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
     auto req = std::make_shared<MotionResultSrv::Request>();
     req->motion_id = request->motion_id;
     action_ptr_->Execute(req);
   }
+  auto start = std::chrono::system_clock::now();
   if (FeedbackTimeout()) {
     response->code = code_ptr_->GetCode(MotionCode::kComLcmTimeout);
     response->result = false;
@@ -352,6 +354,9 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
     ERROR("LCM Com timeout");
     return;
   }
+  auto past = std::chrono::system_clock::now() - start;
+  std::this_thread::sleep_for(std::chrono::nanoseconds(15 * 1000 * 1000) - past);
+  INFO("Wait 15ms over");
   std::unique_lock<std::mutex> check_lk(execute_mutex_);
   wait_id_ = request->motion_id;
   switch (motion_status_ptr_->switch_status) {
