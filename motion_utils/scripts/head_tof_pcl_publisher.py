@@ -8,11 +8,15 @@ from std_msgs.msg import String
 import sensor_msgs.msg as sensor_msgs
 import numpy as np
 import math
+import threading
+
+import lcm
+import tof_lcmt
+import robot_control_response_lcmt
 
 from protocol.msg import HeadTofPayload    # CHANGE
 from protocol.msg import RearTofPayload    # CHANGE
 from protocol.msg import SingleTofPayload    # CHANGE
-# from protocol.lcm import tof_lcmt    # CHANGE
 
 cos_array_scale = [-7,-5,-3,-1,1,3,5,7]
 sin_array_scale = [7,5,3,1,-1,-3,-5,-7]
@@ -36,10 +40,6 @@ angle_arr = [
   21.4, 18.5, 14.9, 13.1, 13.1, 14.9, 18.5, 21.4,
   25.8, 21.4, 19.2, 17.9, 17.9, 19.2, 21.4, 25.8
   ]
-z_array = [0]*64
-x_array = [0]*64
-y_array = [0]*64
-r_array = [0]*64
 
 def GetRotationMatrix(theta_x, theta_y, theta_z):
 	sx = np.sin(theta_x)
@@ -55,11 +55,40 @@ def GetRotationMatrix(theta_x, theta_y, theta_z):
 
 
 
-left_t = np.array([0.259, 0.03, 0.102])
-left_R = GetRotationMatrix(0.296, -0.266, 0.0)
+h_left_t = np.array([0.259, 0.03, 0.102])
+h_left_R = GetRotationMatrix(0.296, -0.266, 0.0)
 
-right_t = np.array([0.259, -0.03, 0.102])
-right_R = GetRotationMatrix(-0.296, -0.266, 0.0)
+h_right_t = np.array([0.259, -0.03, 0.102])
+h_right_R = GetRotationMatrix(-0.296, -0.266, 0.0)
+
+r_left_t = np.array([-0.021, 0.042, -0.051])
+r_left_R = GetRotationMatrix(0.296, 0.0, 0.0)
+
+r_right_t = np.array([-0.021, -0.042, -0.051])
+r_right_R = GetRotationMatrix(-0.296, 0.0, 0.0)
+
+lc=lcm.LCM("udpm://239.255.76.67:7667?ttl=255")
+lcm_publish_flag = True
+
+def msg_handler(channel, data):
+    global lcm_publish_flag
+    # message handling code here.  For example:
+    msg = robot_control_response_lcmt.robot_control_response_lcmt().decode(data)
+    if msg.mode == 12 or ( msg.mode == 11 and msg.gait_id >= 120 ) or msg.mode == 6:
+        lcm_publish_flag = True
+    else:
+        lcm_publish_flag = False
+
+
+def rec_responce():
+    lc_r=lcm.LCM("udpm://239.255.76.67:7670?ttl=255")
+    lc_r.subscribe("robot_control_response", msg_handler)
+    try:
+        while True:
+            lc_r.handle()
+            time.sleep( 0.01 )
+    except KeyboardInterrupt:
+        pass
 
 class MinimalSubscriber(Node):
 
@@ -71,11 +100,13 @@ class MinimalSubscriber(Node):
             self.head_listener_callback,
             10)
 
-        # self.rear_subscription = self.create_subscription(
-        #     RearTofPayload,
-        #     'rear_tof_payload',
-        #     self.rear_listener_callback,
-        #     10)
+        self.rear_subscription = self.create_subscription(
+            RearTofPayload,
+            'rear_tof_payload',
+            self.rear_listener_callback,
+            10)
+        self.lock = threading.Lock()
+
         # self.pcd_topic = []
         # self.pcd_topic.append('left_head_pcd')
         # self.pcd_topic.append('right_head_pcd')
@@ -87,6 +118,11 @@ class MinimalSubscriber(Node):
         #     pcd_publisher = self.create_publisher(sensor_msgs.PointCloud2, self.pcd_topic[i], 10)
         #     self.pcd_publisher.append(pcd_publisher)
         self.head_pcd_publisher = self.create_publisher(sensor_msgs.PointCloud2, "head_pc", 10)
+        self.rear_pcd_publisher = self.create_publisher(sensor_msgs.PointCloud2, "rear_pc", 10)
+
+        rec_thread = threading.Thread(target=rec_responce)
+        rec_thread.start()
+
 
     # def tof_pcd_generate(self,tof_msg):
     #     tof_position = tof_msg.tof_position
@@ -109,6 +145,11 @@ class MinimalSubscriber(Node):
     #     self.get_logger().info('I heard: "%s"' % tof_msg.header.frame_id + 'timestamp: "%d"' % tof_time)
 
     def head_tof_pcd_generate(self, msg = HeadTofPayload()):
+        global lc,lcm_publish_flag
+        z_array = [0]*64
+        x_array = [0]*64
+        y_array = [0]*64
+        r_array = [0]*64
         if len(msg.left_head.data) != 64 or len(msg.right_head.data) != 64:
             self.get_logger().info("Invalid lenth of tof data: {}, {}".format(
                 len(msg.left_head.data), len(msg.right_head.data)))
@@ -118,14 +159,14 @@ class MinimalSubscriber(Node):
             r_array[idx] = -z_array[idx]/math.cos(math.pi*angle_arr[idx]/180)*math.sin(math.pi*angle_arr[idx]/180)
             x_array[idx] = round(r_array[idx]*cos_array_scale[7-idx%8]/math.sqrt(r2_array[idx]),4)
             y_array[idx] = round(r_array[idx]*sin_array_scale[7-int(idx/8)]/math.sqrt(r2_array[idx]),4)
-            x_array[idx], y_array[idx], z_array[idx] = np.dot(left_R, np.array([x_array[idx], y_array[idx], z_array[idx]])) + left_t
+            x_array[idx], y_array[idx], z_array[idx] = np.dot(h_left_R, np.array([x_array[idx], y_array[idx], z_array[idx]])) + h_left_t
         left_points = np.vstack((np.asarray(x_array),np.asarray(y_array),np.asarray(z_array))).T
         for idx in range(0,64):
             z_array[idx] =  -msg.right_head.data[63-idx]
             r_array[idx] = -z_array[idx]/math.cos(math.pi*angle_arr[idx]/180)*math.sin(math.pi*angle_arr[idx]/180)
             x_array[idx] = round(r_array[idx]*cos_array_scale[7-idx%8]/math.sqrt(r2_array[idx]),4)
             y_array[idx] = round(r_array[idx]*sin_array_scale[7-int(idx/8)]/math.sqrt(r2_array[idx]),4)
-            x_array[idx], y_array[idx], z_array[idx] = np.dot(right_R, np.array([x_array[idx], y_array[idx], z_array[idx]])) + right_t
+            x_array[idx], y_array[idx], z_array[idx] = np.dot(h_right_R, np.array([x_array[idx], y_array[idx], z_array[idx]])) + h_right_t
         right_points = np.vstack((np.asarray(x_array),np.asarray(y_array),np.asarray(z_array))).T
         # arrange points
         # points = np.array([[]]*3).T
@@ -163,6 +204,76 @@ class MinimalSubscriber(Node):
         pcd = point_cloud(points, "robot")
         if self.head_pcd_publisher.get_subscription_count() > 0:
             self.head_pcd_publisher.publish(pcd)
+        if lcm_publish_flag:
+            tof_points_msg=tof_lcmt.tof_lcmt()
+            tof_points_msg.tof_id = 0
+            tof_points_msg.tof_time = 0 #msg.stamp.nanosec/1000000 + msg.header.stamp.sec * 1000 #待定
+            for idx in range(0,64):
+                tof_points_msg.tof_data[idx] = (float)(msg.left_head.data[idx])
+            self.lock.acquire()
+            try:
+                lc.publish("tof_points",tof_points_msg.encode())
+            finally:
+                self.lock.release()
+            tof_points_msg.tof_id = 1
+            for idx in range(0,64):
+                tof_points_msg.tof_data[idx] = (float)(msg.right_head.data[idx])
+            self.lock.acquire()
+            try:
+                lc.publish("tof_points",tof_points_msg.encode())
+            finally:
+                self.lock.release()
+        return
+
+    def rear_tof_pcd_generate(self, msg = RearTofPayload()):
+        global lc
+        z_array = [0]*64
+        x_array = [0]*64
+        y_array = [0]*64
+        r_array = [0]*64
+        if len(msg.left_rear.data) != 64 or len(msg.right_rear.data) != 64:
+            self.get_logger().info("Invalid lenth of tof data: {}, {}".format(
+                len(msg.left_rear.data), len(msg.right_rear.data)))
+            return
+
+        for idx in range(0,64):
+            z_array[idx] =  -msg.left_rear.data[63-idx]
+            r_array[idx] = -z_array[idx]/math.cos(math.pi*angle_arr[idx]/180)*math.sin(math.pi*angle_arr[idx]/180)
+            x_array[idx] = round(r_array[idx]*cos_array_scale[7-idx%8]/math.sqrt(r2_array[idx]),4)
+            y_array[idx] = round(r_array[idx]*sin_array_scale[7-int(idx/8)]/math.sqrt(r2_array[idx]),4)
+            x_array[idx], y_array[idx], z_array[idx] = np.dot(r_left_R, np.array([x_array[idx], y_array[idx], z_array[idx]])) + r_left_t
+        left_points = np.vstack((np.asarray(x_array),np.asarray(y_array),np.asarray(z_array))).T
+        for idx in range(0,64):
+            z_array[idx] =  -msg.right_rear.data[63-idx]
+            r_array[idx] = -z_array[idx]/math.cos(math.pi*angle_arr[idx]/180)*math.sin(math.pi*angle_arr[idx]/180)
+            x_array[idx] = round(r_array[idx]*cos_array_scale[7-idx%8]/math.sqrt(r2_array[idx]),4)
+            y_array[idx] = round(r_array[idx]*sin_array_scale[7-int(idx/8)]/math.sqrt(r2_array[idx]),4)
+            x_array[idx], y_array[idx], z_array[idx] = np.dot(r_right_R, np.array([x_array[idx], y_array[idx], z_array[idx]])) + r_right_t
+        right_points = np.vstack((np.asarray(x_array),np.asarray(y_array),np.asarray(z_array))).T
+        points = np.concatenate((left_points, right_points), axis=0)
+        pcd = point_cloud(points, "robot")
+        if self.rear_pcd_publisher.get_subscription_count() > 0:
+            self.rear_pcd_publisher.publish(pcd)
+
+        if lcm_publish_flag:
+            tof_points_msg=tof_lcmt.tof_lcmt()        
+            tof_points_msg.tof_id = 2
+            tof_points_msg.tof_time =  0 #msg.stamp.nanosec/1000000 + msg.header.stamp.sec * 1000 #待定
+            for idx in range(0,64):
+                tof_points_msg.tof_data[idx] = (float)(msg.left_rear.data[idx])
+            self.lock.acquire()
+            try:
+                lc.publish("tof_points",tof_points_msg.encode())
+            finally:
+                self.lock.release()
+            tof_points_msg.tof_id = 3
+            for idx in range(0,64):
+                tof_points_msg.tof_data[idx] = (float)(msg.right_rear.data[idx])
+            self.lock.acquire()
+            try:
+                lc.publish("tof_points",tof_points_msg.encode())
+            finally:
+                self.lock.release()
         return
 
     def head_listener_callback(self, msg):
@@ -170,9 +281,8 @@ class MinimalSubscriber(Node):
         # self.tof_pcd_generate(msg.right_head)
         self.head_tof_pcd_generate(msg)
         
-    # def rear_listener_callback(self, msg):
-    #     self.tof_pcd_generate(msg.left_rear)
-    #     self.tof_pcd_generate(msg.right_rear)
+    def rear_listener_callback(self, msg):
+        self.rear_tof_pcd_generate(msg)
 
 def point_cloud(points, parent_frame):
     ros_dtype = sensor_msgs.PointField.FLOAT32
