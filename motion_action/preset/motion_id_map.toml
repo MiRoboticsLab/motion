@@ -773,7 +773,7 @@ motion_id = 301
 map  = [11, 7]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
-min_exec_time = -1
+min_exec_time = 0
 
 # 四足小跳
 [[motion_ids]]
@@ -781,7 +781,7 @@ motion_id = 302
 map  = [11, 2]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
-min_exec_time = -1
+min_exec_time = 0
 
 # 慢速行走
 [[motion_ids]]
@@ -789,7 +789,7 @@ motion_id = 303
 map = [11, 27]  
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
-min_exec_time = -1
+min_exec_time = 0
 
 # 自变频步态
 [[motion_ids]]
@@ -797,7 +797,7 @@ motion_id = 304
 map = [11, 26]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
-min_exec_time = -1
+min_exec_time = 0
 
 # 快速行走
 [[motion_ids]]
@@ -805,7 +805,7 @@ motion_id = 305
 map = [11, 10]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
-min_exec_time = -1
+min_exec_time = 0
 
 # 三足步态
 [[motion_ids]]
@@ -821,7 +821,7 @@ motion_id = 308
 map = [11, 3]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
-min_exec_time = -1
+min_exec_time = 0
 
 # 跟随步态
 [[motion_ids]]
@@ -829,7 +829,15 @@ motion_id = 309
 map = [11, 28]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
-min_exec_time = -1
+min_exec_time = 0
+
+# 芭蕾步态
+[[motion_ids]]
+motion_id = 310
+map = [11, 68]   
+pre_motion = []
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23]
+min_exec_time = 0
 
 # 注册步态
 [[motion_ids]]
