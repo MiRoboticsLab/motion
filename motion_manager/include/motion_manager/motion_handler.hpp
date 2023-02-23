@@ -55,18 +55,18 @@ public:
   void ExecuteResultCmd(const CmdRequestT request, CmdResponseT response);
   template<typename CmdRequestT, typename CmdResponseT>
   void HandleResultCmd(const CmdRequestT request, CmdResponseT response);
-  void HandleSequenceCmd(
-    const MotionSequenceSrv::Request::SharedPtr request,
-    MotionSequenceSrv::Response::SharedPtr response);
+  // void HandleSequenceCmd(
+  //   const MotionSequenceSrv::Request::SharedPtr request,
+  //   MotionSequenceSrv::Response::SharedPtr response);
   void HandleQueueCmd(
     const MotionQueueCustomSrv::Request::SharedPtr request,
     MotionQueueCustomSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
   bool FeedbackTimeout();
-  inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
-  {
-    sequence_total_duration_ = sequence_total_duration;
-  }
+  // inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
+  // {
+  //   sequence_total_duration_ = sequence_total_duration;
+  // }
   bool CheckMotionResult(int32_t & code);
   bool CheckMotionResult(int32_t motion_id, int32_t & code);
   bool SelfCheck()
@@ -218,7 +218,7 @@ private:
   std::shared_ptr<MCode> code_ptr_;
   std::string toml_log_dir_;
   std::function<void()> reset_decision_f_;
-  int64_t sequence_total_duration_{0};
+  // int64_t sequence_total_duration_{0};
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
   int8_t server_check_error_counter_ {0};

@@ -75,7 +75,7 @@ public:
 public:
   void Execute(const MotionServoCmdMsg::SharedPtr msg);
   void Execute(const MotionResultSrv::Request::SharedPtr request);
-  void Execute(const MotionSequenceSrv::Request::SharedPtr request);
+  void Execute(const MotionSequenceShowSrv::Request::SharedPtr request);
   void Execute(const MotionQueueCustomSrv::Request::SharedPtr request);
   void Execute(const robot_control_cmd_lcmt & lcm);
   void RegisterFeedback(std::function<void(MotionStatusMsg::SharedPtr)> feedback);

@@ -38,21 +38,21 @@ void MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
   if (motion_id_map_.empty()) {
     return;
   }
-  robot_control_cmd_lcmt lcm_cmd;
-  lcm_cmd.mode = motion_id_map_.at(msg->motion_id).map.front();
-  lcm_cmd.gait_id = motion_id_map_.at(msg->motion_id).map.back();
-  lcm_cmd.contact = 0;
-  lcm_cmd.value = msg->value;
-  lcm_cmd.duration = 0;
-  GET_VALUE(msg->step_height, lcm_cmd.step_height, 2, "step_height");
-  GET_VALUE(msg->vel_des, lcm_cmd.vel_des, 3, "vel_des");
-  GET_VALUE(msg->rpy_des, lcm_cmd.rpy_des, 3, "rpy_des");
-  GET_VALUE(msg->pos_des, lcm_cmd.pos_des, 3, "pos_des");
-  GET_VALUE(msg->ctrl_point, lcm_cmd.ctrl_point, 3, "ctrl_point");
-  GET_VALUE(msg->acc_des, lcm_cmd.acc_des, 6, "acc_des");
-  GET_VALUE(msg->foot_pose, lcm_cmd.foot_pose, 6, "foot_pose");
+  static auto lcm_cmd = std::make_shared<robot_control_cmd_lcmt>();
+  lcm_cmd->mode = motion_id_map_.at(msg->motion_id).map.front();
+  lcm_cmd->gait_id = motion_id_map_.at(msg->motion_id).map.back();
+  lcm_cmd->contact = 0;
+  lcm_cmd->value = msg->value;
+  lcm_cmd->duration = 0;
+  GET_VALUE(msg->step_height, lcm_cmd->step_height, 2, "step_height");
+  GET_VALUE(msg->vel_des, lcm_cmd->vel_des, 3, "vel_des");
+  GET_VALUE(msg->rpy_des, lcm_cmd->rpy_des, 3, "rpy_des");
+  GET_VALUE(msg->pos_des, lcm_cmd->pos_des, 3, "pos_des");
+  GET_VALUE(msg->ctrl_point, lcm_cmd->ctrl_point, 3, "ctrl_point");
+  GET_VALUE(msg->acc_des, lcm_cmd->acc_des, 6, "acc_des");
+  GET_VALUE(msg->foot_pose, lcm_cmd->foot_pose, 6, "foot_pose");
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
-  lcm_cmd_ = lcm_cmd;
+  lcm_cmd_ = *lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
   lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
   lk.unlock();
@@ -91,7 +91,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
   }
   lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
   lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
-  lcm_cmd.contact = 15;
+  lcm_cmd.contact = request->contact == 0 ? 15 : request->contact;
   lcm_cmd.value = request->value;
   lcm_cmd.duration = request->duration;
   GET_VALUE(request->step_height, lcm_cmd.step_height, 2, "step_height");
@@ -116,7 +116,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
 }
 
 
-void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
+void MotionAction::Execute(const MotionSequenceShowSrv::Request::SharedPtr request)
 {
   if (!ins_init_) {
     ERROR("MotionAction has not been initialized when execute QueueSrv");
@@ -125,47 +125,9 @@ void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
   if (motion_id_map_.empty()) {
     return;
   }
-  for (auto cmd : request->params) {
-    robot_control_cmd_lcmt lcm_cmd;
-    lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
-    lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
-    lcm_cmd.step_height[0] = cmd.forefoot_height;
-    lcm_cmd.step_height[1] = cmd.hindfoot_height;
-    lcm_cmd.vel_des[0] = cmd.twist.linear.x;
-    lcm_cmd.vel_des[1] = cmd.twist.linear.y;
-    lcm_cmd.vel_des[2] = cmd.twist.linear.z;
-    lcm_cmd.rpy_des[0] = cmd.twist.angular.x;
-    lcm_cmd.rpy_des[1] = cmd.twist.angular.y;
-    lcm_cmd.rpy_des[2] = cmd.twist.angular.z;
-    lcm_cmd.pos_des[0] = cmd.centroid_height.x;
-    lcm_cmd.pos_des[1] = cmd.centroid_height.y;
-    lcm_cmd.pos_des[2] = cmd.centroid_height.z;
-    lcm_cmd.foot_pose[0] = cmd.right_forefoot.x;
-    lcm_cmd.foot_pose[1] = cmd.right_forefoot.y;
-    lcm_cmd.foot_pose[2] = cmd.left_forefoot.x;
-    lcm_cmd.foot_pose[3] = cmd.left_forefoot.y;
-    lcm_cmd.foot_pose[4] = cmd.right_hindfoot.x;
-    lcm_cmd.foot_pose[5] = cmd.right_hindfoot.y;
-    lcm_cmd.ctrl_point[0] = cmd.left_hindfoot.x;
-    lcm_cmd.ctrl_point[1] = cmd.left_hindfoot.y;
-    lcm_cmd.ctrl_point[2] = cmd.friction_coefficient;
-    for (int i = 0; i < 6; ++i) {
-      lcm_cmd.acc_des[i] = 1.0;
-    }
-    lcm_cmd.duration = cmd.duration_ms;
-    std::unique_lock<std::mutex> lk(lcm_write_mutex_);
-    lcm_cmd_ = lcm_cmd;
-    lcm_cmd_.life_count = life_count_++;
-    lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
-    lk.unlock();
-    lcm_cmd_init_ = true;
-    INFO(
-      "SequenceCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
-      lcm_cmd_.duration);
-    if (toml_log_func_) {
-      toml_log_func_(lcm_cmd_);
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  INFO("SequenceCmd: \n%s", request->pace_toml.c_str());
+  if (!SequenceDefImpl(request->pace_toml)) {
+    ERROR("SequenceCmd(%d) transmission error", request->motion_id);
   }
 }
 
@@ -516,7 +478,7 @@ bool MotionAction::SequenceDefImpl(const std::string & toml_data)
       lk,
       std::chrono::milliseconds(kAcitonLcmReadTimeout + 2000)) == std::cv_status::timeout)
   {
-    ERROR("Wait sequence def result timeout");
+    ERROR("Wait sequence def or trans result timeout");
     return false;
   }
   std::this_thread::sleep_for(std::chrono::microseconds(1000));
