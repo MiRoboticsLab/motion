@@ -503,7 +503,8 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
 {
   if (GetWorkStatus() != HandlerStatus::kIdle &&
     request->motion_id != MotionIDMsg::ESTOP &&
-    request->cmd_source != MotionResultSrv::Request::FSM) {
+    request->cmd_source != MotionResultSrv::Request::FSM)
+  {
     response->result = false;
     // response->code = code_ptr_->GetCode(MotionCode::kBusy);
     response->code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
