@@ -17,6 +17,14 @@ min_exec_time = 1000
 # 高阻尼趴下， duration必须为0
 [[motion_ids]]
 motion_id = 101
+map = [7, 1]    
+pre_motion = []
+post_motion = [0, 12, 7]
+min_exec_time = 5000
+
+# 高阻尼趴下（备用）， duration必须为0
+[[motion_ids]]
+motion_id = 102
 map = [7, 0]    
 pre_motion = []
 post_motion = [0, 12, 7]
