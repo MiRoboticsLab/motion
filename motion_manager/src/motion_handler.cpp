@@ -501,7 +501,10 @@ void MotionHandler::HandleResultCmd<MotionSequenceShowSrv::Request::SharedPtr,
 template<typename CmdRequestT, typename CmdResponseT>
 void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT response)
 {
-  if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
+  if (GetWorkStatus() != HandlerStatus::kIdle &&
+    request->motion_id != MotionIDMsg::ESTOP &&
+    request->cmd_source != MotionResultSrv::Request::FSM)
+  {
     response->result = false;
     // response->code = code_ptr_->GetCode(MotionCode::kBusy);
     response->code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);

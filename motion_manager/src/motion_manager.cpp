@@ -149,6 +149,16 @@ int32_t MotionManager::OnTearDown()
 {
   INFO("Get fsm: TearDown");
   SetState(MotionMgrState::kTearDown);
+  if (decision_ptr_->GetMotionID() != MotionIDMsg::ESTOP &&
+    decision_ptr_->GetMotionID() != MotionIDMsg::GETDOWN)
+  {
+    while (!TryGetDownOnFsm() && rclcpp::ok()) {
+      INFO("Error when GetDown on TearDown, Will retry");
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+  } else {
+    INFO("Estop or Getdown, will do nothing when into TearDown");
+  }
   return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
@@ -193,8 +203,8 @@ int32_t MotionManager::OnLowPower()
   if (decision_ptr_->GetMotionID() != MotionIDMsg::ESTOP &&
     decision_ptr_->GetMotionID() != MotionIDMsg::GETDOWN)
   {
-    while (!TryGetDownOnLowPower() && rclcpp::ok()) {
-      INFO("Target Busy when GetDown on LowPower, Will retry");
+    while (!TryGetDownOnFsm() && rclcpp::ok()) {
+      INFO("Error when GetDown on LowPower, Will retry");
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
   } else {
@@ -207,6 +217,16 @@ int32_t MotionManager::OnOTA()
 {
   INFO("Get fsm: OTA");
   SetState(MotionMgrState::kOTA);
+  if (decision_ptr_->GetMotionID() != MotionIDMsg::ESTOP &&
+    decision_ptr_->GetMotionID() != MotionIDMsg::GETDOWN)
+  {
+    while (!TryGetDownOnFsm() && rclcpp::ok()) {
+      INFO("Error when GetDown on OTA, Will retry");
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+  } else {
+    INFO("Estop or Getdown, will do nothing when into OTA");
+  }
   return code_ptr_->GetKeyCode(system::KeyCode::kOK);
 }
 
