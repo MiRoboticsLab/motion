@@ -237,7 +237,11 @@ void MotionHandler::StopServoCmd()
   if (last_servo_cmd_ != nullptr && last_servo_cmd_->motion_id !=
     MotionIDMsg::FORCECONTROL_DEFINITIVELY)
   {
-    WalkStand(last_servo_cmd_);
+    if (fsm_state_ != MotionMgrState::kTearDown && fsm_state_ != MotionMgrState::kOTA) {
+      WalkStand(last_servo_cmd_);
+    } else {
+      INFO("Won't walk stand due to fsm in TearDown or OTA");
+    }
   }
   SetWorkStatus(HandlerStatus::kIdle);
   if (reset_decision_f_ != nullptr) {
