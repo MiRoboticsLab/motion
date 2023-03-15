@@ -65,7 +65,7 @@ min_exec_time = 0
 
 # 强化学习快速恢复站立
 [[motion_ids]]
-motion_id = 115
+motion_id = 117
 map  = [80, 0]   
 pre_motion = []
 post_motion = [0, 12, 7, 11, 80, 81, 82]
