@@ -791,12 +791,20 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23, 80, 81, 82]
 min_exec_time = 0
 
+# # 四足小跳
+# [[motion_ids]]
+# motion_id = 302
+# map  = [82, 0]   
+# pre_motion = []
+# post_motion = [0, 12, 7, 11, 80, 81, 82]
+# min_exec_time = 0
+
 # 四足小跳
 [[motion_ids]]
 motion_id = 302
-map  = [82, 0]   
+map  = [11, 2]   
 pre_motion = []
-post_motion = [0, 12, 7, 11, 80, 81, 82]
+post_motion = [0, 12, 7, 21, 3, 6, 11, 23, 80, 81, 82]
 min_exec_time = 0
 
 # 慢速行走
