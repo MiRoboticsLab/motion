@@ -52,7 +52,9 @@ enum class MotionCode : int32_t
   // kCommandInvalid = 30,
   kSequenceDefError = 31,
   kHwMotorOffline = 32,
-  kComLcmTimeout = 33,
+  kHwMotorOverHeat = 33,
+  kHwMotorOverLoad = 34,
+  kComLcmTimeout = 35,
   kEstop = 40,
   kStuck = 41,
   // kBusy = 42

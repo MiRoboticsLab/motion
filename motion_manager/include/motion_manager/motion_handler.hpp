@@ -94,7 +94,7 @@ private:
   bool AllowServoCmd(int32_t motion_id);
   template<typename CmdRequestT>
   bool IsCommandValid(const CmdRequestT & request, int32_t & code);
-  bool CheckMotors();
+  bool CheckMotors(int32_t & code);
   inline void SetWorkStatus(const HandlerStatus & status)
   {
     std::unique_lock<std::mutex> lk(status_mutex_);
