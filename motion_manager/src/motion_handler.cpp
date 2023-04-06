@@ -13,6 +13,7 @@
 // limitations under the License.
 #include <memory>
 #include <vector>
+#include <set>
 #include <string>
 #include "motion_manager/motion_handler.hpp"
 
@@ -284,8 +285,7 @@ void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cm
 
 bool MotionHandler::CheckMotionResult(int32_t & code)
 {
-  if (!CheckMotors()) {
-    code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+  if (!CheckMotors(code)) {
     return false;
   }
   if (motion_status_ptr_->ori_error != 0 ||
@@ -526,9 +526,10 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     return;
   }
   if (request->motion_id != MotionIDMsg::ESTOP) {
-    if (!CheckMotors()) {
+    int32_t code = 0;
+    if (!CheckMotors(code)) {
       response->result = false;
-      response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+      response->code = code;
       ERROR("Motor error");
       SetWorkStatus(HandlerStatus::kIdle);
       return;
@@ -746,22 +747,42 @@ void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
   toml_ << "\n";
 }
 
-bool MotionHandler::CheckMotors()
+bool MotionHandler::CheckMotors(int32_t & code)
 {
   bool ret = true;
+  bool fatal_error = false;
+  bool over_heat_error = false;
   int motor = 0;
+  auto fatal = std::set<uint8_t>{0, 2, 8};
+  auto over_heat = std::set<uint8_t>{1, 24};
   for (auto motor_error : motion_status_ptr_->motor_error) {
     int pos = 0;
     while (pos <= 29) {
       if (motor_error & (1 << pos)) {
         ERROR("Motor %d : %d", motor, pos);
+        if (fatal.find(pos) != fatal.end()) {
+          fatal_error = true;
+        }
+        if (over_heat.find(pos) != over_heat.end()) {
+          over_heat_error = true;
+        }
         ret = false;
       }
       ++pos;
     }
     ++motor;
   }
-  return ret;
+  if (ret) {
+    return true;
+  }
+  if (fatal_error) {
+    code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+  } else if (over_heat_error) {
+    code = code_ptr_->GetCode(MotionCode::kHwMotorOverHeat);
+  } else {
+    code = code_ptr_->GetCode(MotionCode::kHwMotorOverLoad);
+  }
+  return false;
 }
 }  // namespace motion
 }  // namespace cyberdog
