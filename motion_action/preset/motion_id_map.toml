@@ -71,6 +71,14 @@ pre_motion = []
 post_motion = [0, 12, 7, 11, 80, 81, 82]
 min_exec_time = 5000
 
+# 极速起身
+[[motion_ids]]
+motion_id = 118
+map  = [80, 1]   
+pre_motion = []
+post_motion = [0, 12, 7, 11, 80, 81, 82]
+min_exec_time = 5000
+
 # 空翻Stand, 用于触发空翻动作切换
 [[motion_ids]]
 motion_id = 120
@@ -222,6 +230,14 @@ map  = [12, 18]
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 62, 5, 64, 16, 17, 23, 9]
 min_exec_time = 20000
+
+# 跑跳空翻
+[[motion_ids]]
+motion_id = 139
+map = [62, 109]   
+pre_motion = []
+post_motion = [0, 12, 7, 21]
+min_exec_time = 30000
 
 # 舞蹈集合
 [[motion_ids]]
@@ -543,25 +559,9 @@ pre_motion = []
 post_motion = [0, 12, 7]
 min_exec_time = 15000
 
-# 预留2600
-[[motion_ids]]
-motion_id = 180
-map = [26, 0]   
-pre_motion = []
-post_motion = [0, 12, 7]
-min_exec_time = 15000
-
-# 预留2700
-[[motion_ids]]
-motion_id = 181
-map = [27, 0]   
-pre_motion = []
-post_motion = [0, 12, 7]
-min_exec_time = 15000
-
 # 预制自定义0
 [[motion_ids]]
-motion_id = 115
+motion_id = 180
 map = [11, 80]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23, 80, 81, 82]
@@ -569,7 +569,7 @@ min_exec_time = 15000
 
 # 预制自定义1
 [[motion_ids]]
-motion_id = 116
+motion_id = 181
 map = [11, 81]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23, 80, 81, 82]
@@ -791,14 +791,6 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23, 80, 81, 82]
 min_exec_time = 0
 
-# # 四足小跳
-# [[motion_ids]]
-# motion_id = 302
-# map  = [82, 0]   
-# pre_motion = []
-# post_motion = [0, 12, 7, 11, 80, 81, 82]
-# min_exec_time = 0
-
 # 四足小跳
 [[motion_ids]]
 motion_id = 302
@@ -871,6 +863,14 @@ pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23, 80, 81, 82]
 min_exec_time = 0
 
+# 强化蹦跳
+[[motion_ids]]
+motion_id = 311
+map  = [82, 0]   
+pre_motion = []
+post_motion = [0, 12, 7, 11, 80, 81, 82]
+min_exec_time = 0
+
 # 注册步态-快跑
 [[motion_ids]]
 motion_id = 390
@@ -894,14 +894,6 @@ map = [11, 11]
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23, 80, 81, 82]
 min_exec_time = -1
-
-# 注册步态（原四足小跳）
-[[motion_ids]]
-motion_id = 393
-map  = [11, 2]   
-pre_motion = []
-post_motion = [0, 12, 7, 21, 3, 6, 11, 23, 80, 81, 82]
-min_exec_time = 0
 
 # 上楼梯专用
 [[motion_ids]]
