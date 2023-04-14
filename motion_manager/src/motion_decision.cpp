@@ -13,6 +13,7 @@
 // limitations under the License.
 #include <memory>
 #include <vector>
+#include <string>
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "motion_manager/motion_decision.hpp"
 
@@ -31,15 +32,30 @@ MotionDecision::~MotionDecision() {}
 
 void MotionDecision::Config() {}
 
-bool MotionDecision::Init()
+bool MotionDecision::Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub)
 {
   handler_ptr_ = std::make_shared<MotionHandler>(node_ptr_, code_ptr_);
   if (!handler_ptr_->Init()) {
     ERROR("Fail to initialize MotionHandler");
     return false;
   }
-  servo_response_pub_ = node_ptr_->create_publisher<MotionServoResponseMsg>(
-    kMotionServoResponseTopicName, 10);
+  handler_ptr_->RegisterModeFunction(std::bind(&MotionDecision::ResetMode, this));
+  std::string toml_file = ament_index_cpp::get_package_share_directory(
+    "motion_manager") + "/config/priority.toml";
+  toml::value config;
+  if (!cyberdog::common::CyberdogToml::ParseFile(toml_file, config)) {
+    FATAL("Cannot parse %s", toml_file.c_str());
+    exit(-1);
+  }
+  GET_TOML_VALUE(config, "App", priority_map_[int32_t(DecisionStatus::kExecutingApp)]);
+  GET_TOML_VALUE(config, "Audio", priority_map_[int32_t(DecisionStatus::kExecutingAudio)]);
+  GET_TOML_VALUE(config, "Vis", priority_map_[int32_t(DecisionStatus::kExecutingVis)]);
+  GET_TOML_VALUE(config, "BluTele", priority_map_[int32_t(DecisionStatus::kExecutingBluTele)]);
+  GET_TOML_VALUE(config, "Algo", priority_map_[int32_t(DecisionStatus::kExecutingAlgo)]);
+  priority_map_[int32_t(DecisionStatus::kIdle)] = int32_t(DecisionStatus::kIdle);
+  priority_map_[int32_t(DecisionStatus::kExecutingKeyBoardDebug)] =
+    int32_t(DecisionStatus::kExecutingKeyBoardDebug);
+  servo_response_pub_ = servo_response_pub;
   servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponseThread, this));
   servo_response_thread_.detach();
   laser_helper_ = std::make_shared<LaserHelper>(node_ptr_);
@@ -57,6 +73,12 @@ void MotionDecision::DecideServoCmd(const MotionServoCmdMsg::SharedPtr & msg)
     ERROR("Forbidden ServoCmd when estop");
     return;
   }
+  if (!IsModeValid(msg->cmd_source)) {
+    servo_response_msg_.code = code_ptr_->GetKeyCode(system::KeyCode::kFailed);
+    ERROR("Mode error, %d in control when get %d", (int32_t)motion_work_mode_, msg->cmd_source);
+    return;
+  }
+  SetMode((DecisionStatus)msg->cmd_source);
   handler_ptr_->HandleServoCmd(msg, servo_response_msg_);
 }
 
@@ -100,9 +122,9 @@ void MotionDecision::DecideResultCmd<MotionResultSrv::Request::SharedPtr,
   MotionResultSrv::Response::SharedPtr);
 
 template
-void MotionDecision::DecideResultCmd<MotionSequenceSrv::Request::SharedPtr,
-  MotionSequenceSrv::Response::SharedPtr>(MotionSequenceSrv::Request::SharedPtr,
-  MotionSequenceSrv::Response::SharedPtr);
+void MotionDecision::DecideResultCmd<MotionSequenceShowSrv::Request::SharedPtr,
+  MotionSequenceShowSrv::Response::SharedPtr>(MotionSequenceShowSrv::Request::SharedPtr,
+  MotionSequenceShowSrv::Response::SharedPtr);
 
 /**
  * @brief 执行结果指令
@@ -126,6 +148,7 @@ void MotionDecision::DecideResultCmd(
   }
   estop_ = request->motion_id == MotionIDMsg::ESTOP;
   handler_ptr_->HandleResultCmd(request, response);
+  INFO("Will return DecideResultCmd");
 }
 
 // /**

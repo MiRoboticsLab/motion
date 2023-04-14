@@ -13,6 +13,7 @@
 // limitations under the License.
 #include <memory>
 #include <vector>
+#include <set>
 #include <string>
 #include "motion_manager/motion_handler.hpp"
 
@@ -52,6 +53,9 @@ bool MotionHandler::Init()
       this->action_ptr_->ShowDebugLog(request->data);
     }
   );
+  audio_play_ = node_ptr_->create_client<protocol::srv::AudioTextPlay>(
+    "speech_text_play",
+    rmw_qos_profile_services_default);
   servo_check_click_ = std::make_shared<ServoClick>();
   servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
   servo_data_check_thread_.detach();
@@ -72,6 +76,45 @@ bool MotionHandler::Init()
   }.detach();
   SetWorkStatus(HandlerStatus::kIdle);
   return true;
+}
+
+template<>
+bool MotionHandler::IsCommandValid(const MotionServoCmdMsg::SharedPtr & request, int32_t & code)
+{
+  if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
+    ERROR("Command %d not support", request->motion_id);
+    code = code_ptr_->GetKeyCode(system::KeyCode::kUnSupport);
+    return false;
+  }
+  return true;
+}
+
+template<typename CmdRequestT>
+bool MotionHandler::IsCommandValid(const CmdRequestT & request, int32_t & code)
+{
+  if (request->motion_id != MotionIDMsg::SEQUENCE_CUSTOM) {
+    if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
+      ERROR("Command %d not support", request->motion_id);
+      code = code_ptr_->GetKeyCode(system::KeyCode::kUnSupport);
+      return false;
+    }
+    bool result = true;
+    auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
+    if (min_exec_time > 0) {
+      result = request->duration == 0;
+    } else if (min_exec_time < 0) {
+      result = request->duration > 0;
+    } else {}
+    if (!result) {
+      ERROR("Command %d not valid", request->motion_id);
+      code = code_ptr_->GetKeyCode(system::KeyCode::kParametersInvalid);
+      return false;
+    }
+    return true;
+  } else {
+    // TODO(Harvey): 判断自定义动作的指令有效
+    return true;
+  }
 }
 
 void MotionHandler::HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr & msg)
@@ -123,8 +166,22 @@ void MotionHandler::HandleServoCmd(
 {
   if (GetWorkStatus() == HandlerStatus::kExecutingResultCmd) {
     res.result = false;
-    res.code = code_ptr_->GetCode(MotionCode::kBusy);
+    // res.code = code_ptr_->GetCode(MotionCode::kBusy);
+    res.code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
     ERROR("Busy(Executing ResultCmd) for ServoCmd");
+    if (reset_decision_f_ != nullptr) {
+      reset_decision_f_();
+    }
+    return;
+  }
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsCommandValid(msg, code)) {
+    res.result = false;
+    // res.code = code_ptr_->GetCode(MotionCode::kBusy);
+    res.code = code;
+    if (reset_decision_f_ != nullptr) {
+      reset_decision_f_();
+    }
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingServoCmd);
@@ -142,22 +199,25 @@ void MotionHandler::HandleServoCmd(
         res.code = response->code;
         exec_servo_pre_motion_failed_ = true;
         ERROR("Get error when trying to be ready for ServoCmd");
+        if (reset_decision_f_ != nullptr) {
+          reset_decision_f_();
+        }
         return;
       }
       post_motion_checked_ = true;
     }
     exec_servo_pre_motion_failed_ = false;
     last_servo_cmd_ = msg;
+    action_ptr_->SetAlignContact(true);
     action_ptr_->Execute(msg);
+    // if (!sing_) {
+    //   // Sing(true);
+    //   sing_ = true;
+    // }
     TickServoCmd();
     SetServoNeedCheck(true);
   } else {
-    SetServoNeedCheck(false);
-    if (last_servo_cmd_ != nullptr) {
-      WalkStand(last_servo_cmd_);
-    }
-    SetWorkStatus(HandlerStatus::kIdle);
-    post_motion_checked_ = false;
+    StopServoCmd();
   }
   res.result = true;
   // res.code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
@@ -174,16 +234,29 @@ void MotionHandler::ServoDataCheck()
     }
     if (server_check_error_counter_ >= kServoDataLostTimesThreshold) {
       WARN("Servo data lost time with %d times", kServoDataLostTimesThreshold);
-      // StopServoResponse();
-      // SetServoDataLost(); TODO(harvey): 是否通知Decision？
-      SetServoNeedCheck(false);
-      WalkStand(last_servo_cmd_);
-      // TODO(harvey): 当信号丢失的时候，是否需要将Decision中的状态复位？
-      SetWorkStatus(HandlerStatus::kIdle);
-      post_motion_checked_ = false;
+      StopServoCmd();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
+}
+
+void MotionHandler::StopServoCmd()
+{
+  SetServoNeedCheck(false);
+  if (last_servo_cmd_ != nullptr && last_servo_cmd_->motion_id !=
+    MotionIDMsg::FORCECONTROL_DEFINITIVELY)
+  {
+    if (fsm_state_ != MotionMgrState::kTearDown && fsm_state_ != MotionMgrState::kOTA) {
+      WalkStand(last_servo_cmd_);
+    } else {
+      INFO("Won't walk stand due to fsm in TearDown or OTA");
+    }
+  }
+  SetWorkStatus(HandlerStatus::kIdle);
+  if (reset_decision_f_ != nullptr) {
+    reset_decision_f_();
+  }
+  post_motion_checked_ = false;
 }
 
 void MotionHandler::PoseControlDefinitively()
@@ -206,7 +279,7 @@ void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cm
   MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
   // request->motion_id = last_servo_cmd->motion_id;
   // request->step_height = last_servo_cmd->step_height;
-  // request->value = last_servo_cmd->value;
+  request->value = last_servo_cmd->value;
   // request->duration = 500;
   request->motion_id = MotionIDMsg::WALK_STAND;
   request->step_height = last_servo_cmd->step_height;
@@ -220,8 +293,7 @@ void MotionHandler::WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cm
 
 bool MotionHandler::CheckMotionResult(int32_t & code)
 {
-  if (!CheckMotors()) {
-    code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+  if (!CheckMotors(code)) {
     return false;
   }
   if (motion_status_ptr_->ori_error != 0 ||
@@ -280,6 +352,13 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   //   }
   // }
   action_ptr_->Execute(request);
+  INFO("Wait 15ms start");
+  if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
+    auto req = std::make_shared<MotionResultSrv::Request>();
+    req->motion_id = request->motion_id;
+    action_ptr_->Execute(req);
+  }
+  auto start = std::chrono::system_clock::now();
   if (FeedbackTimeout()) {
     response->code = code_ptr_->GetCode(MotionCode::kComLcmTimeout);
     response->result = false;
@@ -287,6 +366,9 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
     ERROR("LCM Com timeout");
     return;
   }
+  auto past = std::chrono::system_clock::now() - start;
+  std::this_thread::sleep_for(std::chrono::nanoseconds(15 * 1000 * 1000) - past);
+  INFO("Wait 15ms over");
   std::unique_lock<std::mutex> check_lk(execute_mutex_);
   wait_id_ = request->motion_id;
   switch (motion_status_ptr_->switch_status) {
@@ -316,6 +398,20 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
       ERROR("Motion switch LIFTED");
+      return;
+
+    case MotionStatusMsg::OVER_HEAT:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchOverHeat);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch OVER_HEAT");
+      return;
+
+    case MotionStatusMsg::LOW_BAT:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchLowBat);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch LOW_BAT");
       return;
 
     case MotionStatusMsg::TRANSITIONING:
@@ -377,7 +473,7 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   } else if (min_exec_time < 0) {  // 增量力控、增量位控、绝对位控、行走duration必须大于0
     wait_timeout = request->duration;
   } else {                         // 自定义动作按照设定的参数计算
-    wait_timeout = sequence_total_duration_ * 2;
+    wait_timeout = request->duration == 0 ? 500 : request->duration * 2;
   }
   // INFO("%d", wait_timeout);
   if (execute_cv_.wait_for(
@@ -410,32 +506,38 @@ void MotionHandler::HandleResultCmd<MotionResultSrv::Request::SharedPtr,
   MotionResultSrv::Response::SharedPtr);
 
 template
-void MotionHandler::HandleResultCmd<MotionSequenceSrv::Request::SharedPtr,
-  MotionSequenceSrv::Response::SharedPtr>(MotionSequenceSrv::Request::SharedPtr,
-  MotionSequenceSrv::Response::SharedPtr);
+void MotionHandler::HandleResultCmd<MotionSequenceShowSrv::Request::SharedPtr,
+  MotionSequenceShowSrv::Response::SharedPtr>(MotionSequenceShowSrv::Request::SharedPtr,
+  MotionSequenceShowSrv::Response::SharedPtr);
 
 template<typename CmdRequestT, typename CmdResponseT>
 void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT response)
 {
-  if (GetWorkStatus() != HandlerStatus::kIdle && request->motion_id != MotionIDMsg::ESTOP) {
+  if (GetWorkStatus() != HandlerStatus::kIdle &&
+    request->motion_id != MotionIDMsg::ESTOP &&
+    request->cmd_source != MotionResultSrv::Request::FSM)
+  {
     response->result = false;
-    response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    // response->code = code_ptr_->GetCode(MotionCode::kBusy);
+    response->code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
     ERROR("Busy when Getting ResultCmd(%d)", request->motion_id);
     return;
   }
   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
-  if (!IsCommandValid(request)) {
-    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+  int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+  if (!IsCommandValid(request, code)) {
+    // response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+    response->code = code;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
-    ERROR("ResultCmd(%d) invalid", request->motion_id);
     SetWorkStatus(HandlerStatus::kIdle);
     return;
   }
   if (request->motion_id != MotionIDMsg::ESTOP) {
-    if (!CheckMotors()) {
+    int32_t code = 0;
+    if (!CheckMotors(code)) {
       response->result = false;
-      response->code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+      response->code = code;
       ERROR("Motor error");
       SetWorkStatus(HandlerStatus::kIdle);
       return;
@@ -468,8 +570,8 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     }
   }
   if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
-    INFO("\n%s", request->toml_data.c_str());
-    if (!action_ptr_->SequenceDefImpl(request->toml_data)) {
+    INFO("\n%s", request->gait_toml.c_str());
+    if (!action_ptr_->SequenceDefImpl(request->gait_toml)) {
       response->code = code_ptr_->GetCode(MotionCode::kSequenceDefError);
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
@@ -479,37 +581,95 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       return;
     }
   }
+  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    elec_skin_id_ = 0;
+    action_ptr_->ShowDefaultSkin(false, false);
+  }
+  if (request->motion_id == MotionIDMsg::RECOVERYSTAND) {
+    if(elec_skin_id_ >= 3) {
+      elec_skin_id_ = 0;
+    }
+    switch (elec_skin_id_)
+    {
+      case 0:
+        action_ptr_->ShowStandElecSkin();
+        break;
+
+      case 1:
+        action_ptr_->ShowTwinkElecSkin();
+        break;
+
+      case 2:
+        action_ptr_->ShowRandomElecSkin();
+        break;
+
+      default:
+        break;
+    }
+    elec_skin_id_++;
+  }
+  if (request->motion_id == MotionIDMsg::GETDOWN ||
+    request->motion_id == 143) { // 坐下
+    elec_skin_id_ = 0;
+    action_ptr_->ShowStandElecSkin();
+  }
+  if (request->motion_id == 136) { // 原地跳起，映射到运控的跳舞
+    // if (!sing_) {
+    //   INFO("Will sing");
+    //   Sing(true);
+    //   sing_ = true;
+    // }
+    INFO("Will sing");
+    Sing(true);
+    action_ptr_->SetAlignContact(true);
+  }
+  if (request->motion_id == MotionIDMsg::GETDOWN) {
+    // action_ptr_->ShowDefaultSkin(true, true);
+    INFO("Stop sing");
+    Sing(false);
+    // sing_ = false;
+  }
+  // if (request->motion_id == MotionIDMsg::BACK_FLIP) {
+  //   action_ptr_->ShowDefaultSkin(true, true);
+  // }
   ExecuteResultCmd(request, response);
+  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    elec_skin_id_ = 0;
+    action_ptr_->ShowDefaultSkin(true, true);
+  }
   CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
+  INFO("Will return HandleResultCmd");
 }
 
-void MotionHandler::HandleSequenceCmd(
-  const MotionSequenceSrv::Request::SharedPtr request,
-  MotionSequenceSrv::Response::SharedPtr response)
-{
-  if (GetWorkStatus() != HandlerStatus::kIdle) {
-    response->result = false;
-    response->code = code_ptr_->GetCode(MotionCode::kBusy);
-    ERROR("Busy when Getting SequenceCmd(%d)", MotionIDMsg::SEQUENCE_CUSTOM);
-    return;
-  }
-  SetWorkStatus(HandlerStatus::kExecutingResultCmd);
-  auto req = std::make_shared<MotionResultSrv::Request>();
-  req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
-  if (!IsCommandValid(req)) {
-    response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
-    response->result = false;
-    response->describe = "";
-    ERROR("SequenceCmd invalid");
-    SetWorkStatus(HandlerStatus::kIdle);
-    return;
-  }
-  CreateTomlLog(req->motion_id);
-  ExecuteResultCmd(request, response);
-  CloseTomlLog();
-  SetWorkStatus(HandlerStatus::kIdle);
-}
+// void MotionHandler::HandleSequenceCmd(
+//   const MotionSequenceSrv::Request::SharedPtr request,
+//   MotionSequenceSrv::Response::SharedPtr response)
+// {
+//   if (GetWorkStatus() != HandlerStatus::kIdle) {
+//     response->result = false;
+//     // response->code = code_ptr_->GetCode(MotionCode::kBusy);
+//     response->code = code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy);
+//     ERROR("Busy when Getting SequenceCmd(%d)", MotionIDMsg::SEQUENCE_CUSTOM);
+//     return;
+//   }
+//   SetWorkStatus(HandlerStatus::kExecutingResultCmd);
+//   auto req = std::make_shared<MotionResultSrv::Request>();
+//   req->motion_id = MotionIDMsg::SEQUENCE_CUSTOM;
+//   int32_t code = code_ptr_->GetKeyCode(system::KeyCode::kOK);
+//   if (!IsCommandValid(req, code)) {
+//     // response->code = code_ptr_->GetCode(MotionCode::kCommandInvalid);
+//     response->code = code;
+//     response->result = false;
+//     response->describe = "";
+//     SetWorkStatus(HandlerStatus::kIdle);
+//     return;
+//   }
+//   CreateTomlLog(req->motion_id);
+//   ExecuteResultCmd(request, response);
+//   CloseTomlLog();
+//   SetWorkStatus(HandlerStatus::kIdle);
+// }
 
 
 void MotionHandler::HandleQueueCmd(
@@ -599,29 +759,6 @@ bool MotionHandler::AllowServoCmd(int32_t motion_id)
   if (post_motion_checked_) {return true;}
   return CheckPostMotion(motion_id);
 }
-template<typename CmdRequestT>
-bool MotionHandler::IsCommandValid(const CmdRequestT & request)
-{
-  if (request->motion_id != MotionIDMsg::SEQUENCE_CUSTOM) {
-    if (motion_id_map_.find(request->motion_id) == motion_id_map_.end()) {
-      return false;
-    }
-    bool result = true;
-    auto min_exec_time = motion_id_map_[request->motion_id].min_exec_time;
-    if (min_exec_time > 0) {
-      result = request->duration == 0;
-    } else if (min_exec_time < 0) {
-      result = request->duration > 0;
-    } else {}
-    if (!result) {
-      return false;
-    }
-    return true;
-  } else {
-    // TODO(Harvey): 判断自定义动作的指令有效
-    return true;
-  }
-}
 
 void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
 {
@@ -673,22 +810,42 @@ void MotionHandler::WriteTomlLog(const robot_control_cmd_lcmt & cmd)
   toml_ << "\n";
 }
 
-bool MotionHandler::CheckMotors()
+bool MotionHandler::CheckMotors(int32_t & code)
 {
   bool ret = true;
+  bool fatal_error = false;
+  bool over_heat_error = false;
   int motor = 0;
+  auto fatal = std::set<uint8_t>{0, 2, 8};
+  auto over_heat = std::set<uint8_t>{1, 24};
   for (auto motor_error : motion_status_ptr_->motor_error) {
     int pos = 0;
-    while (pos <= 17) {
+    while (pos <= 29) {
       if (motor_error & (1 << pos)) {
         ERROR("Motor %d : %d", motor, pos);
+        if (fatal.find(pos) != fatal.end()) {
+          fatal_error = true;
+        }
+        if (over_heat.find(pos) != over_heat.end()) {
+          over_heat_error = true;
+        }
         ret = false;
       }
       ++pos;
     }
     ++motor;
   }
-  return ret;
+  if (ret) {
+    return true;
+  }
+  if (fatal_error) {
+    code = code_ptr_->GetCode(MotionCode::kHwMotorOffline);
+  } else if (over_heat_error) {
+    code = code_ptr_->GetCode(MotionCode::kHwMotorOverHeat);
+  } else {
+    code = code_ptr_->GetCode(MotionCode::kHwMotorOverLoad);
+  }
+  return false;
 }
 }  // namespace motion
 }  // namespace cyberdog

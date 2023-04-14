@@ -13,6 +13,7 @@ find_package(cyberdog_system REQUIRED)
 find_package(protocol REQUIRED)
 find_package(motion_action REQUIRED)
 find_package(cyberdog_debug REQUIRED)
+find_package(cyberdog_machine REQUIRED)
 
 include_directories(include)
 
@@ -35,6 +36,10 @@ ament_target_dependencies(${PROJECT_NAME}
 install(TARGETS
   ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY
+  config
+  DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

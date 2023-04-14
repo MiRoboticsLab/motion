@@ -27,6 +27,7 @@
 #include "protocol/srv/motion_queue_custom_cmd.hpp"
 #include "protocol/srv/motion_custom_cmd.hpp"
 #include "protocol/srv/motion_sequence.hpp"
+#include "protocol/srv/motion_sequence_show.hpp"
 #include "protocol/lcm/file_send_lcmt.hpp"
 #include "protocol/lcm/file_recv_lcmt.hpp"
 
@@ -38,25 +39,25 @@ namespace motion
 // 所有的motion相关code都从3000开始，该值为全局架构设计分配
 enum class MotionCode : int32_t
 {
-  kHwLowBattery = 0,
-  kHwMotorOffline = 1,
+  kMotionSwitchEstop = 21,
+  kMotionSwitchBantrans = 22,
+  kMotionSwitchEdamp = 23,
+  kMotionSwitchLifted = 24,
+  kMotionSwitchOverHeat = 25,
+  kMotionSwitchLowBat = 26,
+  kMotionTransitionTimeout = 27,
+  kMotionExecuteTimeout = 28,
+  kMotionExecuteError = 29,
 
-  kComLcmTimeout = 10,
-
-  kMotionSwitchEstop = 20,
-  kMotionSwitchBantrans = 24,
-  kMotionSwitchEdamp = 25,
-  kMotionSwitchLifted = 26,
-  kMotionTransitionTimeout = 21,
-  kMotionExecuteTimeout = 22,
-  kMotionExecuteError = 23,
-
-  kCommandInvalid = 30,
+  // kCommandInvalid = 30,
   kSequenceDefError = 31,
-
+  kHwMotorOffline = 32,
+  kHwMotorOverHeat = 33,
+  kHwMotorOverLoad = 34,
+  kComLcmTimeout = 35,
   kEstop = 40,
   kStuck = 41,
-  kBusy = 42
+  // kBusy = 42
 };  // enum class MotionCode
 
 using MotionServoCmdMsg = protocol::msg::MotionServoCmd;
@@ -64,6 +65,7 @@ using LcmResponse = robot_control_response_lcmt;
 using MotionResultSrv = protocol::srv::MotionResultCmd;
 using MotionQueueCustomSrv = protocol::srv::MotionQueueCustomCmd;
 using MotionSequenceSrv = protocol::srv::MotionSequence;
+using MotionSequenceShowSrv = protocol::srv::MotionSequenceShow;
 using MotionCustomSrv = protocol::srv::MotionCustomCmd;
 using MotionStatusMsg = protocol::msg::MotionStatus;
 using MotionServoResponseMsg = protocol::msg::MotionServoResponse;
@@ -165,13 +167,19 @@ enum class MotionID : int32_t
   kPoseControlRelatively = 212
 };  // enmu calss MotionID
 
-enum class DecisionStatus : uint8_t
+enum class MotionMgrState : uint8_t
 {
-  kIdle = 0,
-  kExecutingApp = 1,
-  kExecutingAudio = 2,
-  kExecutingVis = 3,
-};  // enum class DecisionStatus
+  kUninit,
+  kSetup,
+  kTearDown,
+  kSelfCheck,
+  kActive,
+  kDeactive,
+  kProtected,
+  kLowPower,
+  kOTA,
+  kError
+};
 
 enum class HandlerStatus : uint8_t
 {

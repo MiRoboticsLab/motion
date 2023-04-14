@@ -19,6 +19,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <vector>
+#include <map>
 #include "motion_action/motion_macros.hpp"
 #include "motion_action/motion_action.hpp"
 #include "motion_manager/motion_handler.hpp"
@@ -98,11 +99,20 @@ private:
 class MotionDecision final
 {
 public:
+  enum class DecisionStatus : int32_t
+  {
+    kExecutingKeyBoardDebug = -1,
+    kExecutingApp = 0,
+    kExecutingAudio = 1,
+    kExecutingVis = 2,
+    kExecutingBluTele = 3,
+    kExecutingAlgo = 4,
+    kIdle = 100,
+  };  // enum class DecisionStatus
   MotionDecision(const rclcpp::Node::SharedPtr & node, const std::shared_ptr<MCode> & code);
   ~MotionDecision();
-
   void Config();
-  bool Init();
+  bool Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr response_msg_pub);
 
 public:
   void DecideServoCmd(const MotionServoCmdMsg::SharedPtr & msg);
@@ -117,22 +127,31 @@ public:
   void DecideSequenceCmd(
     const MotionSequenceSrv::Request::SharedPtr request,
     MotionSequenceSrv::Response::SharedPtr response);
-
-  inline void SetMode(uint8_t mode)
+  // inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
+  // {
+  //   handler_ptr_->SetSequnceTotalDuration(sequence_total_duration);
+  // }
+  inline bool SelfCheck()
   {
-    motion_work_mode_ = (DecisionStatus)mode;
+    return handler_ptr_->SelfCheck();
   }
-
-  inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
+  inline int32_t GetMotionID()
   {
-    handler_ptr_->SetSequnceTotalDuration(sequence_total_duration);
+    return handler_ptr_->GetMotionStatus()->motion_id;
+  }
+  inline void SetState(const MotionMgrState & state)
+  {
+    handler_ptr_->SetState(state);
   }
 
 private:
   inline bool IsStateValid(int32_t motion_id, int32_t & error_code)
   {
     if (estop_) {
-      if (motion_id != MotionIDMsg::ESTOP && motion_id != MotionIDMsg::RECOVERYSTAND) {
+      if (motion_id != MotionIDMsg::ESTOP &&
+        motion_id != MotionIDMsg::RECOVERYSTAND &&
+        motion_id != MotionIDMsg::GETDOWN)
+      {
         ERROR("Forbidden ResultCmd(%d) when estop", motion_id);
         error_code = code_ptr_->GetCode(MotionCode::kEstop);
         return false;
@@ -157,10 +176,21 @@ private:
   {
     return estop_;
   }
-
+  inline void SetMode(DecisionStatus mode)
+  {
+    motion_work_mode_ = mode;
+  }
   inline bool IsModeValid()
   {
     return true;
+  }
+  inline bool IsModeValid(int32_t cmd_source)
+  {
+    return priority_map_.at(cmd_source) <= priority_map_.at((int32_t)motion_work_mode_);
+  }
+  inline void ResetMode()
+  {
+    motion_work_mode_ = DecisionStatus::kIdle;
   }
 
 private:
@@ -242,6 +272,7 @@ private:
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub_;
   MotionServoResponseMsg servo_response_msg_;
   std::shared_ptr<LaserHelper> laser_helper_;
+  std::map<int32_t, int32_t> priority_map_;
   bool estop_ {false};
 };  // class MotionDecision
 }  // namespace motion

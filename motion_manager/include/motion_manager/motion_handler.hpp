@@ -30,6 +30,8 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
+#include "protocol/srv/audio_text_play.hpp"
+#include "protocol/msg/audio_play.hpp"
 
 namespace cyberdog
 {
@@ -53,20 +55,33 @@ public:
   void ExecuteResultCmd(const CmdRequestT request, CmdResponseT response);
   template<typename CmdRequestT, typename CmdResponseT>
   void HandleResultCmd(const CmdRequestT request, CmdResponseT response);
-  void HandleSequenceCmd(
-    const MotionSequenceSrv::Request::SharedPtr request,
-    MotionSequenceSrv::Response::SharedPtr response);
+  // void HandleSequenceCmd(
+  //   const MotionSequenceSrv::Request::SharedPtr request,
+  //   MotionSequenceSrv::Response::SharedPtr response);
   void HandleQueueCmd(
     const MotionQueueCustomSrv::Request::SharedPtr request,
     MotionQueueCustomSrv::Response::SharedPtr response);
   MotionStatusMsg::SharedPtr GetMotionStatus();
   bool FeedbackTimeout();
-  inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
-  {
-    sequence_total_duration_ = sequence_total_duration;
-  }
+  // inline void SetSequnceTotalDuration(int64_t sequence_total_duration)
+  // {
+  //   sequence_total_duration_ = sequence_total_duration;
+  // }
   bool CheckMotionResult(int32_t & code);
   bool CheckMotionResult(int32_t motion_id, int32_t & code);
+  bool SelfCheck()
+  {
+    return action_ptr_->SelfCheck();
+  }
+  void SetState(const MotionMgrState & state)
+  {
+    fsm_state_ = state;
+    action_ptr_->SetState(state);
+  }
+  void RegisterModeFunction(std::function<void()> function)
+  {
+    reset_decision_f_ = function;
+  }
 
 private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
@@ -80,8 +95,8 @@ private:
   bool CheckPostMotion(int32_t motion_id);
   bool AllowServoCmd(int32_t motion_id);
   template<typename CmdRequestT>
-  bool IsCommandValid(const CmdRequestT & request);
-  bool CheckMotors();
+  bool IsCommandValid(const CmdRequestT & request, int32_t & code);
+  bool CheckMotors(int32_t & code);
   inline void SetWorkStatus(const HandlerStatus & status)
   {
     std::unique_lock<std::mutex> lk(status_mutex_);
@@ -119,7 +134,7 @@ private:
   {
     return servo_check_click_->Tock();
   }
-
+  void StopServoCmd();
   inline std::string GetCurrentTime()
   {
     struct timeval tv;
@@ -162,10 +177,24 @@ private:
     toml_.close();
   }
 
+  inline void Sing(bool enable)
+  {
+    auto request = std::make_shared<protocol::srv::AudioTextPlay_Request>();
+    if (!enable) {
+      request->is_online = false;
+      request->speech.play_id = 9999;
+    } else {
+      request->is_online = false;
+      request->speech.play_id = 6000;
+    }
+    audio_play_->async_send_request(request);
+  }
+
   /* ros members */
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub_ {nullptr};
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr ad_srv_{nullptr};
+  rclcpp::Client<protocol::srv::AudioTextPlay>::SharedPtr audio_play_{nullptr};
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
   std::thread servo_response_thread_;
@@ -185,20 +214,24 @@ private:
   std::map<int32_t, MotionIdMap> motion_id_map_;
   MotionServoCmdMsg::SharedPtr last_servo_cmd_ {nullptr};
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
+  MotionMgrState fsm_state_;
   HandlerStatus status_;
   std::ofstream toml_;
   std::shared_ptr<MCode> code_ptr_;
   std::string toml_log_dir_;
-  int64_t sequence_total_duration_{0};
+  std::function<void()> reset_decision_f_;
+  // int64_t sequence_total_duration_{0};
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
   int8_t server_check_error_counter_ {0};
+  int8_t elec_skin_id_{0};
   bool is_transitioning_wait_ {false};
   bool is_execute_wait_ {false};
   bool is_servo_need_check_ {false};
   bool premotion_executing_ {false};
   bool post_motion_checked_ {false};
   bool exec_servo_pre_motion_failed_ {false};
+  bool sing_{false};
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

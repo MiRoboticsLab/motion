@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include "motion_action/motion_action.hpp"
+#include "elec_skin/elec_skin.hpp"
 #include <string>
 #include <memory>
 #include <map>
@@ -37,21 +38,21 @@ void MotionAction::Execute(const MotionServoCmdMsg::SharedPtr msg)
   if (motion_id_map_.empty()) {
     return;
   }
-  robot_control_cmd_lcmt lcm_cmd;
-  lcm_cmd.mode = motion_id_map_.at(msg->motion_id).map.front();
-  lcm_cmd.gait_id = motion_id_map_.at(msg->motion_id).map.back();
-  lcm_cmd.contact = 0;
-  lcm_cmd.value = msg->value;
-  lcm_cmd.duration = 0;
-  GET_VALUE(msg->step_height, lcm_cmd.step_height, 2, "step_height");
-  GET_VALUE(msg->vel_des, lcm_cmd.vel_des, 3, "vel_des");
-  GET_VALUE(msg->rpy_des, lcm_cmd.rpy_des, 3, "rpy_des");
-  GET_VALUE(msg->pos_des, lcm_cmd.pos_des, 3, "pos_des");
-  GET_VALUE(msg->ctrl_point, lcm_cmd.ctrl_point, 3, "ctrl_point");
-  GET_VALUE(msg->acc_des, lcm_cmd.acc_des, 6, "acc_des");
-  GET_VALUE(msg->foot_pose, lcm_cmd.foot_pose, 6, "foot_pose");
+  static auto lcm_cmd = std::make_shared<robot_control_cmd_lcmt>();
+  lcm_cmd->mode = motion_id_map_.at(msg->motion_id).map.front();
+  lcm_cmd->gait_id = motion_id_map_.at(msg->motion_id).map.back();
+  lcm_cmd->contact = 0;
+  lcm_cmd->value = msg->value;
+  lcm_cmd->duration = 0;
+  GET_VALUE(msg->step_height, lcm_cmd->step_height, 2, "step_height");
+  GET_VALUE(msg->vel_des, lcm_cmd->vel_des, 3, "vel_des");
+  GET_VALUE(msg->rpy_des, lcm_cmd->rpy_des, 3, "rpy_des");
+  GET_VALUE(msg->pos_des, lcm_cmd->pos_des, 3, "pos_des");
+  GET_VALUE(msg->ctrl_point, lcm_cmd->ctrl_point, 3, "ctrl_point");
+  GET_VALUE(msg->acc_des, lcm_cmd->acc_des, 6, "acc_des");
+  GET_VALUE(msg->foot_pose, lcm_cmd->foot_pose, 6, "foot_pose");
   std::unique_lock<std::mutex> lk(lcm_write_mutex_);
-  lcm_cmd_ = lcm_cmd;
+  lcm_cmd_ = *lcm_cmd;
   lcm_cmd_.life_count = life_count_++;
   lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
   lk.unlock();
@@ -90,7 +91,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
   }
   lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
   lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
-  lcm_cmd.contact = 15;
+  lcm_cmd.contact = request->contact == 0 ? 15 : request->contact;
   lcm_cmd.value = request->value;
   lcm_cmd.duration = request->duration;
   GET_VALUE(request->step_height, lcm_cmd.step_height, 2, "step_height");
@@ -115,7 +116,7 @@ void MotionAction::Execute(const MotionResultSrv::Request::SharedPtr request)
 }
 
 
-void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
+void MotionAction::Execute(const MotionSequenceShowSrv::Request::SharedPtr request)
 {
   if (!ins_init_) {
     ERROR("MotionAction has not been initialized when execute QueueSrv");
@@ -124,47 +125,9 @@ void MotionAction::Execute(const MotionSequenceSrv::Request::SharedPtr request)
   if (motion_id_map_.empty()) {
     return;
   }
-  for (auto cmd : request->params) {
-    robot_control_cmd_lcmt lcm_cmd;
-    lcm_cmd.mode = motion_id_map_.at(request->motion_id).map.front();
-    lcm_cmd.gait_id = motion_id_map_.at(request->motion_id).map.back();
-    lcm_cmd.step_height[0] = cmd.forefoot_height;
-    lcm_cmd.step_height[1] = cmd.hindfoot_height;
-    lcm_cmd.vel_des[0] = cmd.twist.linear.x;
-    lcm_cmd.vel_des[1] = cmd.twist.linear.y;
-    lcm_cmd.vel_des[2] = cmd.twist.linear.z;
-    lcm_cmd.rpy_des[0] = cmd.twist.angular.x;
-    lcm_cmd.rpy_des[1] = cmd.twist.angular.y;
-    lcm_cmd.rpy_des[2] = cmd.twist.angular.z;
-    lcm_cmd.pos_des[0] = cmd.centroid_height.x;
-    lcm_cmd.pos_des[1] = cmd.centroid_height.y;
-    lcm_cmd.pos_des[2] = cmd.centroid_height.z;
-    lcm_cmd.foot_pose[0] = cmd.right_forefoot.x;
-    lcm_cmd.foot_pose[1] = cmd.right_forefoot.y;
-    lcm_cmd.foot_pose[2] = cmd.left_forefoot.x;
-    lcm_cmd.foot_pose[3] = cmd.left_forefoot.y;
-    lcm_cmd.foot_pose[4] = cmd.right_hindfoot.x;
-    lcm_cmd.foot_pose[5] = cmd.right_hindfoot.y;
-    lcm_cmd.ctrl_point[0] = cmd.left_hindfoot.x;
-    lcm_cmd.ctrl_point[1] = cmd.left_hindfoot.y;
-    lcm_cmd.ctrl_point[2] = cmd.friction_coefficient;
-    for (int i = 0; i < 6; ++i) {
-      lcm_cmd.acc_des[i] = 1.0;
-    }
-    lcm_cmd.duration = cmd.duration_ms;
-    std::unique_lock<std::mutex> lk(lcm_write_mutex_);
-    lcm_cmd_ = lcm_cmd;
-    lcm_cmd_.life_count = life_count_++;
-    lcm_publish_instance_->publish(kLCMActionControlChannel, &lcm_cmd_);
-    lk.unlock();
-    lcm_cmd_init_ = true;
-    INFO(
-      "SequenceCmd: %d, %d, %d, %d", lcm_cmd_.mode, lcm_cmd_.gait_id, lcm_cmd_.life_count,
-      lcm_cmd_.duration);
-    if (toml_log_func_) {
-      toml_log_func_(lcm_cmd_);
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  INFO("SequenceCmd: \n%s", request->pace_toml.c_str());
+  if (!SequenceDefImpl(request->pace_toml)) {
+    ERROR("SequenceCmd(%d) transmission error", request->motion_id);
   }
 }
 
@@ -238,6 +201,50 @@ bool MotionAction::ParseMotionIdMap()
   return true;
 }
 
+bool MotionAction::ParseElecSkin()
+{
+  std::string elec_skin_config = ament_index_cpp::get_package_share_directory("motion_action") +
+    "/preset/" + "elec_skin.toml";
+  toml::value elec_skin_value;
+  if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin_config, elec_skin_value)) {
+    FATAL("Cannot parse %s", elec_skin_config.c_str());
+    return false;
+  }
+  // if (!motion_ids.is_table()) {
+  //   FATAL("Toml format error");
+  //   exit(-1);
+  // }
+  // toml::value values;
+  int8_t default_color = 0;
+  int8_t start_direction = 0;
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "stand_gradual_duration_", stand_gradual_duration_);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "twink_gradual_duration_", twink_gradual_duration_);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "random_gradual_duration_", random_gradual_duration_);
+  
+  INFO("Default color: %d", default_color);
+  INFO("Start direction: %d", start_direction);
+  INFO("Gradual duration: %d", gradual_duration_);
+  INFO("StandGradual duration: %d", stand_gradual_duration_);
+  INFO("TwinkGradual duration: %d", twink_gradual_duration_);
+  INFO("RandomGradual duration: %d", random_gradual_duration_);
+  if (default_color == 0) {
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
+  } else {
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
+    change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
+  }
+  if (start_direction == 0) {
+    start_dir_ = PositionColorStartDirection::PCSD_FRONT;
+  } else {
+    start_dir_ = PositionColorStartDirection::PCSD_BACK;
+  }
+  return true;
+}
+
 bool MotionAction::Init(
   const std::string & publish_url, const std::string & subscribe_url)
 {
@@ -265,8 +272,16 @@ bool MotionAction::Init(
     std::thread(
     [this]() {
       while (rclcpp::ok()) {
-        while (0 == this->lcm_subscribe_instance_->handleTimeout(kAcitonLcmReadTimeout)) {
-          ERROR("Cannot read LCM from MR813");
+        if (0 == this->lcm_subscribe_instance_->handleTimeout(kAcitonLcmReadTimeout)) {
+          this->lcm_ready_ = false;
+          if (state_ == MotionMgrState::kActive ||
+          state_ == MotionMgrState::kSetup ||
+          state_ == MotionMgrState::kSelfCheck)
+          {
+            ERROR("Cannot read LCM from MR813");
+          }
+        } else {
+          this->lcm_ready_ = true;
         }
       }
     });
@@ -284,13 +299,79 @@ bool MotionAction::Init(
         while (0 == this->lcm_recv_subscribe_instance_->handle()) {}
       }
     }}.detach();
+
+  lcm_state_estimator_subscribe_instance_ = std::make_shared<lcm::LCM>("udpm://239.255.76.67:7669?ttl=255");
+  if (!lcm_state_estimator_subscribe_instance_->good()) {
+    ERROR("MotionAction read robot state lcm initialized error");
+    return false;
+  }
+  lcm_state_estimator_subscribe_instance_->subscribe(
+    "state_estimator",
+    &MotionAction::ReadStateEstimatorLcm, this);
+  std::thread{[this]() {
+      while (rclcpp::ok()) {
+        while (0 == this->lcm_state_estimator_subscribe_instance_->handle()) {}
+      }
+    }}.detach();
+
+  elec_skin_ = std::make_shared<ElecSkin>();
+  ParseElecSkin();
+  leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT}); 
+  leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
+  leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
+  leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
   ins_init_ = true;
   return true;
 }
 
+void MotionAction::ReadStateEstimatorLcm(
+  const lcm::ReceiveBuffer *, const std::string &,
+  const state_estimator_lcmt * msg)
+{
+  if (!ins_init_) {
+    return;
+  }
+  if (!align_contact_) {
+    return;
+  }
+  static auto last_contact = std::vector<uint8_t>(4, 0);
+  auto contact = std::vector<uint8_t>(4, 0);
+  // INFO("%f, %f, %f, %f", msg->contactEstimate[0],msg->contactEstimate[1],msg->contactEstimate[2],msg->contactEstimate[3]);
+  for(uint8_t i = 0; i < 4; ++i) {
+    contact[i] = msg->contactEstimate[i] > 0 ? 1 : 0;
+    if (contact[i] == last_contact[i]) {
+      continue;
+    }
+    last_contact[i] = contact[i];
+    if (contact[i] == 1) {
+      WARN("Leg %d liftdown", i);
+      for (auto p : leg_map[i]) {
+        elec_skin_->PositionContril(
+          p,
+          change_dir_.front(),
+          start_dir_,
+          gradual_duration_);
+      }
+    } else {
+      WARN("Leg %d liftup", i);
+      for (auto p : leg_map[i]) {
+        elec_skin_->PositionContril(
+          p,
+          change_dir_.back(),
+          start_dir_,
+          gradual_duration_);
+      }
+    }
+
+  }
+  // INFO("%d, %d, %d, %d", contact[0], contact[1], contact[2], contact[3]);
+}
+
+
 bool MotionAction::SelfCheck()
 {
-  return true;
+  INFO("MR813 LCM: %s", lcm_ready_ ? "Ready" : "Offline");
+  return lcm_ready_;
 }
 
 void MotionAction::RegisterFeedback(
@@ -397,7 +478,7 @@ bool MotionAction::SequenceDefImpl(const std::string & toml_data)
       lk,
       std::chrono::milliseconds(kAcitonLcmReadTimeout + 2000)) == std::cv_status::timeout)
   {
-    ERROR("Wait sequence def result timeout");
+    ERROR("Wait sequence def or trans result timeout");
     return false;
   }
   std::this_thread::sleep_for(std::chrono::microseconds(1000));

@@ -100,18 +100,20 @@ def service_callback(request:SetBool.Request, response:SetBool.Response):
 
 def main(args=None):
     rclpy.init(args=args)
-    end = None
+    end = False
+    motion_id = MotionID.WALK_ADAPTIVELY
     opts = None
     argv = sys.argv[1:]
     try:
-        opts, args = getopt.getopt(argv, "e:")  # 短选项模式
+        opts, args = getopt.getopt(argv, "ei:")  # 短选项模式
     except:
         print("Error")
     if opts != None:
         for opt, arg in opts:
             if opt in ['-e']:
-                end = arg
-
+                end = True
+            if opt in ['-i']:
+                motion_id = int(arg)
     global settings
     global triggered
     # print(auto)
@@ -123,7 +125,6 @@ def main(args=None):
     service = node.create_service(SetBool, 'tracking_command', service_callback)
     status = 0
     count = 0
-    motion_id = 0
     life_count = 0
     speed = .2
     speed_y = .2
@@ -148,7 +149,6 @@ def main(args=None):
             if not triggered:
                 sleep(0.1)
                 continue
-            motion_id = MotionID.WALK_ADAPTIVELY
             key = getKey()
             if key in moveBindings.keys():
                 x = moveBindings[key][0]
@@ -206,7 +206,8 @@ def main(args=None):
                 control_turn = target_turn
 
             cmd = MotionServoCmd()
-            cmd.motion_id = motion_id; 
+            cmd.motion_id = motion_id
+            cmd.cmd_source = -1 # 最高调试优先级
             #   cmd.mode = mode; cmd.gait_id = gait_id; cmd.life_count = life_count + 1
             cmd.vel_des.fromlist([control_speed, control_speed_y, control_turn])
             cmd.pos_des.fromlist([0.0, 0.0, 0.2])
@@ -222,7 +223,8 @@ def main(args=None):
         if end:
             cmd = MotionServoCmd()
             cmd.cmd_type = MotionServoCmd.SERVO_END
-            # cmd.motion_id = MotionID.FORCECONTROL_RELATIVEYLY
+            cmd.motion_id = motion_id
+            cmd.cmd_source = -1 # 最高调试优先级
             # cmd.mode = 3; cmd.gait_id = 0; cmd.life_count = life_count + 1
             # cmd.pos_des.fromlist([0.0, 0.0, 0.3])
             # cmd.vel_des.fromlist([0.0, 0.0, 0.0])
