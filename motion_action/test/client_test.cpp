@@ -37,6 +37,8 @@ public:
     map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kTargetBusy), "kTargetBusy");
     map_.emplace(code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kProtectedError), "kProtected");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwMotorOffline), "kHwMotorOffline");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwMotorOverHeat), "kHwMotorOverHeat");
+    map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kHwMotorOverLoad), "kHwMotorOverLoad");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kComLcmTimeout), "kComLcmTimeout");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionSwitchBantrans), "kMotionSwitchBantrans");
     map_.emplace(code_ptr_->GetCode(cyberdog::motion::MotionCode::kMotionSwitchEdamp), "kMotionSwitchEdamp");

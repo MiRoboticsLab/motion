@@ -111,13 +111,14 @@ private:
       ERROR("Cannot get response from AudioPlay");
     }
   }
-  bool TryGetDownOnLowPower()
+  bool TryGetDownOnFsm()
   {
     auto request = std::make_shared<MotionResultSrv::Request>();
     request->motion_id = MotionIDMsg::GETDOWN;
+    request->cmd_source = MotionResultSrv::Request::FSM;
     auto response = std::make_shared<MotionResultSrv::Response>();
     decision_ptr_->DecideResultCmd(request, response);
-    if (response->code == code_ptr_->GetKeyCode(system::KeyCode::kTargetBusy)) {
+    if (response->code != code_ptr_->GetKeyCode(system::KeyCode::kOK)) {
       return false;
     }
     return true;

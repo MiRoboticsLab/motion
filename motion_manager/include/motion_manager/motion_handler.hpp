@@ -75,6 +75,7 @@ public:
   }
   void SetState(const MotionMgrState & state)
   {
+    fsm_state_ = state;
     action_ptr_->SetState(state);
   }
   void RegisterModeFunction(std::function<void()> function)
@@ -95,7 +96,7 @@ private:
   bool AllowServoCmd(int32_t motion_id);
   template<typename CmdRequestT>
   bool IsCommandValid(const CmdRequestT & request, int32_t & code);
-  bool CheckMotors();
+  bool CheckMotors(int32_t & code);
   inline void SetWorkStatus(const HandlerStatus & status)
   {
     std::unique_lock<std::mutex> lk(status_mutex_);
@@ -213,6 +214,7 @@ private:
   std::map<int32_t, MotionIdMap> motion_id_map_;
   MotionServoCmdMsg::SharedPtr last_servo_cmd_ {nullptr};
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
+  MotionMgrState fsm_state_;
   HandlerStatus status_;
   std::ofstream toml_;
   std::shared_ptr<MCode> code_ptr_;
