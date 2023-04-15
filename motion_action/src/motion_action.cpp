@@ -334,36 +334,45 @@ void MotionAction::ReadStateEstimatorLcm(
   if (!align_contact_) {
     return;
   }
-  static auto last_contact = std::vector<uint8_t>(4, 0);
-  auto contact = std::vector<uint8_t>(4, 0);
-  // INFO("%f, %f, %f, %f", msg->contactEstimate[0],msg->contactEstimate[1],msg->contactEstimate[2],msg->contactEstimate[3]);
-  for(uint8_t i = 0; i < 4; ++i) {
-    contact[i] = msg->contactEstimate[i] > 0 ? 1 : 0;
-    if (contact[i] == last_contact[i]) {
-      continue;
-    }
-    last_contact[i] = contact[i];
-    if (contact[i] == 1) {
-      WARN("Leg %d liftdown", i);
-      for (auto p : leg_map[i]) {
-        elec_skin_->PositionContril(
-          p,
-          change_dir_.front(),
-          start_dir_,
-          gradual_duration_);
-      }
-    } else {
-      WARN("Leg %d liftup", i);
-      for (auto p : leg_map[i]) {
-        elec_skin_->PositionContril(
-          p,
-          change_dir_.back(),
-          start_dir_,
-          gradual_duration_);
-      }
-    }
-
+  if (!move_skin_) {
+    return;
   }
+  auto contact = std::vector<uint8_t>(4, 0);
+  for(uint_8 i = 0; i < 4; i++) {
+    contact.push_back(msg->contactEstimate[i]);
+  }
+  elec_skin_manager_->ShowMoveElecSkin(contact);
+
+  // static auto last_contact = std::vector<uint8_t>(4, 0);
+  // auto contact = std::vector<uint8_t>(4, 0);
+  // // INFO("%f, %f, %f, %f", msg->contactEstimate[0],msg->contactEstimate[1],msg->contactEstimate[2],msg->contactEstimate[3]);
+  // for(uint8_t i = 0; i < 4; ++i) {
+  //   contact[i] = msg->contactEstimate[i] > 0 ? 1 : 0;
+  //   if (contact[i] == last_contact[i]) {
+  //     continue;
+  //   }
+  //   last_contact[i] = contact[i];
+  //   if (contact[i] == 1) {
+  //     WARN("Leg %d liftdown", i);
+  //     for (auto p : leg_map[i]) {
+  //       elec_skin_->PositionContril(
+  //         p,
+  //         change_dir_.front(),
+  //         start_dir_,
+  //         gradual_duration_);
+  //     }
+  //   } else {
+  //     WARN("Leg %d liftup", i);
+  //     for (auto p : leg_map[i]) {
+  //       elec_skin_->PositionContril(
+  //         p,
+  //         change_dir_.back(),
+  //         start_dir_,
+  //         gradual_duration_);
+  //     }
+  //   }
+
+  // }
   // INFO("%d, %d, %d, %d", contact[0], contact[1], contact[2], contact[3]);
 }
 

@@ -151,7 +151,8 @@ private:
   std::shared_ptr<lcm::LCM> lcm_publish_instance_, lcm_subscribe_instance_;
   std::shared_ptr<lcm::LCM> lcm_recv_subscribe_instance_;
   std::shared_ptr<lcm::LCM> lcm_state_estimator_subscribe_instance_;
-  std::shared_ptr<ElecSkinBase> elec_skin_{nullptr};
+  //std::shared_ptr<ElecSkinBase> elec_skin_{nullptr};
+  std::shared_ptr<ElecSkinManager> elec_skin_manager_{nullptr};
   std::unordered_map<uint8_t, std::vector<PositionSkin>> leg_map;
   std::mutex lcm_write_mutex_;
   std::mutex seq_def_result_mutex_;
