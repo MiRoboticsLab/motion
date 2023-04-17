@@ -25,7 +25,7 @@ namespace cyberdog
 namespace motion
 {
 
-SkinManagerNode:: SkinManagerNode(std::string name)
+SkinManagerNode::SkinManagerNode(std::string name)
 : Node(name)
 {
 executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();

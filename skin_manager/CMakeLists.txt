@@ -46,7 +46,9 @@ install(
 )
 
 install(TARGETS ${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME})
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
 
 install(
   DIRECTORY include/
