@@ -23,7 +23,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "protocol/srv/elec_skin.hpp"
 #include "std_srvs/srv/set_bool.hpp"
-#include "elec_skin/elec_skin.hpp"
+#include "elec_skin/elec_skin_base.hpp"
 namespace cyberdog
 {
 namespace motion

@@ -19,6 +19,7 @@
 #include "std_srvs/srv/set_bool.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "skin_manager/skin_manager.hpp"
+#include "elec_skin/elec_skin.hpp"
 
 namespace cyberdog
 {

@@ -98,5 +98,5 @@ ament_export_include_directories(
 ament_export_libraries(
   ${PROJECT_NAME}
 )
-ament_export_dependencies(lcm cyberdog_common cyberdog_debug elec_skin)
+ament_export_dependencies(lcm cyberdog_common cyberdog_debug skin_manager)
 ament_package()
