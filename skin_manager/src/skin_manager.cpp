@@ -104,27 +104,33 @@ void SetModeCallback(
   }
   switch(request->mode) {
     case 0:
-      black_skin_ = true;
+      grandual_duration_ = request->wave_cycle_time;
+      ShowBlackElecSkin(grandual_duration_);
       break;
 
     case 1:
-      white_skin_ = true;
+      grandual_duration_ = request->wave_cycle_time;
+      ShowWhiteElecSkin(grandual_duration_);
       break;
 
     case 2:
-      front_skin_ = true;
+      grandual_duration_ = request->wave_cycle_time;
+      ShowFrontElecSkin(grandual_duration_);
       break;
       
     case 3:
-      back_skin_ = true;
+      grandual_duration_ = request->wave_cycle_time;
+      ShowBackElecSkin(grandual_duration_);
       break;
 
     case 4:
-      flash_skin_ = true;
+      grandual_duration_ = request->wave_cycle_time;
+      ShowFlashElecSkin(grandual_duration_ );
       break;
 
     case 5:
-      random_skin_ = true;
+      grandual_duration_ = request->wave_cycle_time;
+      ShowRandomElecSkin(grandual_duration_);
       break;
 
     case 6:

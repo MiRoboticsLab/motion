@@ -23,7 +23,7 @@ find_package(cyberdog_system REQUIRED)
 find_package(cyberdog_debug REQUIRED)
 find_package(cyberdog_common)
 find_package(lcm REQUIRED)
-find_package(elec_skin REQUIRED)
+find_package(skin_manager REQUIRED)
 
 include_directories(include)
 
@@ -35,7 +35,7 @@ ament_target_dependencies(${PROJECT_NAME}
   cyberdog_system
   cyberdog_common
   cyberdog_debug
-  elec_skin
+  skin_manager
 )
 
 add_executable(manager_test test/manager_test.cpp)

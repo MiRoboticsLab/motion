@@ -201,49 +201,49 @@ bool MotionAction::ParseMotionIdMap()
   return true;
 }
 
-bool MotionAction::ParseElecSkin()
-{
-  std::string elec_skin_config = ament_index_cpp::get_package_share_directory("motion_action") +
-    "/preset/" + "elec_skin.toml";
-  toml::value elec_skin_value;
-  if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin_config, elec_skin_value)) {
-    FATAL("Cannot parse %s", elec_skin_config.c_str());
-    return false;
-  }
-  // if (!motion_ids.is_table()) {
-  //   FATAL("Toml format error");
-  //   exit(-1);
-  // }
-  // toml::value values;
-  int8_t default_color = 0;
-  int8_t start_direction = 0;
-  cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color);
-  cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
-  cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
-  cyberdog::common::CyberdogToml::Get(elec_skin_value, "stand_gradual_duration_", stand_gradual_duration_);
-  cyberdog::common::CyberdogToml::Get(elec_skin_value, "twink_gradual_duration_", twink_gradual_duration_);
-  cyberdog::common::CyberdogToml::Get(elec_skin_value, "random_gradual_duration_", random_gradual_duration_);
+// bool MotionAction::ParseElecSkin()
+// {
+//   std::string elec_skin_config = ament_index_cpp::get_package_share_directory("motion_action") +
+//     "/preset/" + "elec_skin.toml";
+//   toml::value elec_skin_value;
+//   if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin_config, elec_skin_value)) {
+//     FATAL("Cannot parse %s", elec_skin_config.c_str());
+//     return false;
+//   }
+//   // if (!motion_ids.is_table()) {
+//   //   FATAL("Toml format error");
+//   //   exit(-1);
+//   // }
+//   // toml::value values;
+//   int8_t default_color = 0;
+//   int8_t start_direction = 0;
+//   cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color);
+//   cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
+//   cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
+//   cyberdog::common::CyberdogToml::Get(elec_skin_value, "stand_gradual_duration_", stand_gradual_duration_);
+//   cyberdog::common::CyberdogToml::Get(elec_skin_value, "twink_gradual_duration_", twink_gradual_duration_);
+//   cyberdog::common::CyberdogToml::Get(elec_skin_value, "random_gradual_duration_", random_gradual_duration_);
   
-  INFO("Default color: %d", default_color);
-  INFO("Start direction: %d", start_direction);
-  INFO("Gradual duration: %d", gradual_duration_);
-  INFO("StandGradual duration: %d", stand_gradual_duration_);
-  INFO("TwinkGradual duration: %d", twink_gradual_duration_);
-  INFO("RandomGradual duration: %d", random_gradual_duration_);
-  if (default_color == 0) {
-    change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
-    change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
-  } else {
-    change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
-    change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
-  }
-  if (start_direction == 0) {
-    start_dir_ = PositionColorStartDirection::PCSD_FRONT;
-  } else {
-    start_dir_ = PositionColorStartDirection::PCSD_BACK;
-  }
-  return true;
-}
+//   INFO("Default color: %d", default_color);
+//   INFO("Start direction: %d", start_direction);
+//   INFO("Gradual duration: %d", gradual_duration_);
+//   INFO("StandGradual duration: %d", stand_gradual_duration_);
+//   INFO("TwinkGradual duration: %d", twink_gradual_duration_);
+//   INFO("RandomGradual duration: %d", random_gradual_duration_);
+//   if (default_color == 0) {
+//     change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
+//     change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
+//   } else {
+//     change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
+//     change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
+//   }
+//   if (start_direction == 0) {
+//     start_dir_ = PositionColorStartDirection::PCSD_FRONT;
+//   } else {
+//     start_dir_ = PositionColorStartDirection::PCSD_BACK;
+//   }
+//   return true;
+// }
 
 bool MotionAction::Init(
   const std::string & publish_url, const std::string & subscribe_url)
@@ -314,13 +314,13 @@ bool MotionAction::Init(
       }
     }}.detach();
 
-  elec_skin_ = std::make_shared<ElecSkin>();
-  ParseElecSkin();
-  leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT}); 
-  leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
-  leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
-  leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
-  ins_init_ = true;
+  elec_skin_manager_ = std::make_shared<SkinManagerNode>();
+  // ParseElecSkin();
+  // leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT}); 
+  // leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
+  // leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
+  // leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
+  // ins_init_ = true;
   return true;
 }
 
@@ -328,15 +328,15 @@ void MotionAction::ReadStateEstimatorLcm(
   const lcm::ReceiveBuffer *, const std::string &,
   const state_estimator_lcmt * msg)
 {
-  if (!ins_init_) {
-    return;
-  }
-  if (!align_contact_) {
-    return;
-  }
-  if (!move_skin_) {
-    return;
-  }
+  // if (!ins_init_) {
+  //   return;
+  // }
+  // if (!align_contact_) {
+  //   return;
+  // }
+  // if (!move_skin_) {
+  //   return;
+  // }
   auto contact = std::vector<uint8_t>(4, 0);
   for(uint_8 i = 0; i < 4; i++) {
     contact.push_back(msg->contactEstimate[i]);
