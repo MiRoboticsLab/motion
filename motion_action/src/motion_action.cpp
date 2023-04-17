@@ -314,7 +314,7 @@ bool MotionAction::Init(
       }
     }}.detach();
 
-  elec_skin_manager_ = std::make_shared<SkinManagerNode>();
+  elec_skin_manager_ = std::make_shared<SkinManagerNode>("skin_manager");
   // ParseElecSkin();
   // leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT}); 
   // leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
@@ -338,7 +338,7 @@ void MotionAction::ReadStateEstimatorLcm(
   //   return;
   // }
   auto contact = std::vector<uint8_t>(4, 0);
-  for(uint_8 i = 0; i < 4; i++) {
+  for(uint8_t i = 0; i < 4; i++) {
     contact.push_back(msg->contactEstimate[i]);
   }
   elec_skin_manager_->ShowMoveElecSkin(contact);

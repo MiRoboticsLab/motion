@@ -122,10 +122,10 @@ public:
   //   align_contact_ = false;
   //   elec_skin_->ModelControl(ModelSwitch::MS_RANDOM, random_gradual_duration_);
   // }
-  void SetAlignContact(bool align_contact)
-  {
-    align_contact_ = align_contact;
-  }
+  // void SetAlignContact(bool align_contact)
+  // {
+  //   align_contact_ = align_contact;
+  // }
   void SetState(const MotionMgrState & state)
   {
     state_ = state;
@@ -153,7 +153,7 @@ private:
   std::shared_ptr<lcm::LCM> lcm_recv_subscribe_instance_;
   std::shared_ptr<lcm::LCM> lcm_state_estimator_subscribe_instance_;
   //std::shared_ptr<ElecSkinBase> elec_skin_{nullptr};
-  //std::shared_ptr<ElecSkinManager> elec_skin_manager_{nullptr};
+  std::shared_ptr<SkinManagerNode> elec_skin_manager_{nullptr};
   //std::unordered_map<uint8_t, std::vector<PositionSkin>> leg_map;
   std::mutex lcm_write_mutex_;
   std::mutex seq_def_result_mutex_;

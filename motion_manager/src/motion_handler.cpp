@@ -208,7 +208,7 @@ void MotionHandler::HandleServoCmd(
     }
     exec_servo_pre_motion_failed_ = false;
     last_servo_cmd_ = msg;
-    action_ptr_->SetAlignContact(true);
+    //action_ptr_->SetAlignContact(true);
     action_ptr_->Execute(msg);
     // if (!sing_) {
     //   // Sing(true);
@@ -633,10 +633,10 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   //   action_ptr_->ShowDefaultSkin(true, true);
   // }
   ExecuteResultCmd(request, response);
-  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
-    elec_skin_id_ = 0;
-    action_ptr_->ShowDefaultSkin(true, true);
-  }
+  // if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+  //   elec_skin_id_ = 0;
+  //   action_ptr_->ShowDefaultSkin(true, true);
+  // }
   CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
   INFO("Will return HandleResultCmd");

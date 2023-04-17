@@ -23,7 +23,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "protocol/srv/elec_skin.hpp"
 #include "std_srvs/srv/set_bool.hpp"
-#include "elec_skin/elec_skin_base.hpp"
+#include "elec_skin/elec_skin.hpp"
 namespace cyberdog
 {
 namespace motion
@@ -33,18 +33,7 @@ class SkinManagerNode : public rclcpp::Node
 public:
   explicit SkinManagerNode(std::string name);
 
-private:
-  void StartSkinCallback(
-    const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-    std::shared_ptr<std_srv::srv::SetBool::Response> response);
-  void SetModeCallback(
-    const std::shared_ptr<protocol::srv::ElecSkin::Request> request,
-    const std::shared_ptr<protocol::srv::ElecSkin::Response> response);
-
-  void ShowMoveElecSkin(std::vector<uint_8> & msg) {
-    if (!move_skin_) {
-      return;
-    }
+void ShowMoveElecSkin(std::vector<uint8_t> & msg) {
     if (!align_contact_) {
       return;
     }
@@ -80,7 +69,7 @@ private:
 
   void ShowBlackElecSkin(int32_t & grandual_duration_) {
     align_contact_ = false;
-    grandual_duration_ = request->wave_cycle_time;
+    //grandual_duration_ = request->wave_cycle_time;
     INFO("ShowBlackElecSkin");
     for(uint8_t i=0; i<4; ++i) {
       for(auto p : leg_map[i]) {
@@ -95,7 +84,7 @@ private:
 
   void ShowWhiteElecSkin(int32_t & grandual_duration_) {
     align_contact_ = false;
-    grandual_duration_ = request->wave_cycle_time;
+    //grandual_duration_ = request->wave_cycle_time;
     INFO("ShowWhiteElecSkin");
     for(uint8_t i=0; i<4; i++) {
       for(auto p : leg_map[i]) {
@@ -110,34 +99,44 @@ private:
   
   void ShowFrontElecSkin(int32_t & grandual_duration_) {
     align_contact_ = false;
-    stand_grandual_duration_ = request->wave_cycle_time;
+    //stand_grandual_duration_ = request->wave_cycle_time;
     INFO("ShowFrontElecSkin");
     elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, stand_gradual_duration_);
   }
 
   void ShowBackElecSkin(int32_t & grandual_duration_) {
     align_contact_ = false;
-    stand_grandual_duration_ = request->wave_cycle_time;
+    //stand_grandual_duration_ = request->wave_cycle_time;
     INFO("ShowBackElecSkin");
     elec_skin_->ModelControl(ModelSwitch::MS_WAVEB, stand_gradual_duration_);
   }
 
   void ShowFlashElecSkin(int32_t & grandual_duration_) {
     align_contact_ = false;
-    twink_gradual_duration_ = request->wave_cycle_time;
+    //twink_gradual_duration_ = request->wave_cycle_time;
     INFO("ShowFlashElecSkin");
     elec_skin_->ModelControl(ModelSwitch::MS_FLASH, twink_gradual_duration_);
   }
 
   void ShowRandomElecSkin(int32_t & grandual_duration_) {
     align_contact_ = false;
-    random_gradual_duration_ = request->wave_cycle_time;
+    //random_gradual_duration_ = request->wave_cycle_time;
     INFO("ShowRandomElecSkin");
     elec_skin_->ModelControl(ModelSwitch::MS_RANDOM, random_gradual_duration_);
   }
 
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr launch_service_;
-  rclcpp::Service<protocol::srv::ElecSkin>::SharedPtr skin_mode_service_;
+private:
+  void StartSkinCallback(
+    const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+    std::shared_ptr<std_srvs::srv::SetBool::Response> response);
+  void SetModeCallback(
+    const std::shared_ptr<protocol::srv::ElecSkin::Request> request,
+    const std::shared_ptr<protocol::srv::ElecSkin::Response> response);
+
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr launch_service_{nullptr};
+  rclcpp::Service<protocol::srv::ElecSkin>::SharedPtr skin_mode_service_{nullptr};
+  std::shared_ptr<ElecSkinBase> elec_skin_{nullptr};
+  rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_;
   std::unordered_map<uint8_t, std::vector<PositionSkin>> leg_map;
   std::vector<PositionColorChangeDirection> change_dir_;
   PositionColorStartDirection start_dir_;
@@ -147,7 +146,7 @@ private:
   int32_t random_gradual_duration_{0};
   bool enable_{false};
   bool align_contact_{false};
-  bool move_skin_{false};
+  //bool move_skin_{false};
 };
 }
 }

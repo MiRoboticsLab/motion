@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 #include "cyberdog_common/cyberdog_log.hpp"
+#include "cyberdog_common/cyberdog_toml.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "skin_manager/skin_manager.hpp"
@@ -24,9 +25,11 @@ namespace cyberdog
 namespace motion
 {
 
-SkinManagerNode:: SkinManagerNode(string::string name)
+SkinManagerNode:: SkinManagerNode(std::string name)
 : Node(name)
 {
+executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+executor_->add_node(this->get_node_base_interface());
 elec_skin_ = std::make_shared<ElecSkin>();
 launch_service_ = this->create_service<std_srvs::srv::SetBool>(
   "enable_elec_skin",
@@ -36,12 +39,12 @@ skin_mode_service_ = this->create_service<protocol::srv::ElecSkin>(
   "set_elec_skin",
    std::bind(&SkinManagerNode::SetModeCallback,this,
              std::placeholders::_1, std::placeholders::_2));
-std::string elec_skin_config = ament_index_cpp::get_package_share_directory("motion_action") +
-    "/preset/" + "elec_skin.toml";
+std::string elec_skin_config = ament_index_cpp::get_package_share_directory("elec_manager") +
+    "/config/" + "elec_skin.toml";
   toml::value elec_skin_value;
   if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin_config, elec_skin_value)) {
     FATAL("Cannot parse %s", elec_skin_config.c_str());
-    return false;
+    //return false;
   }
   // if (!motion_ids.is_table()) {
   //   FATAL("Toml format error");
@@ -79,11 +82,13 @@ std::string elec_skin_config = ament_index_cpp::get_package_share_directory("mot
   leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
   leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
   leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
+
+  std::thread{[this] {this->executor_->spin();}}.detach();
 }
 
-void StartSkinCallback(
-    const std::std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-    std::shared_ptr<std_srv::srv::SetBool::Response> response)
+void SkinManagerNode::StartSkinCallback(
+    const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+    std::shared_ptr<std_srvs::srv::SetBool::Response> response)
 {
   if (request->data) {
     INFO("Request to start elec_skin");
@@ -95,7 +100,7 @@ void StartSkinCallback(
   response->success = true;
 }
 
-void SetModeCallback(
+void SkinManagerNode::SetModeCallback(
     const std::shared_ptr<protocol::srv::ElecSkin::Request> request,
     const std::shared_ptr<protocol::srv::ElecSkin::Response> response)
 {
@@ -104,37 +109,37 @@ void SetModeCallback(
   }
   switch(request->mode) {
     case 0:
-      grandual_duration_ = request->wave_cycle_time;
-      ShowBlackElecSkin(grandual_duration_);
+      gradual_duration_ = request->wave_cycle_time;
+      ShowBlackElecSkin(gradual_duration_);
       break;
 
     case 1:
-      grandual_duration_ = request->wave_cycle_time;
-      ShowWhiteElecSkin(grandual_duration_);
+      gradual_duration_ = request->wave_cycle_time;
+      ShowWhiteElecSkin(gradual_duration_);
       break;
 
     case 2:
-      grandual_duration_ = request->wave_cycle_time;
-      ShowFrontElecSkin(grandual_duration_);
+      gradual_duration_ = request->wave_cycle_time;
+      ShowFrontElecSkin(gradual_duration_);
       break;
       
     case 3:
-      grandual_duration_ = request->wave_cycle_time;
-      ShowBackElecSkin(grandual_duration_);
+      gradual_duration_ = request->wave_cycle_time;
+      ShowBackElecSkin(gradual_duration_);
       break;
 
     case 4:
-      grandual_duration_ = request->wave_cycle_time;
-      ShowFlashElecSkin(grandual_duration_ );
+      gradual_duration_ = request->wave_cycle_time;
+      ShowFlashElecSkin(gradual_duration_ );
       break;
 
     case 5:
-      grandual_duration_ = request->wave_cycle_time;
-      ShowRandomElecSkin(grandual_duration_);
+      gradual_duration_ = request->wave_cycle_time;
+      ShowRandomElecSkin(gradual_duration_);
       break;
 
     case 6:
-      move_skin_ = true;
+      align_contact_ = true;
       break;
       
     default:
