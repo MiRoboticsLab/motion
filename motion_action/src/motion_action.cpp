@@ -337,9 +337,9 @@ void MotionAction::ReadStateEstimatorLcm(
   // if (!move_skin_) {
   //   return;
   // }
-  auto contact = std::vector<uint8_t>(4, 0);
+  auto contact = std::vector<float>(4, 0);
   for(uint8_t i = 0; i < 4; i++) {
-    contact.push_back(msg->contactEstimate[i]);
+  contact[i] = msg->contactEstimate[i];
   }
   elec_skin_manager_->ShowMoveElecSkin(contact);
 

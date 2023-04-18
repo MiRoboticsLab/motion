@@ -93,8 +93,9 @@ void SkinManagerNode::StartSkinCallback(
     INFO("Request to start elec_skin");
     enable_ = true;
   } else {
-    INFO("Request to end elsc_skin");
+    INFO("Request to stop elsc_skin");
     enable_ = false;
+    SetAlignContact(false);
   }
   response->success = true;
 }
@@ -108,42 +109,56 @@ void SkinManagerNode::SetModeCallback(
   }
   switch(request->mode) {
     case 0:
-      gradual_duration_ = request->wave_cycle_time;
-      ShowBlackElecSkin(gradual_duration_);
+      align_contact_ = false;
+      //gradual_duration_ = request->wave_cycle_time;
+      INFO("ShowBlackElecSkin");
+      ShowBlackElecSkin(request->wave_cycle_time);
       break;
 
     case 1:
-      gradual_duration_ = request->wave_cycle_time;
-      ShowWhiteElecSkin(gradual_duration_);
+      align_contact_ = false;
+      //gradual_duration_ = request->wave_cycle_time;
+      INFO("ShowWhiteElecSkin");
+      ShowWhiteElecSkin(request->wave_cycle_time);
       break;
 
     case 2:
-      gradual_duration_ = request->wave_cycle_time;
-      ShowFrontElecSkin(gradual_duration_);
+      align_contact_ = false;
+      //gradual_duration_ = request->wave_cycle_time;
+      INFO("ShowFrontElecSkin");
+      ShowFrontElecSkin(request->wave_cycle_time);
       break;
       
     case 3:
-      gradual_duration_ = request->wave_cycle_time;
-      ShowBackElecSkin(gradual_duration_);
+      align_contact_ = false;
+      //gradual_duration_ = request->wave_cycle_time;
+      INFO("ShowBackElecSkin");
+      ShowBackElecSkin(request->wave_cycle_time);
       break;
 
     case 4:
-      gradual_duration_ = request->wave_cycle_time;
-      ShowFlashElecSkin(gradual_duration_ );
+      align_contact_ = false;
+      //gradual_duration_ = request->wave_cycle_time;
+      INFO("ShowFlashElecSkin");
+      ShowFlashElecSkin(request->wave_cycle_time);
       break;
 
     case 5:
-      gradual_duration_ = request->wave_cycle_time;
-      ShowRandomElecSkin(gradual_duration_);
+      align_contact_ = false;
+      //gradual_duration_ = request->wave_cycle_time;
+      INFO("ShowRandomElecSkin");
+      ShowRandomElecSkin(request->wave_cycle_time);
       break;
 
     case 6:
       align_contact_ = true;
+      INFO("ShowMoveElecSkin");
       break;
       
     default:
       break;
   }
+  response->success = true;
 }
 
 // int main(int argc, char ** argv)

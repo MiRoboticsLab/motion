@@ -33,7 +33,10 @@ class SkinManagerNode : public rclcpp::Node
 public:
   explicit SkinManagerNode(std::string name);
 
-void ShowMoveElecSkin(std::vector<uint8_t> & msg) {
+void ShowMoveElecSkin(std::vector<float> & msg) {
+    if(!enable_) {
+      return;
+    }
     if (!align_contact_) {
       return;
     }
@@ -123,6 +126,10 @@ void ShowMoveElecSkin(std::vector<uint8_t> & msg) {
     //random_gradual_duration_ = request->wave_cycle_time;
     INFO("ShowRandomElecSkin");
     elec_skin_->ModelControl(ModelSwitch::MS_RANDOM, random_gradual_duration_);
+  }
+
+  void SetAlignContact(bool align_contact) {
+    align_contact_ = align_contact;
   }
 
 private:
