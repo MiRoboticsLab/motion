@@ -320,7 +320,7 @@ bool MotionAction::Init(
   // leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
   // leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
   // leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
-  // ins_init_ = true;
+  ins_init_ = true;
   return true;
 }
 
@@ -328,9 +328,9 @@ void MotionAction::ReadStateEstimatorLcm(
   const lcm::ReceiveBuffer *, const std::string &,
   const state_estimator_lcmt * msg)
 {
-  // if (!ins_init_) {
-  //   return;
-  // }
+  if (!ins_init_) {
+    return;
+  }
   // if (!align_contact_) {
   //   return;
   // }

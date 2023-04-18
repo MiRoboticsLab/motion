@@ -40,7 +40,7 @@ skin_mode_service_ = this->create_service<protocol::srv::ElecSkin>(
   "set_elec_skin",
    std::bind(&SkinManagerNode::SetModeCallback,this,
              std::placeholders::_1, std::placeholders::_2));
-std::string elec_skin_config = ament_index_cpp::get_package_share_directory("elec_manager") +
+std::string elec_skin_config = ament_index_cpp::get_package_share_directory("skin_manager") +
     "/config/" + "elec_skin.toml";
   toml::value elec_skin_value;
   if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin_config, elec_skin_value)) {
@@ -60,7 +60,6 @@ std::string elec_skin_config = ament_index_cpp::get_package_share_directory("ele
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "stand_gradual_duration_", stand_gradual_duration_);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "twink_gradual_duration_", twink_gradual_duration_);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "random_gradual_duration_", random_gradual_duration_);
-  
   INFO("Default color: %d", default_color);
   INFO("Start direction: %d", start_direction);
   INFO("Gradual duration: %d", gradual_duration_);
@@ -83,7 +82,6 @@ std::string elec_skin_config = ament_index_cpp::get_package_share_directory("ele
   leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
   leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
   leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
-
   std::thread{[this] {this->executor_->spin();}}.detach();
 }
 
