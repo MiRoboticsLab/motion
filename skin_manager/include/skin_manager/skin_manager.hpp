@@ -71,9 +71,9 @@ void ShowMoveElecSkin(std::vector<float> & msg) {
   }
 
   void ShowBlackElecSkin(int32_t & grandual_duration_) {
-    align_contact_ = false;
+    //align_contact_ = false;
     //grandual_duration_ = request->wave_cycle_time;
-    INFO("ShowBlackElecSkin");
+    //INFO("ShowBlackElecSkin");
     for(uint8_t i=0; i<4; ++i) {
       for(auto p : leg_map[i]) {
         elec_skin_->PositionContril(
@@ -86,9 +86,9 @@ void ShowMoveElecSkin(std::vector<float> & msg) {
   }
 
   void ShowWhiteElecSkin(int32_t & grandual_duration_) {
-    align_contact_ = false;
+    //align_contact_ = false;
     //grandual_duration_ = request->wave_cycle_time;
-    INFO("ShowWhiteElecSkin");
+    //INFO("ShowWhiteElecSkin");
     for(uint8_t i=0; i<4; i++) {
       for(auto p : leg_map[i]) {
         elec_skin_->PositionContril(
@@ -101,31 +101,31 @@ void ShowMoveElecSkin(std::vector<float> & msg) {
   }
   
   void ShowFrontElecSkin(int32_t & grandual_duration_) {
-    align_contact_ = false;
+    //align_contact_ = false;
     //stand_grandual_duration_ = request->wave_cycle_time;
-    INFO("ShowFrontElecSkin");
-    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, stand_gradual_duration_);
+    //INFO("ShowFrontElecSkin");
+    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, grandual_duration_);
   }
 
   void ShowBackElecSkin(int32_t & grandual_duration_) {
-    align_contact_ = false;
+    //align_contact_ = false;
     //stand_grandual_duration_ = request->wave_cycle_time;
-    INFO("ShowBackElecSkin");
-    elec_skin_->ModelControl(ModelSwitch::MS_WAVEB, stand_gradual_duration_);
+    //INFO("ShowBackElecSkin");
+    elec_skin_->ModelControl(ModelSwitch::MS_WAVEB, grandual_duration_);
   }
 
   void ShowFlashElecSkin(int32_t & grandual_duration_) {
-    align_contact_ = false;
+    //align_contact_ = false;
     //twink_gradual_duration_ = request->wave_cycle_time;
-    INFO("ShowFlashElecSkin");
-    elec_skin_->ModelControl(ModelSwitch::MS_FLASH, twink_gradual_duration_);
+    //INFO("ShowFlashElecSkin");
+    elec_skin_->ModelControl(ModelSwitch::MS_FLASH, grandual_duration_);
   }
 
   void ShowRandomElecSkin(int32_t & grandual_duration_) {
-    align_contact_ = false;
+    //align_contact_ = false;
     //random_gradual_duration_ = request->wave_cycle_time;
-    INFO("ShowRandomElecSkin");
-    elec_skin_->ModelControl(ModelSwitch::MS_RANDOM, random_gradual_duration_);
+    //INFO("ShowRandomElecSkin");
+    elec_skin_->ModelControl(ModelSwitch::MS_RANDOM, grandual_duration_);
   }
 
   void SetAlignContact(bool align_contact) {
@@ -148,9 +148,9 @@ private:
   std::vector<PositionColorChangeDirection> change_dir_;
   PositionColorStartDirection start_dir_;
   int32_t gradual_duration_{0};
-  int32_t stand_gradual_duration_{0};
-  int32_t twink_gradual_duration_{0};
-  int32_t random_gradual_duration_{0};
+  // int32_t stand_gradual_duration_{0};
+  // int32_t twink_gradual_duration_{0};
+  // int32_t random_gradual_duration_{0};
   bool enable_{false};
   bool align_contact_{false};
   //bool move_skin_{false};
