@@ -51,6 +51,7 @@ void ShowMoveElecSkin(std::vector<float> & msg) {
       if (contact[i] == 1) {
         WARN("Leg %d liftdown", i);
         for (auto p : leg_map[i]) {
+          INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, gradual_duration_);
           elec_skin_->PositionContril(
             p,
             change_dir_.front(),
@@ -60,6 +61,7 @@ void ShowMoveElecSkin(std::vector<float> & msg) {
       } else {
         WARN("Leg %d liftup", i);
         for (auto p : leg_map[i]) {
+          INFO("%d, %d, %d, %d", p, change_dir_.back(), start_dir_, gradual_duration_);
           elec_skin_->PositionContril(
             p,
             change_dir_.back(),
@@ -76,6 +78,7 @@ void ShowMoveElecSkin(std::vector<float> & msg) {
     //INFO("ShowBlackElecSkin");
     for(uint8_t i=0; i<4; ++i) {
       for(auto p : leg_map[i]) {
+        INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, grandual_duration_);
         elec_skin_->PositionContril(
           p,
           change_dir_.front(),
@@ -91,6 +94,7 @@ void ShowMoveElecSkin(std::vector<float> & msg) {
     //INFO("ShowWhiteElecSkin");
     for(uint8_t i=0; i<4; i++) {
       for(auto p : leg_map[i]) {
+        INFO("%d, %d, %d, %d", p, change_dir_.back(), start_dir_, grandual_duration_);
         elec_skin_->PositionContril(
           p,
           change_dir_.back(),
