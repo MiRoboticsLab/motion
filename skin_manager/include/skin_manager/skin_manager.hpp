@@ -33,8 +33,9 @@ class SkinManagerNode : public rclcpp::Node
 public:
   explicit SkinManagerNode(std::string name);
 
-void ShowMoveElecSkin(std::vector<float> & msg) {
-    if(!enable_) {
+  void ShowMoveElecSkin(std::vector<float> & msg)
+  {
+    if (!enable_) {
       return;
     }
     if (!align_contact_) {
@@ -42,8 +43,8 @@ void ShowMoveElecSkin(std::vector<float> & msg) {
     }
     static auto last_contact = std::vector<uint8_t>(4, 0);
     auto contact = std::vector<uint8_t>(4, 0);
-    for(uint8_t i = 0; i < 4; ++i) {
-      contact[i] = msg[i] >0 ? 1: 0;
+    for (uint8_t i = 0; i < 4; ++i) {
+      contact[i] = msg[i] > 0 ? 1 : 0;
       if (contact[i] == last_contact[i]) {
         continue;
       }
@@ -51,88 +52,85 @@ void ShowMoveElecSkin(std::vector<float> & msg) {
       if (contact[i] == 1) {
         WARN("Leg %d liftdown", i);
         for (auto p : leg_map[i]) {
-          INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, gradual_duration_);
+          // INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, gradual_duration_);
           elec_skin_->PositionContril(
             p,
-            change_dir_.front(),
+            // change_dir_.front(),
+            liftdown_color_,
             start_dir_,
             gradual_duration_);
         }
       } else {
         WARN("Leg %d liftup", i);
         for (auto p : leg_map[i]) {
-          INFO("%d, %d, %d, %d", p, change_dir_.back(), start_dir_, gradual_duration_);
+          // INFO("%d, %d, %d, %d", p, change_dir_.back(), start_dir_, gradual_duration_);
           elec_skin_->PositionContril(
             p,
-            change_dir_.back(),
+            liftup_color_,
+            // change_dir_.back(),
             start_dir_,
             gradual_duration_);
         }
       }
-    }  
-  }
-
-  void ShowBlackElecSkin(int32_t & grandual_duration_) {
-    //align_contact_ = false;
-    //grandual_duration_ = request->wave_cycle_time;
-    //INFO("ShowBlackElecSkin");
-    for(uint8_t i=0; i<4; ++i) {
-      for(auto p : leg_map[i]) {
-        INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, grandual_duration_);
-        elec_skin_->PositionContril(
-          p,
-          change_dir_.front(),
-          start_dir_,
-          grandual_duration_);
-      } 
     }
   }
 
-  void ShowWhiteElecSkin(int32_t & grandual_duration_) {
-    //align_contact_ = false;
-    //grandual_duration_ = request->wave_cycle_time;
-    //INFO("ShowWhiteElecSkin");
-    for(uint8_t i=0; i<4; i++) {
-      for(auto p : leg_map[i]) {
-        INFO("%d, %d, %d, %d", p, change_dir_.back(), start_dir_, grandual_duration_);
+  void ShowBlackElecSkin(int32_t & duration)
+  {
+    // align_contact_ = false;
+    // grandual_duration_ = request->wave_cycle_time;
+    // INFO("ShowBlackElecSkin");
+    for (uint8_t i = 0; i < 4; ++i) {
+      for (auto p : leg_map[i]) {
+        // INFO("%d, %d, %d, %d", p, change_dir_.back(), start_dir_, duration);
         elec_skin_->PositionContril(
           p,
           change_dir_.back(),
           start_dir_,
-          grandual_duration_);
+          duration);
       }
     }
   }
-  
-  void ShowFrontElecSkin(int32_t & grandual_duration_) {
-    //align_contact_ = false;
-    //stand_grandual_duration_ = request->wave_cycle_time;
-    //INFO("ShowFrontElecSkin");
-    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, grandual_duration_);
+
+  void ShowWhiteElecSkin(int32_t & duration)
+  {
+    // align_contact_ = false;
+    // grandual_duration_ = request->wave_cycle_time;
+    // INFO("ShowWhiteElecSkin");
+    for (uint8_t i = 0; i < 4; i++) {
+      for (auto p : leg_map[i]) {
+        INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, duration);
+        elec_skin_->PositionContril(
+          p,
+          change_dir_.front(),
+          start_dir_,
+          duration);
+      }
+    }
   }
 
-  void ShowBackElecSkin(int32_t & grandual_duration_) {
-    //align_contact_ = false;
-    //stand_grandual_duration_ = request->wave_cycle_time;
-    //INFO("ShowBackElecSkin");
-    elec_skin_->ModelControl(ModelSwitch::MS_WAVEB, grandual_duration_);
+  void ShowFrontElecSkin(int32_t & duration)
+  {
+    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, duration);
   }
 
-  void ShowFlashElecSkin(int32_t & grandual_duration_) {
-    //align_contact_ = false;
-    //twink_gradual_duration_ = request->wave_cycle_time;
-    //INFO("ShowFlashElecSkin");
-    elec_skin_->ModelControl(ModelSwitch::MS_FLASH, grandual_duration_);
+  void ShowBackElecSkin(int32_t & duration)
+  {
+    elec_skin_->ModelControl(ModelSwitch::MS_WAVEB, duration);
   }
 
-  void ShowRandomElecSkin(int32_t & grandual_duration_) {
-    //align_contact_ = false;
-    //random_gradual_duration_ = request->wave_cycle_time;
-    //INFO("ShowRandomElecSkin");
-    elec_skin_->ModelControl(ModelSwitch::MS_RANDOM, grandual_duration_);
+  void ShowFlashElecSkin(int32_t & duration)
+  {
+    elec_skin_->ModelControl(ModelSwitch::MS_FLASH, duration);
   }
 
-  void SetAlignContact(bool align_contact) {
+  void ShowRandomElecSkin(int32_t & duration)
+  {
+    elec_skin_->ModelControl(ModelSwitch::MS_RANDOM, duration);
+  }
+
+  void SetAlignContact(bool align_contact)
+  {
     align_contact_ = align_contact;
   }
 
@@ -151,16 +149,17 @@ private:
   std::unordered_map<uint8_t, std::vector<PositionSkin>> leg_map;
   std::vector<PositionColorChangeDirection> change_dir_;
   PositionColorStartDirection start_dir_;
+  PositionColorChangeDirection liftdown_color_{0};
+  PositionColorChangeDirection liftup_color_{0};
   int32_t gradual_duration_{0};
   // int32_t stand_gradual_duration_{0};
   // int32_t twink_gradual_duration_{0};
   // int32_t random_gradual_duration_{0};
   bool enable_{false};
   bool align_contact_{false};
-  //bool move_skin_{false};
+  // bool move_skin_{false};
 };
-}
-}
+}  //  namespace motion
+}  //  namespace cyberdog
 
-
-#endif // SKIN_MANAGER__SKIN_MANAGER_HPP_
+#endif  // SKIN_MANAGER__SKIN_MANAGER_HPP_

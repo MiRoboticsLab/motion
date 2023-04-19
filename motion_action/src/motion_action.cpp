@@ -220,10 +220,13 @@ bool MotionAction::ParseMotionIdMap()
 //   cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color);
 //   cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
 //   cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
-//   cyberdog::common::CyberdogToml::Get(elec_skin_value, "stand_gradual_duration_", stand_gradual_duration_);
-//   cyberdog::common::CyberdogToml::Get(elec_skin_value, "twink_gradual_duration_", twink_gradual_duration_);
-//   cyberdog::common::CyberdogToml::Get(elec_skin_value, "random_gradual_duration_", random_gradual_duration_);
-  
+//   cyberdog::common::CyberdogToml::Get(elec_skin_value,
+//   "stand_gradual_duration_", stand_gradual_duration_);
+//   cyberdog::common::CyberdogToml::Get(elec_skin_value,
+//   "twink_gradual_duration_", twink_gradual_duration_);
+//   cyberdog::common::CyberdogToml::Get(elec_skin_value,
+//   "random_gradual_duration_", random_gradual_duration_);
+
 //   INFO("Default color: %d", default_color);
 //   INFO("Start direction: %d", start_direction);
 //   INFO("Gradual duration: %d", gradual_duration_);
@@ -300,7 +303,8 @@ bool MotionAction::Init(
       }
     }}.detach();
 
-  lcm_state_estimator_subscribe_instance_ = std::make_shared<lcm::LCM>("udpm://239.255.76.67:7669?ttl=255");
+  lcm_state_estimator_subscribe_instance_ = std::make_shared<lcm::LCM>(
+    "udpm://239.255.76.67:7669?ttl=255");
   if (!lcm_state_estimator_subscribe_instance_->good()) {
     ERROR("MotionAction read robot state lcm initialized error");
     return false;
@@ -316,10 +320,10 @@ bool MotionAction::Init(
 
   elec_skin_manager_ = std::make_shared<SkinManagerNode>("skin_manager");
   // ParseElecSkin();
-  // leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT}); 
-  // leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
-  // leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
-  // leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
+  // leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT});
+  // leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL});
+  // leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR});
+  // leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM});
   ins_init_ = true;
   return true;
 }
@@ -338,8 +342,8 @@ void MotionAction::ReadStateEstimatorLcm(
   //   return;
   // }
   auto contact = std::vector<float>(4, 0);
-  for(uint8_t i = 0; i < 4; i++) {
-  contact[i] = msg->contactEstimate[i];
+  for (uint8_t i = 0; i < 4; i++) {
+    contact[i] = msg->contactEstimate[i];
   }
   elec_skin_manager_->ShowMoveElecSkin(contact);
 

@@ -36,7 +36,7 @@
 #include "motion_action/motion_macros.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "ament_index_cpp/get_package_prefix.hpp"
-//#include "elec_skin/elec_skin_base.hpp"
+// #include "elec_skin/elec_skin_base.hpp"
 #include "skin_manager/skin_manager.hpp"
 
 namespace cyberdog
@@ -143,7 +143,7 @@ private:
     const lcm::ReceiveBuffer *, const std::string &,
     const state_estimator_lcmt * msg);
   bool ParseMotionIdMap();
-  //bool ParseElecSkin();
+  // bool ParseElecSkin();
 
 private:
   std::thread control_thread_, response_thread_;
@@ -152,16 +152,16 @@ private:
   std::shared_ptr<lcm::LCM> lcm_publish_instance_, lcm_subscribe_instance_;
   std::shared_ptr<lcm::LCM> lcm_recv_subscribe_instance_;
   std::shared_ptr<lcm::LCM> lcm_state_estimator_subscribe_instance_;
-  //std::shared_ptr<ElecSkinBase> elec_skin_{nullptr};
+  // std::shared_ptr<ElecSkinBase> elec_skin_{nullptr};
   std::shared_ptr<SkinManagerNode> elec_skin_manager_{nullptr};
-  //std::unordered_map<uint8_t, std::vector<PositionSkin>> leg_map;
+  // std::unordered_map<uint8_t, std::vector<PositionSkin>> leg_map;
   std::mutex lcm_write_mutex_;
   std::mutex seq_def_result_mutex_;
   std::condition_variable seq_def_result_cv_;
   robot_control_cmd_lcmt lcm_cmd_;
   std::map<int32_t, MotionIdMap> motion_id_map_;
-  //std::vector<PositionColorChangeDirection> change_dir_;
-  //PositionColorStartDirection start_dir_;
+  // std::vector<PositionColorChangeDirection> change_dir_;
+  // PositionColorStartDirection start_dir_;
   MotionMgrState state_;
   int32_t last_motion_id_{0};
   // int32_t gradual_duration_{0};
@@ -174,7 +174,7 @@ private:
   bool lcm_cmd_init_{false}, ins_init_{false};
   bool sequence_recv_result_{false}, sequence_def_result_waiting_{false};
   bool show_{false};
-  //bool align_contact_{true};
+  // bool align_contact_{true};
   bool lcm_ready_{false};
   LOGGER_MINOR_INSTANCE("MotionAction");
 };  // class MotionAction

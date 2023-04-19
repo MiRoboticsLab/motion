@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include "cyberdog_common/cyberdog_log.hpp"
 #include "cyberdog_common/cyberdog_toml.hpp"
 #include "std_srvs/srv/set_bool.hpp"
@@ -29,23 +30,25 @@ namespace motion
 SkinManagerNode::SkinManagerNode(std::string name)
 : Node(name)
 {
-executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
-executor_->add_node(this->get_node_base_interface());
-elec_skin_ = std::make_shared<ElecSkin>();
-launch_service_ = this->create_service<std_srvs::srv::SetBool>(
-  "enable_elec_skin",
-   std::bind(&SkinManagerNode::StartSkinCallback, this,
-             std::placeholders::_1, std::placeholders::_2));
-skin_mode_service_ = this->create_service<protocol::srv::ElecSkin>(
-  "set_elec_skin",
-   std::bind(&SkinManagerNode::SetModeCallback,this,
-             std::placeholders::_1, std::placeholders::_2));
-std::string elec_skin_config = ament_index_cpp::get_package_share_directory("skin_manager") +
+  executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+  executor_->add_node(this->get_node_base_interface());
+  elec_skin_ = std::make_shared<ElecSkin>();
+  launch_service_ = this->create_service<std_srvs::srv::SetBool>(
+    "enable_elec_skin",
+    std::bind(
+      &SkinManagerNode::StartSkinCallback, this,
+      std::placeholders::_1, std::placeholders::_2));
+  skin_mode_service_ = this->create_service<protocol::srv::ElecSkin>(
+    "set_elec_skin",
+    std::bind(
+      &SkinManagerNode::SetModeCallback, this,
+      std::placeholders::_1, std::placeholders::_2));
+  std::string elec_skin_config = ament_index_cpp::get_package_share_directory("skin_manager") +
     "/config/" + "elec_skin.toml";
   toml::value elec_skin_value;
   if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin_config, elec_skin_value)) {
     FATAL("Cannot parse %s", elec_skin_config.c_str());
-    //return false;
+    // return false;
   }
   // if (!motion_ids.is_table()) {
   //   FATAL("Toml format error");
@@ -57,15 +60,9 @@ std::string elec_skin_config = ament_index_cpp::get_package_share_directory("ski
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
-  // cyberdog::common::CyberdogToml::Get(elec_skin_value, "stand_gradual_duration_", stand_gradual_duration_);
-  // cyberdog::common::CyberdogToml::Get(elec_skin_value, "twink_gradual_duration_", twink_gradual_duration_);
-  // cyberdog::common::CyberdogToml::Get(elec_skin_value, "random_gradual_duration_", random_gradual_duration_);
   INFO("Default color: %d", default_color);
   INFO("Start direction: %d", start_direction);
   INFO("Gradual duration: %d", gradual_duration_);
-  // INFO("StandGradual duration: %d", stand_gradual_duration_);
-  // INFO("TwinkGradual duration: %d", twink_gradual_duration_);
-  // INFO("RandomGradual duration: %d", random_gradual_duration_);
   if (default_color == 0) {
     change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
     change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
@@ -78,16 +75,16 @@ std::string elec_skin_config = ament_index_cpp::get_package_share_directory("ski
   } else {
     start_dir_ = PositionColorStartDirection::PCSD_BACK;
   }
-  leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT}); 
-  leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL}); 
-  leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR}); 
-  leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM}); 
+  leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT});
+  leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL});
+  leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR});
+  leg_map.emplace(3, std::vector<PositionSkin>{PositionSkin::PS_LBLEG, PositionSkin::PS_BODYM});
   std::thread{[this] {this->executor_->spin();}}.detach();
 }
 
 void SkinManagerNode::StartSkinCallback(
-    const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-    std::shared_ptr<std_srvs::srv::SetBool::Response> response)
+  const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+  std::shared_ptr<std_srvs::srv::SetBool::Response> response)
 {
   if (request->data) {
     INFO("Request to start elec_skin");
@@ -101,51 +98,45 @@ void SkinManagerNode::StartSkinCallback(
 }
 
 void SkinManagerNode::SetModeCallback(
-    const std::shared_ptr<protocol::srv::ElecSkin::Request> request,
-    const std::shared_ptr<protocol::srv::ElecSkin::Response> response)
+  const std::shared_ptr<protocol::srv::ElecSkin::Request> request,
+  const std::shared_ptr<protocol::srv::ElecSkin::Response> response)
 {
-  if(!enable_) {
+  if (!enable_) {
     return;
   }
-  switch(request->mode) {
+  switch (request->mode) {
     case 0:
       align_contact_ = false;
-      //gradual_duration_ = request->wave_cycle_time;
       INFO("ShowBlackElecSkin");
       ShowBlackElecSkin(request->wave_cycle_time);
       break;
 
     case 1:
       align_contact_ = false;
-      //gradual_duration_ = request->wave_cycle_time;
       INFO("ShowWhiteElecSkin");
       ShowWhiteElecSkin(request->wave_cycle_time);
       break;
 
     case 2:
       align_contact_ = false;
-      //gradual_duration_ = request->wave_cycle_time;
       INFO("ShowFrontElecSkin");
       ShowFrontElecSkin(request->wave_cycle_time);
       break;
-      
+
     case 3:
       align_contact_ = false;
-      //gradual_duration_ = request->wave_cycle_time;
       INFO("ShowBackElecSkin");
       ShowBackElecSkin(request->wave_cycle_time);
       break;
 
     case 4:
       align_contact_ = false;
-      //gradual_duration_ = request->wave_cycle_time;
       INFO("ShowFlashElecSkin");
       ShowFlashElecSkin(request->wave_cycle_time);
       break;
 
     case 5:
       align_contact_ = false;
-      //gradual_duration_ = request->wave_cycle_time;
       INFO("ShowRandomElecSkin");
       ShowRandomElecSkin(request->wave_cycle_time);
       break;
@@ -153,23 +144,20 @@ void SkinManagerNode::SetModeCallback(
     case 6:
       align_contact_ = true;
       INFO("ShowMoveElecSkin");
+      if (!request->wave_cycle_time) {
+        liftdown_color_ = change_dir_.front();
+        liftup_color_ = change_dir_.back();
+      } else {
+        liftdown_color_ = change_dir_.back();
+        liftup_color_ = change_dir_.front();
+      }
       break;
-      
+
     default:
       break;
   }
   response->success = true;
 }
 
-// int main(int argc, char ** argv)
-// {
-//   rclcpp::init(argc,argv);
-//   rclcpp::executors::MultiThreadedExecutor executor;
-//   auto node = std::make_shared<cyberdog::motion::SkinManagerNode>("skin_manager");
-//   executor.add_node(node);
-//   executor.spin();
-//   rclcpp::shutdown();
-//   return 0;
-// }
-}
-}
+}  // namespace motion
+}  // namespace cyberdog
