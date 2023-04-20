@@ -55,14 +55,14 @@ SkinManagerNode::SkinManagerNode(std::string name)
   //   exit(-1);
   // }
   // toml::value values;
-  int8_t default_color = 0;
-  int8_t start_direction = 0;
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "defaul_duration", defaul_duration);
   INFO("Default color: %d", default_color);
   INFO("Start direction: %d", start_direction);
   INFO("Gradual duration: %d", gradual_duration_);
+  INFO("defaul_duration: %d", defaul_duration);
   if (default_color == 0) {
     change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
     change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
@@ -92,6 +92,7 @@ void SkinManagerNode::StartSkinCallback(
   } else {
     INFO("Request to stop elsc_skin");
     enable_ = false;
+    ShowDefaultSkin();
     SetAlignContact(false);
   }
   response->success = true;
@@ -145,11 +146,11 @@ void SkinManagerNode::SetModeCallback(
       align_contact_ = true;
       INFO("ShowMoveElecSkin");
       if (!request->wave_cycle_time) {
-        liftdown_color_ = change_dir_.front();
-        liftup_color_ = change_dir_.back();
+        liftdown_color_ = PositionColorChangeDirection::PCCD_WTOB;
+        liftup_color_ = PositionColorChangeDirection::PCCD_BTOW;
       } else {
-        liftdown_color_ = change_dir_.back();
-        liftup_color_ = change_dir_.front();
+        liftdown_color_ = PositionColorChangeDirection::PCCD_BTOW;
+        liftup_color_ = PositionColorChangeDirection::PCCD_WTOB;
       }
       break;
 

@@ -134,6 +134,12 @@ public:
     align_contact_ = align_contact;
   }
 
+  void ShowDefaultSkin()
+  {
+    INFO("ShowDefaultSkin");
+    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, defaul_duration);
+  }
+
 private:
   void StartSkinCallback(
     const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
@@ -149,9 +155,12 @@ private:
   std::unordered_map<uint8_t, std::vector<PositionSkin>> leg_map;
   std::vector<PositionColorChangeDirection> change_dir_;
   PositionColorStartDirection start_dir_;
-  PositionColorChangeDirection liftdown_color_{0};
-  PositionColorChangeDirection liftup_color_{0};
+  PositionColorChangeDirection liftdown_color_;
+  PositionColorChangeDirection liftup_color_;
   int32_t gradual_duration_{0};
+  int32_t defaul_duration{0};
+  int8_t default_color{0};
+  int8_t start_direction{0};
   // int32_t stand_gradual_duration_{0};
   // int32_t twink_gradual_duration_{0};
   // int32_t random_gradual_duration_{0};
