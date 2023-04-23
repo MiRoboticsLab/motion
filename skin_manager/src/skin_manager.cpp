@@ -146,11 +146,11 @@ void SkinManagerNode::SetModeCallback(
       align_contact_ = true;
       INFO("ShowMoveElecSkin");
       if (!request->wave_cycle_time) {
-        liftdown_color_ = PositionColorChangeDirection::PCCD_WTOB;
-        liftup_color_ = PositionColorChangeDirection::PCCD_BTOW;
-      } else {
         liftdown_color_ = PositionColorChangeDirection::PCCD_BTOW;
         liftup_color_ = PositionColorChangeDirection::PCCD_WTOB;
+      } else {
+        liftdown_color_ = PositionColorChangeDirection::PCCD_WTOB;
+        liftup_color_ = PositionColorChangeDirection::PCCD_BTOW;
       }
       break;
 

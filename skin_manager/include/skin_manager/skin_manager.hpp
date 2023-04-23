@@ -85,7 +85,7 @@ public:
         // INFO("%d, %d, %d, %d", p, change_dir_.back(), start_dir_, duration);
         elec_skin_->PositionContril(
           p,
-          change_dir_.back(),
+          change_dir_.front(),
           start_dir_,
           duration);
       }
@@ -102,7 +102,7 @@ public:
         INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, duration);
         elec_skin_->PositionContril(
           p,
-          change_dir_.front(),
+          change_dir_.back(),
           start_dir_,
           duration);
       }
