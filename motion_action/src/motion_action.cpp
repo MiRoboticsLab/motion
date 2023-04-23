@@ -11,13 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "motion_action/motion_action.hpp"
-#include "elec_skin/elec_skin.hpp"
 #include <string>
 #include <memory>
 #include <map>
 #include <vector>
 #include <fstream>
+#include "elec_skin/elec_skin.hpp"
+#include "motion_action/motion_action.hpp"
 
 namespace cyberdog
 {
@@ -349,7 +349,8 @@ void MotionAction::ReadStateEstimatorLcm(
 
   // static auto last_contact = std::vector<uint8_t>(4, 0);
   // auto contact = std::vector<uint8_t>(4, 0);
-  // // INFO("%f, %f, %f, %f", msg->contactEstimate[0],msg->contactEstimate[1],msg->contactEstimate[2],msg->contactEstimate[3]);
+  // // INFO("%f, %f, %f, %f", msg->contactEstimate[0],msg->contactEstimate[1],
+  // msg->contactEstimate[2],msg->contactEstimate[3]);
   // for(uint8_t i = 0; i < 4; ++i) {
   //   contact[i] = msg->contactEstimate[i] > 0 ? 1 : 0;
   //   if (contact[i] == last_contact[i]) {
