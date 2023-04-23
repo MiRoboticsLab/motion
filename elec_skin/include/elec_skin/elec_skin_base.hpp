@@ -44,8 +44,8 @@ enum class PositionSkin : uint8_t
 
 enum class PositionColorChangeDirection : uint8_t
 {
-  PCCD_WTOB = 0,   // 白变黑
-  PCCD_BTOW = 1,   // 黑变白
+  PCCD_WTOB = 1,   // 白变黑
+  PCCD_BTOW = 0,   // 黑变白
 };  // enum class PositionColorChangeDirection
 
 enum class PositionColorStartDirection : uint8_t
