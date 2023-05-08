@@ -5,3 +5,5 @@ defaul_duration =2000 # milsecs
 stand_gradual_duration_ = 3500 # milsecs
 twink_gradual_duration_ = 3500 # milsecs
 random_gradual_duration_ = 3500 # milsecs
+enable = false;
+align_contact = true;

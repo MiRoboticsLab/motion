@@ -21,6 +21,9 @@
 #include <vector>
 #include <unordered_map>
 #include "rclcpp/rclcpp.hpp"
+#include "cyberdog_common/cyberdog_log.hpp"
+#include "cyberdog_common/cyberdog_toml.hpp"
+#include "ament_index_cpp/get_package_share_directory.hpp"
 #include "protocol/srv/elec_skin.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 #include "elec_skin/elec_skin_base.hpp"
@@ -99,7 +102,7 @@ public:
     // INFO("ShowWhiteElecSkin");
     for (uint8_t i = 0; i < 4; i++) {
       for (auto p : leg_map[i]) {
-        INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, duration);
+        //INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, duration);
         elec_skin_->PositionContril(
           p,
           change_dir_.back(),
@@ -138,6 +141,21 @@ public:
   {
     INFO("ShowDefaultSkin");
     elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, defaul_duration);
+  }
+
+  void WriteTomlFile(const bool & enable, const bool & align_contact)
+  {
+    std::string elec_skin = ament_index_cpp::get_package_share_directory("skin_manager") +
+    "/config/" + "elec_skin.toml";
+    toml::value temp;
+    if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin, temp)) {
+      FATAL("Cannot parse %s", elec_skin.c_str());
+    }
+    cyberdog::common::CyberdogToml::Set(temp, "enable", enable);
+    cyberdog::common::CyberdogToml::Set(temp, "align_contact", align_contact); 
+    if (!cyberdog::common::CyberdogToml::WriteFile(elec_skin, temp)) {
+      ERROR("write toml file failed");
+    }
   }
 
 private:

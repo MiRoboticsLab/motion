@@ -59,10 +59,13 @@ SkinManagerNode::SkinManagerNode(std::string name)
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "defaul_duration", defaul_duration);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "enable", enable_);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "align_contact", align_contact_);
   INFO("Default color: %d", default_color);
   INFO("Start direction: %d", start_direction);
   INFO("Gradual duration: %d", gradual_duration_);
   INFO("defaul_duration: %d", defaul_duration);
+  INFO("enable: %d", enable_);
   if (default_color == 0) {
     change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
     change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
@@ -89,11 +92,13 @@ void SkinManagerNode::StartSkinCallback(
   if (request->data) {
     INFO("Request to start elec_skin");
     enable_ = true;
+    WriteTomlFile(enable_, align_contact_);
   } else {
     INFO("Request to stop elsc_skin");
     enable_ = false;
     ShowDefaultSkin();
-    SetAlignContact(false);
+    SetAlignContact(true);
+    WriteTomlFile(enable_, align_contact_);
   }
   response->success = true;
 }
@@ -108,42 +113,49 @@ void SkinManagerNode::SetModeCallback(
   switch (request->mode) {
     case 0:
       align_contact_ = false;
+      WriteTomlFile(enable_, align_contact_);
       INFO("ShowBlackElecSkin");
       ShowBlackElecSkin(request->wave_cycle_time);
       break;
 
     case 1:
       align_contact_ = false;
+      WriteTomlFile(enable_, align_contact_);
       INFO("ShowWhiteElecSkin");
       ShowWhiteElecSkin(request->wave_cycle_time);
       break;
 
     case 2:
       align_contact_ = false;
+      WriteTomlFile(enable_, align_contact_);
       INFO("ShowFrontElecSkin");
       ShowFrontElecSkin(request->wave_cycle_time);
       break;
 
     case 3:
       align_contact_ = false;
+      WriteTomlFile(enable_, align_contact_);
       INFO("ShowBackElecSkin");
       ShowBackElecSkin(request->wave_cycle_time);
       break;
 
     case 4:
       align_contact_ = false;
+      WriteTomlFile(enable_, align_contact_);
       INFO("ShowFlashElecSkin");
       ShowFlashElecSkin(request->wave_cycle_time);
       break;
 
     case 5:
       align_contact_ = false;
+      WriteTomlFile(enable_, align_contact_);
       INFO("ShowRandomElecSkin");
       ShowRandomElecSkin(request->wave_cycle_time);
       break;
 
     case 6:
       align_contact_ = true;
+      WriteTomlFile(enable_, align_contact_);
       INFO("ShowMoveElecSkin");
       if (!request->wave_cycle_time) {
         liftdown_color_ = PositionColorChangeDirection::PCCD_BTOW;
