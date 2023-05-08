@@ -143,7 +143,7 @@ public:
     elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, defaul_duration);
   }
 
-  void WriteTomlFile(const bool & enable, const bool & align_contact)
+  void WriteTomlFile()
   {
     std::string elec_skin = ament_index_cpp::get_package_share_directory("skin_manager") +
     "/config/" + "elec_skin.toml";
@@ -151,8 +151,12 @@ public:
     if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin, temp)) {
       FATAL("Cannot parse %s", elec_skin.c_str());
     }
-    cyberdog::common::CyberdogToml::Set(temp, "enable", enable);
-    cyberdog::common::CyberdogToml::Set(temp, "align_contact", align_contact); 
+    cyberdog::common::CyberdogToml::Set(temp, "default_color", default_color);
+    cyberdog::common::CyberdogToml::Set(temp, "start_direction", start_direction);
+    cyberdog::common::CyberdogToml::Set(temp, "gradual_duration", gradual_duration_);
+    cyberdog::common::CyberdogToml::Set(temp, "defaul_duration", defaul_duration);
+    cyberdog::common::CyberdogToml::Set(temp, "enable", enable_);
+    cyberdog::common::CyberdogToml::Set(temp, "align_contact", align_contact_); 
     if (!cyberdog::common::CyberdogToml::WriteFile(elec_skin, temp)) {
       ERROR("write toml file failed");
     }
