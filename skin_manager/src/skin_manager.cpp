@@ -28,7 +28,7 @@ namespace motion
 
 SkinManagerNode::SkinManagerNode(std::string name)
 : Node(name)
-{ 
+{
   executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   executor_->add_node(this->get_node_base_interface());
   elec_skin_ = std::make_shared<ElecSkin>();

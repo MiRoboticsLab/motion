@@ -102,7 +102,7 @@ public:
     // INFO("ShowWhiteElecSkin");
     for (uint8_t i = 0; i < 4; i++) {
       for (auto p : leg_map[i]) {
-        //INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, duration);
+        // INFO("%d, %d, %d, %d", p, change_dir_.front(), start_dir_, duration);
         elec_skin_->PositionContril(
           p,
           change_dir_.back(),
@@ -139,7 +139,7 @@ public:
       align_contact_ = align_contact;
     } else {
       if (!last_align_contact_) {
-      last_align_contact_ = true;
+        last_align_contact_ = true;
       } else {
         align_contact_ = align_contact;
       }
@@ -155,7 +155,7 @@ public:
   void WriteTomlFile()
   {
     std::string elec_skin = ament_index_cpp::get_package_share_directory("skin_manager") +
-    "/config/" + "elec_skin.toml";
+      "/config/" + "elec_skin.toml";
     toml::value temp;
     if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin, temp)) {
       FATAL("Cannot parse %s", elec_skin.c_str());
@@ -165,7 +165,7 @@ public:
     cyberdog::common::CyberdogToml::Set(temp, "gradual_duration", gradual_duration_);
     cyberdog::common::CyberdogToml::Set(temp, "defaul_duration", defaul_duration_);
     cyberdog::common::CyberdogToml::Set(temp, "enable", enable_);
-    cyberdog::common::CyberdogToml::Set(temp, "align_contact", align_contact_); 
+    cyberdog::common::CyberdogToml::Set(temp, "align_contact", align_contact_);
     if (!cyberdog::common::CyberdogToml::WriteFile(elec_skin, temp)) {
       ERROR("write toml file failed");
     }

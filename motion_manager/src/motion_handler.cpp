@@ -612,7 +612,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   //   elec_skin_id_ = 0;
   //   action_ptr_->ShowStandElecSkin();
   // }
-  if (request->motion_id == 140) { // 原地跳起，映射到运控的跳舞
+  if (request->motion_id == 140) {  // 原地跳起，映射到运控的跳舞
     // if (!sing_) {
     //   INFO("Will sing");
     //   Sing(true);
@@ -620,7 +620,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     // }
     INFO("Will sing");
     Sing(true);
-    //action_ptr_->SetAlignContact(true);
+    // action_ptr_->SetAlignContact(true);
   }
   if (request->motion_id == MotionIDMsg::GETDOWN) {
     // action_ptr_->ShowDefaultSkin(true, true);
