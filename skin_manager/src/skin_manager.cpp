@@ -54,29 +54,31 @@ SkinManagerNode::SkinManagerNode(std::string name)
   //   exit(-1);
   // }
   // toml::value values;
-  cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color);
-  cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "default_color", default_color_);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "start_direction", start_direction_);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "gradual_duration", gradual_duration_);
-  cyberdog::common::CyberdogToml::Get(elec_skin_value, "defaul_duration", defaul_duration);
+  cyberdog::common::CyberdogToml::Get(elec_skin_value, "defaul_duration", defaul_duration_);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "enable", enable_);
   cyberdog::common::CyberdogToml::Get(elec_skin_value, "align_contact", align_contact_);
-  INFO("Default color: %d", default_color);
-  INFO("Start direction: %d", start_direction);
+  INFO("Default color: %d", default_color_);
+  INFO("Start direction: %d", start_direction_);
   INFO("Gradual duration: %d", gradual_duration_);
-  INFO("defaul_duration: %d", defaul_duration);
+  INFO("defaul_duration: %d", defaul_duration_);
   INFO("enable: %d", enable_);
-  if (default_color == 0) {
+  if (default_color_ == 0) {
     change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
     change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
   } else {
     change_dir_.push_back(PositionColorChangeDirection::PCCD_BTOW);
     change_dir_.push_back(PositionColorChangeDirection::PCCD_WTOB);
   }
-  if (start_direction == 0) {
+  if (start_direction_ == 0) {
     start_dir_ = PositionColorStartDirection::PCSD_FRONT;
   } else {
     start_dir_ = PositionColorStartDirection::PCSD_BACK;
   }
+  liftdown_color_ = PositionColorChangeDirection::PCCD_BTOW;
+  liftup_color_ = PositionColorChangeDirection::PCCD_WTOB;
   leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT});
   leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL});
   leg_map.emplace(2, std::vector<PositionSkin>{PositionSkin::PS_RBLEG, PositionSkin::PS_BODYR});

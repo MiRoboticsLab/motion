@@ -134,13 +134,22 @@ public:
 
   void SetAlignContact(bool align_contact)
   {
-    align_contact_ = align_contact;
+    if (!align_contact) {
+      last_align_contact_ = align_contact_;
+      align_contact_ = align_contact;
+    } else {
+      if (!last_align_contact_) {
+      last_align_contact_ = true;
+      } else {
+        align_contact_ = align_contact;
+      }
+    }
   }
 
   void ShowDefaultSkin()
   {
     INFO("ShowDefaultSkin");
-    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, defaul_duration);
+    elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, defaul_duration_);
   }
 
   void WriteTomlFile()
@@ -151,10 +160,10 @@ public:
     if (!cyberdog::common::CyberdogToml::ParseFile(elec_skin, temp)) {
       FATAL("Cannot parse %s", elec_skin.c_str());
     }
-    cyberdog::common::CyberdogToml::Set(temp, "default_color", default_color);
-    cyberdog::common::CyberdogToml::Set(temp, "start_direction", start_direction);
+    cyberdog::common::CyberdogToml::Set(temp, "default_color", default_color_);
+    cyberdog::common::CyberdogToml::Set(temp, "start_direction", start_direction_);
     cyberdog::common::CyberdogToml::Set(temp, "gradual_duration", gradual_duration_);
-    cyberdog::common::CyberdogToml::Set(temp, "defaul_duration", defaul_duration);
+    cyberdog::common::CyberdogToml::Set(temp, "defaul_duration", defaul_duration_);
     cyberdog::common::CyberdogToml::Set(temp, "enable", enable_);
     cyberdog::common::CyberdogToml::Set(temp, "align_contact", align_contact_); 
     if (!cyberdog::common::CyberdogToml::WriteFile(elec_skin, temp)) {
@@ -180,14 +189,16 @@ private:
   PositionColorChangeDirection liftdown_color_;
   PositionColorChangeDirection liftup_color_;
   int32_t gradual_duration_{0};
-  int32_t defaul_duration{0};
-  int8_t default_color{0};
-  int8_t start_direction{0};
+  int32_t defaul_duration_{0};
+  int8_t default_color_{0};
+  int8_t start_direction_{0};
   // int32_t stand_gradual_duration_{0};
   // int32_t twink_gradual_duration_{0};
   // int32_t random_gradual_duration_{0};
   bool enable_{false};
   bool align_contact_{false};
+  bool last_align_contact_{true};
+
   // bool move_skin_{false};
 };
 }  //  namespace motion

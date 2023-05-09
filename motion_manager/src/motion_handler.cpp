@@ -581,10 +581,9 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       return;
     }
   }
-  // if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
-  //   elec_skin_id_ = 0;
-  //   action_ptr_->ShowDefaultSkin(false, false);
-  // }
+  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    action_ptr_->ShowBlackSkin();
+  }
   // if (request->motion_id == MotionIDMsg::RECOVERYSTAND) {
   //   if(elec_skin_id_ >= 3) {
   //     elec_skin_id_ = 0;
@@ -613,30 +612,29 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   //   elec_skin_id_ = 0;
   //   action_ptr_->ShowStandElecSkin();
   // }
-  // if (request->motion_id == 136) { // 原地跳起，映射到运控的跳舞
-  //   // if (!sing_) {
-  //   //   INFO("Will sing");
-  //   //   Sing(true);
-  //   //   sing_ = true;
-  //   // }
-  //   INFO("Will sing");
-  //   Sing(true);
-  //   action_ptr_->SetAlignContact(true);
-  // }
-  // if (request->motion_id == MotionIDMsg::GETDOWN) {
-  //   // action_ptr_->ShowDefaultSkin(true, true);
-  //   INFO("Stop sing");
-  //   Sing(false);
-  //   // sing_ = false;
-  // }
+  if (request->motion_id == 140) { // 原地跳起，映射到运控的跳舞
+    // if (!sing_) {
+    //   INFO("Will sing");
+    //   Sing(true);
+    //   sing_ = true;
+    // }
+    INFO("Will sing");
+    Sing(true);
+    //action_ptr_->SetAlignContact(true);
+  }
+  if (request->motion_id == MotionIDMsg::GETDOWN) {
+    // action_ptr_->ShowDefaultSkin(true, true);
+    INFO("Stop sing");
+    Sing(false);
+    // sing_ = false;
+  }
   // if (request->motion_id == MotionIDMsg::BACK_FLIP) {
   //   action_ptr_->ShowDefaultSkin(true, true);
   // }
   ExecuteResultCmd(request, response);
-  // if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
-  //   elec_skin_id_ = 0;
-  //   action_ptr_->ShowDefaultSkin(true, true);
-  // }
+  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    action_ptr_->ShowWhiteSkin();
+  }
   CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
   INFO("Will return HandleResultCmd");

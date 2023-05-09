@@ -126,6 +126,18 @@ public:
   // {
   //   align_contact_ = align_contact;
   // }
+  void ShowBlackSkin()
+  {
+    elec_skin_manager_->SetAlignContact(false);
+    elec_skin_manager_->ShowBlackElecSkin(gradual_duration_);
+  }
+
+  void ShowWhiteSkin()
+  {
+    elec_skin_manager_->SetAlignContact(true);
+    elec_skin_manager_->ShowWhiteElecSkin(gradual_duration_);
+  }
+
   void SetState(const MotionMgrState & state)
   {
     state_ = state;
@@ -164,7 +176,7 @@ private:
   // PositionColorStartDirection start_dir_;
   MotionMgrState state_;
   int32_t last_motion_id_{0};
-  // int32_t gradual_duration_{0};
+  int32_t gradual_duration_{50};
   // int32_t stand_gradual_duration_{0};
   // int32_t twink_gradual_duration_{0};
   // int32_t random_gradual_duration_{0};

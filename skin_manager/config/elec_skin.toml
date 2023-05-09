@@ -1,6 +1,6 @@
 default_color = 0 # 0 white, 1 black
 start_direction = 0 # 0 front, 1 back
 gradual_duration = 50 # milsecs
-defaul_duration =2000 # milsecs
-enable = false;
-align_contact = true;
+defaul_duration = 2000 # milsecs
+enable = false
+align_contact = true
