@@ -1,22 +1,22 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>motion_action</name>
+  <name>skin_manager</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="dukun1@xiaomi.com">dukun</maintainer>
+  <description>the elec_skin manager for other module</description>
+  <maintainer email="lijian29@xiaomi.com">lijian29</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>ament_cmake_python</buildtool_depend>
-
   <depend>rclcpp</depend>
-  <depend>rclpy</depend>
-  <depend>cyberdog_system</depend>
-  <depend>cyberdog_common</depend>
-  <depend>cyberdog_debug</depend>
+  <depend>std_msgs</depend>
+  <depend>toml</depend>
   <depend>protocol</depend>
-  <depend>skin_manager</depend>
+  <depend>ament_index_cpp</depend>
+  <depend>cyberdog_common</depend>
+  <depend>builtin_interfaces</depend>
+  <depend>elec_skin</depend>
+
   
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

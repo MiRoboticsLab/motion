@@ -23,6 +23,7 @@ find_package(cyberdog_system REQUIRED)
 find_package(cyberdog_debug REQUIRED)
 find_package(cyberdog_common)
 find_package(lcm REQUIRED)
+find_package(skin_manager REQUIRED)
 
 include_directories(include)
 
@@ -34,11 +35,12 @@ ament_target_dependencies(${PROJECT_NAME}
   cyberdog_system
   cyberdog_common
   cyberdog_debug
+  skin_manager
 )
 
-add_executable(manager_test test/manager_test.cpp)
-target_link_libraries(manager_test ${PROJECT_NAME} lcm)
-ament_target_dependencies(manager_test lcm cyberdog_common cyberdog_debug)
+# add_executable(manager_test test/manager_test.cpp)
+# target_link_libraries(manager_test ${PROJECT_NAME} lcm)
+# ament_target_dependencies(manager_test lcm cyberdog_common cyberdog_debug)
 
 add_executable(controller_test test/controller_test.cpp)
 target_link_libraries(controller_test ${PROJECT_NAME} lcm)
@@ -66,7 +68,7 @@ install(
 )
 install(TARGETS
   ${PROJECT_NAME}
-  manager_test
+  # manager_test
   controller_test
   publisher_test
   client_test
@@ -96,5 +98,5 @@ ament_export_include_directories(
 ament_export_libraries(
   ${PROJECT_NAME}
 )
-ament_export_dependencies(lcm cyberdog_common cyberdog_debug)
+ament_export_dependencies(lcm cyberdog_common cyberdog_debug skin_manager)
 ament_package()
