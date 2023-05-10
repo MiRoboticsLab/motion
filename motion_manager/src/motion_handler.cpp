@@ -513,7 +513,13 @@ void MotionHandler::HandleResultCmd<MotionSequenceShowSrv::Request::SharedPtr,
 template<typename CmdRequestT, typename CmdResponseT>
 void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT response)
 {
+  bool DanceInteruption = (GetWorkStatus() == HandlerStatus::kExecutingResultCmd &&
+    GetMotionStatus()->motion_id == 140 && request->motion_id == MotionIDMsg::GETDOWN);
+  if (DanceInteruption && is_execute_wait_) {
+    execute_cv_.notify_all();
+  }
   if (GetWorkStatus() != HandlerStatus::kIdle &&
+    !DanceInteruption &&
     request->motion_id != MotionIDMsg::ESTOP &&
     request->cmd_source != MotionResultSrv::Request::FSM)
   {
@@ -612,7 +618,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   //   elec_skin_id_ = 0;
   //   action_ptr_->ShowStandElecSkin();
   // }
-  if (request->motion_id == 140) {  // 原地跳起，映射到运控的跳舞
+  if (request->motion_id == 140) {
     // if (!sing_) {
     //   INFO("Will sing");
     //   Sing(true);
