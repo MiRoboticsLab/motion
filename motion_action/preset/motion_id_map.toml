@@ -562,22 +562,6 @@ min_exec_time = 15000
 # 预制自定义0
 [[motion_ids]]
 motion_id = 180
-map = [26, 0]   
-pre_motion = []
-post_motion = [0, 12, 7]
-min_exec_time = 15000
-
-# 预留2700
-[[motion_ids]]
-motion_id = 181
-map = [27, 0]   
-pre_motion = []
-post_motion = [0, 12, 7]
-min_exec_time = 15000
-
-# 预制自定义0
-[[motion_ids]]
-motion_id = 115
 map = [11, 80]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23, 80, 81, 82]
