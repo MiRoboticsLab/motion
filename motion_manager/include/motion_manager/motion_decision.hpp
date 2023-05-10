@@ -148,10 +148,7 @@ private:
   inline bool IsStateValid(int32_t motion_id, int32_t & error_code)
   {
     if (estop_) {
-      if (motion_id != MotionIDMsg::ESTOP &&
-        motion_id != MotionIDMsg::RECOVERYSTAND &&
-        motion_id != MotionIDMsg::GETDOWN)
-      {
+      if (motion_id != MotionIDMsg::ESTOP && motion_id != MotionIDMsg::RECOVERYSTAND) {
         ERROR("Forbidden ResultCmd(%d) when estop", motion_id);
         error_code = code_ptr_->GetCode(MotionCode::kEstop);
         return false;
