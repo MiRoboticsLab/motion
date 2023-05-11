@@ -127,7 +127,7 @@ public:
   //   align_contact_ = align_contact;
   // }
   void ShowBlackSkin()
-  { 
+  {
     bool enable = elec_skin_manager_->GetEnableStatus();
     if (!enable) {
       return;
