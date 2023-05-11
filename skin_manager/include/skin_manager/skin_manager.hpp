@@ -152,6 +152,11 @@ public:
     elec_skin_->ModelControl(ModelSwitch::MS_WAVEF, defaul_duration_);
   }
 
+  bool GetEnableStatus()
+  {
+    return enable_;
+  }
+
   void WriteTomlFile()
   {
     std::string elec_skin = ament_index_cpp::get_package_share_directory("skin_manager") +

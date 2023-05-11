@@ -128,12 +128,20 @@ public:
   // }
   void ShowBlackSkin()
   {
+    bool enable = elec_skin_manager_->GetEnableStatus();
+    if (!enable) {
+      return;
+    }
     elec_skin_manager_->SetAlignContact(false);
     elec_skin_manager_->ShowBlackElecSkin(gradual_duration_);
   }
 
   void ShowWhiteSkin()
   {
+    bool enable = elec_skin_manager_->GetEnableStatus();
+    if (!enable) {
+      return;
+    }
     elec_skin_manager_->SetAlignContact(true);
     elec_skin_manager_->ShowWhiteElecSkin(gradual_duration_);
   }
