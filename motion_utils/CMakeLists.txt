@@ -13,6 +13,10 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
 endif()
 
+if(NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
+endif()
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
