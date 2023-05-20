@@ -245,7 +245,7 @@ motion_id = 140
 map = [62, 0]   
 pre_motion = []
 post_motion = [0, 12, 7, 21]
-min_exec_time = 30000
+min_exec_time = 60000
 
 # 握左手
 [[motion_ids]]
@@ -527,29 +527,29 @@ pre_motion = []
 post_motion = [0, 12, 7, 16]
 min_exec_time = 15000
 
-# 作揖预留6402
+# 舞蹈-1
 [[motion_ids]]
 motion_id = 176
-map = [64, 2]   
+map = [62, 121]   
 pre_motion = []
-post_motion = [0, 12, 7, 16]
-min_exec_time = 15000
+post_motion = [0, 12, 7, 21]
+min_exec_time = 120000
 
-# 作揖预留6403
+# 舞蹈-2
 [[motion_ids]]
 motion_id = 177
-map = [62, 3]   
+map = [62, 122]   
 pre_motion = []
-post_motion = [0, 12, 7, 16]
-min_exec_time = 15000
+post_motion = [0, 12, 7, 21]
+min_exec_time = 120000
 
-# 预留2400
+# 舞蹈-3
 [[motion_ids]]
 motion_id = 178
-map = [24, 0]   
+map = [62, 123]   
 pre_motion = []
-post_motion = [0, 12, 7]
-min_exec_time = 15000
+post_motion = [0, 12, 7, 21]
+min_exec_time = 120000
 
 # 预留2500
 [[motion_ids]]
