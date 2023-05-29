@@ -619,29 +619,11 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   //   elec_skin_id_ = 0;
   //   action_ptr_->ShowStandElecSkin();
   // }
-  if (request->motion_id == 140) {
+  if (dance_map_.find(request->motion_id) != dance_map_.end()) {
     INFO("Will sing");
-    Sing(dance_map_[140]);
-    // action_ptr_->SetAlignContact(true);
+    Sing(dance_map_[request->motion_id]);
   }
-  if (request->motion_id == 176) {
-    INFO("Will sing");
-    Sing(dance_map_[176]);
-  }
-  if (request->motion_id == 177) {
-    INFO("Will sing");
-    Sing(dance_map_[177]);
-  }
-  if (request->motion_id == 178) {
-    INFO("Will sing");
-    Sing(dance_map_[178]);
-  }
-  if (request->motion_id == MotionIDMsg::GETDOWN) {
-    // action_ptr_->ShowDefaultSkin(true, true);
-    INFO("Stop sing");
-    Sing(dance_map_[101]);
-    // sing_ = false;
-  }
+
   // if (request->motion_id == MotionIDMsg::BACK_FLIP) {
   //   action_ptr_->ShowDefaultSkin(true, true);
   // }
