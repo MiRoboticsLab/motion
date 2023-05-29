@@ -87,6 +87,7 @@ private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
   void ServoDataCheck();
+  void SetDanceMap();
   void PoseControlDefinitively();
   void WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd);
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr & msg);
@@ -177,16 +178,11 @@ private:
     toml_.close();
   }
 
-  inline void Sing(bool enable)
+  inline void Sing(uint16_t sing)
   {
     auto request = std::make_shared<protocol::srv::AudioTextPlay_Request>();
-    if (!enable) {
-      request->is_online = false;
-      request->speech.play_id = 9999;
-    } else {
-      request->is_online = false;
-      request->speech.play_id = 60003;
-    }
+    request->is_online = false;
+    request->speech.play_id = sing;
     audio_play_->async_send_request(request);
   }
 
@@ -212,6 +208,7 @@ private:
   std::condition_variable transitioning_cv_;
   std::condition_variable execute_cv_;
   std::map<int32_t, MotionIdMap> motion_id_map_;
+  std::map<int32_t, uint16_t> dance_map_;
   MotionServoCmdMsg::SharedPtr last_servo_cmd_ {nullptr};
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
   MotionMgrState fsm_state_;
