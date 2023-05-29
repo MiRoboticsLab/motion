@@ -620,7 +620,11 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   //   action_ptr_->ShowStandElecSkin();
   // }
   if (dance_map_.find(request->motion_id) != dance_map_.end()) {
-    INFO("Will sing");
+    if (request->motion_id == 101) {
+      INFO("Stop sing");
+    } else {
+      INFO("Will sing");
+    }
     Sing(dance_map_[request->motion_id]);
   }
 
