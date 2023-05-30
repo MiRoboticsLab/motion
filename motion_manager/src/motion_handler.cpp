@@ -66,6 +66,7 @@ bool MotionHandler::Init()
     }
   }
   motion_id_map_ = action_ptr_->GetMotionIdMap();
+  SetDanceMap();
   std::thread{
     [this]() {
       while (rclcpp::ok()) {
@@ -618,22 +619,15 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   //   elec_skin_id_ = 0;
   //   action_ptr_->ShowStandElecSkin();
   // }
-  if (request->motion_id == 140) {
-    // if (!sing_) {
-    //   INFO("Will sing");
-    //   Sing(true);
-    //   sing_ = true;
-    // }
-    INFO("Will sing");
-    Sing(true);
-    // action_ptr_->SetAlignContact(true);
+  if (dance_map_.find(request->motion_id) != dance_map_.end()) {
+    if (request->motion_id == 101) {
+      INFO("Stop sing");
+    } else {
+      INFO("Will sing");
+    }
+    Sing(dance_map_[request->motion_id]);
   }
-  if (request->motion_id == MotionIDMsg::GETDOWN) {
-    // action_ptr_->ShowDefaultSkin(true, true);
-    INFO("Stop sing");
-    Sing(false);
-    // sing_ = false;
-  }
+
   // if (request->motion_id == MotionIDMsg::BACK_FLIP) {
   //   action_ptr_->ShowDefaultSkin(true, true);
   // }
@@ -850,6 +844,15 @@ bool MotionHandler::CheckMotors(int32_t & code)
     code = code_ptr_->GetCode(MotionCode::kHwMotorOverLoad);
   }
   return false;
+}
+
+void MotionHandler::SetDanceMap()
+{
+  dance_map_[101] = 9999;
+  dance_map_[140] = 60003;
+  dance_map_[176] = 60005;
+  dance_map_[177] = 60006;
+  dance_map_[178] = 60007;
 }
 }  // namespace motion
 }  // namespace cyberdog
