@@ -260,7 +260,8 @@ void MotionManager::MotionResultCmdCallback(
   bool protected_cmd =
     (request->motion_id != MotionIDMsg::RECOVERYSTAND &&
     request->motion_id != MotionIDMsg::GETDOWN &&
-    request->motion_id != MotionIDMsg::ESTOP);
+    request->motion_id != MotionIDMsg::ESTOP &&
+    request->motion_id != MotionIDMsg::POSECONTROL_RELATIVEYLY);
   if (!IsStateValid(code, protected_cmd)) {
     ERROR("FSM invalid with current state: %s", status_map_.at(state_).c_str());
     if (code == code_ptr_->GetKeyCode(system::KeyCode::kProtectedError)) {
