@@ -620,18 +620,21 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   //   action_ptr_->ShowStandElecSkin();
   // }
   if (dance_map_.find(request->motion_id) != dance_map_.end()) {
-    if (request->motion_id == 101) {
-      INFO("Stop sing");
-    } else {
-      INFO("Will sing");
-    }
+    INFO("Will sing");
+    execute_dance_ = true;
     Sing(dance_map_[request->motion_id]);
+  }
+
+  if (request->motion_id == MotionIDMsg::GETDOWN && execute_dance_ == true) {
+    INFO("Stop sing");
+    Sing(9999);
   }
 
   // if (request->motion_id == MotionIDMsg::BACK_FLIP) {
   //   action_ptr_->ShowDefaultSkin(true, true);
   // }
   ExecuteResultCmd(request, response);
+  execute_dance_ == false;
   if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
     action_ptr_->ShowWhiteSkin();
   }
@@ -848,7 +851,6 @@ bool MotionHandler::CheckMotors(int32_t & code)
 
 void MotionHandler::SetDanceMap()
 {
-  dance_map_[101] = 9999;
   dance_map_[140] = 60003;
   dance_map_[176] = 60005;
   dance_map_[177] = 60006;

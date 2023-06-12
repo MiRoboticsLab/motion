@@ -229,6 +229,7 @@ private:
   bool post_motion_checked_ {false};
   bool exec_servo_pre_motion_failed_ {false};
   bool sing_{false};
+  bool execute_dance_{false};
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog
