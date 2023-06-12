@@ -195,7 +195,7 @@ void MotionHandler::HandleServoCmd(
       MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
       MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
       if (msg->motion_id == 309) {
-        request->motion_id = 117;
+        request->motion_id = 118;
       } else {
         request->motion_id = MotionIDMsg::RECOVERYSTAND;
       }

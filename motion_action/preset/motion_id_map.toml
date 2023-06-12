@@ -71,7 +71,7 @@ pre_motion = []
 post_motion = [0, 12, 7, 11, 80, 81, 82]
 min_exec_time = 5000
 
-# 极速起身
+# 强化学习慢速恢复站立
 [[motion_ids]]
 motion_id = 118
 map  = [80, 1]   
