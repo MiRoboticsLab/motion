@@ -187,11 +187,18 @@ void MotionHandler::HandleServoCmd(
   }
   SetWorkStatus(HandlerStatus::kExecutingServoCmd);
   if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
+    INFO(
+      "Current Motion: %d, AllowServoCmd: %d, pmc: %d",
+      motion_status_ptr_->motion_id, AllowServoCmd(msg->motion_id), post_motion_checked_);
     if (!AllowServoCmd(msg->motion_id)) {
       SetServoNeedCheck(false);
       MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
       MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
-      request->motion_id = MotionIDMsg::RECOVERYSTAND;
+      if (msg->motion_id == 309) {
+        request->motion_id = 118;
+      } else {
+        request->motion_id = MotionIDMsg::RECOVERYSTAND;
+      }
       INFO("Trying to be ready for ServoCmd");
       ExecuteResultCmd(request, response);
       if (!response->result) {
@@ -353,7 +360,6 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   //   }
   // }
   action_ptr_->Execute(request);
-  INFO("Wait 15ms start");
   if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
     auto req = std::make_shared<MotionResultSrv::Request>();
     req->motion_id = request->motion_id;
@@ -369,7 +375,6 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   }
   auto past = std::chrono::system_clock::now() - start;
   std::this_thread::sleep_for(std::chrono::nanoseconds(15 * 1000 * 1000) - past);
-  INFO("Wait 15ms over");
   std::unique_lock<std::mutex> check_lk(execute_mutex_);
   wait_id_ = request->motion_id;
   switch (motion_status_ptr_->switch_status) {
@@ -756,8 +761,8 @@ bool MotionHandler::CheckPostMotion(int32_t motion_id)
 
 bool MotionHandler::AllowServoCmd(int32_t motion_id)
 {
-  // TODO(harvey): 判断当前状态是否能够行走
-  if (post_motion_checked_) {return true;}
+  // TODO(harvey): 判断当前状态是否能够行走，跟随时每一帧都做检查
+  if (post_motion_checked_ && motion_id != 309) {return true;}
   return CheckPostMotion(motion_id);
 }
 

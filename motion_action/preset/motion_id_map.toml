@@ -19,7 +19,7 @@ min_exec_time = 1000
 motion_id = 101
 map = [7, 1]    
 pre_motion = []
-post_motion = [0, 12, 7]
+post_motion = [0, 12, 7, 80]
 min_exec_time = 5000
 
 # 高阻尼趴下（备用）， duration必须为0
@@ -27,7 +27,7 @@ min_exec_time = 5000
 motion_id = 102
 map = [7, 0]    
 pre_motion = []
-post_motion = [0, 12, 7]
+post_motion = [0, 12, 7, 80]
 min_exec_time = 5000
 
 # 恢复站立， duration必须为0
@@ -71,7 +71,7 @@ pre_motion = []
 post_motion = [0, 12, 7, 11, 80, 81, 82]
 min_exec_time = 5000
 
-# 极速起身
+# 强化学习慢速恢复站立
 [[motion_ids]]
 motion_id = 118
 map  = [80, 1]   
