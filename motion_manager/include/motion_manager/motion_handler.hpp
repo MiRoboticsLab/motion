@@ -71,7 +71,9 @@ public:
   bool CheckMotionResult(int32_t motion_id, int32_t & code);
   bool SelfCheck()
   {
-    return action_ptr_->SelfCheck();
+    int32_t code = 0;
+    CheckMotors(code);
+    return action_ptr_->SelfCheck() && code == 0;
   }
   void SetState(const MotionMgrState & state)
   {
