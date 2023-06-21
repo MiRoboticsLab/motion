@@ -63,6 +63,14 @@ pre_motion = []
 post_motion = [0, 12, 7, 3, 11]
 min_exec_time = 0
 
+# 摔倒后四脚向上时，与提起保护的状态做区分，以便下发强化站立的指令
+[[motion_ids]]
+motion_id = 115
+map  = [9, 1]   
+pre_motion = []
+post_motion = [0, 12, 7, 3]
+min_exec_time = 0
+
 # 强化学习快速恢复站立
 [[motion_ids]]
 motion_id = 117
