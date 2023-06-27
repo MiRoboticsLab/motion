@@ -58,7 +58,7 @@ bool MotionDecision::Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr s
   servo_response_pub_ = servo_response_pub;
   servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponseThread, this));
   servo_response_thread_.detach();
-  laser_helper_ = std::make_shared<LaserHelper>(node_ptr_);
+  // laser_helper_ = std::make_shared<LaserHelper>(node_ptr_);
   ResetServoResponseMsg();
   return true;
 }
