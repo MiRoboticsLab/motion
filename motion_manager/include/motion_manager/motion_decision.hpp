@@ -154,11 +154,11 @@ private:
         return false;
       }
     }
-    if (motion_id == MotionIDMsg::RECOVERYSTAND && laser_helper_->IsStuck()) {
-      ERROR("Forbidden ResultCmd(%d) when stuck", motion_id);
-      error_code = code_ptr_->GetCode(MotionCode::kStuck);
-      return false;
-    }
+    // if (motion_id == MotionIDMsg::RECOVERYSTAND && laser_helper_->IsStuck()) {
+    //   ERROR("Forbidden ResultCmd(%d) when stuck", motion_id);
+    //   error_code = code_ptr_->GetCode(MotionCode::kStuck);
+    //   return false;
+    // }
     return true;
   }
   inline bool IsStateValid(int32_t motion_id)
@@ -268,7 +268,7 @@ private:
   common::MsgQueue<int> servo_response_queue_;
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub_;
   MotionServoResponseMsg servo_response_msg_;
-  std::shared_ptr<LaserHelper> laser_helper_;
+  // std::shared_ptr<LaserHelper> laser_helper_;
   std::map<int32_t, int32_t> priority_map_;
   bool estop_ {false};
 };  // class MotionDecision
