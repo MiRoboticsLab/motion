@@ -639,7 +639,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
   //   action_ptr_->ShowDefaultSkin(true, true);
   // }
   ExecuteResultCmd(request, response);
-  execute_dance_ == false;
+  execute_dance_ = false;
   if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
     action_ptr_->ShowWhiteSkin();
   }
