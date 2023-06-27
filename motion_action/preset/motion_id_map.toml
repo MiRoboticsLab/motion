@@ -242,7 +242,7 @@ min_exec_time = 20000
 # 跑跳空翻
 [[motion_ids]]
 motion_id = 139
-map = [62, 109]   
+map = [62, 40]   
 pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 30000
