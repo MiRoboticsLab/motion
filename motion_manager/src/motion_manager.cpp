@@ -273,6 +273,7 @@ void MotionManager::MotionResultCmdCallback(
   }
 
   decision_ptr_->DecideResultCmd(request, response);
+  decision_ptr_->ReportErrorCode(response->code, response->motion_id);
   INFO("Will return MotionResultCmdCallback");
 }
 

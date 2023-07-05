@@ -60,6 +60,7 @@ bool MotionDecision::Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr s
   servo_response_thread_.detach();
   // laser_helper_ = std::make_shared<LaserHelper>(node_ptr_);
   ResetServoResponseMsg();
+  get_sn_client_ = node_ptr_->create_client<std_srvs::srv::Trigger>("get_dog_sn");
   return true;
 }
 
@@ -104,6 +105,7 @@ void MotionDecision::ServoResponseThread()
         handler_ptr_->CheckMotionResult(code);
         servo_response_msg_.code = code;
         servo_response_pub_->publish(servo_response_msg_);
+        ReportErrorCode(code, servo_response_msg_.motion_id);
       } else {
         servo_response_msg_.motion_id = -1;
         servo_response_msg_.order_process_bar = -1;
@@ -192,6 +194,31 @@ void MotionDecision::DecideQueueCmd(
   }
   handler_ptr_->HandleQueueCmd(request, response);
 }
+
+ void MotionDecision::WriteTomlFile()
+  {
+    std::string error_flag = ament_index_cpp::get_package_share_directory("motion_manager") +
+      "/config/" + "flag.toml";
+    toml::value temp;
+    if (!cyberdog::common::CyberdogToml::ParseFile(error_flag, temp)) {
+      FATAL("Cannot parse %s", error_flag.c_str());
+    }
+    cyberdog::common::CyberdogToml::Set(temp, "error_flag", is_error_);
+    if (!cyberdog::common::CyberdogToml::WriteFile(error_flag, temp)) {
+      ERROR("write toml file failed");
+    }
+  }
+
+void MotionDecision::ReportErrorCode(int32_t & error_code, int32_t & motion_id) {
+  if (std::find(report_error_code_.begin(), report_error_code_.end(), error_code) == 
+  report_error_code_.end()) {
+   return;
+  }
+  int64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    std::chrono::system_clock::now().time_since_epoch()).count();
+  is_error_ = true;
+  WriteTomlFile();
+  recordEvent(motion_id, error_code, now_ms);
 
 }  // namespace motion
 }  // namespace cyberdog
