@@ -60,7 +60,7 @@ bool MotionDecision::Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr s
   servo_response_thread_.detach();
   // laser_helper_ = std::make_shared<LaserHelper>(node_ptr_);
   ResetServoResponseMsg();
-  get_sn_client_ = node_ptr_->create_client<std_srvs::srv::Trigger>("get_dog_sn");
+  log_ptr_ = std::make_shared<LcmEventUploader>(node_ptr_);
   return true;
 }
 
@@ -218,7 +218,18 @@ void MotionDecision::ReportErrorCode(int32_t & error_code, int32_t & motion_id) 
     std::chrono::system_clock::now().time_since_epoch()).count();
   is_error_ = true;
   WriteTomlFile();
-  recordEvent(motion_id, error_code, now_ms);
+  int report_response = log_ptr->recordEvent(motion_id, error_code, now_ms);
+  switch (report_response) {
+    case 0:
+      INFO("save logs and report abnormal events");
+    case 1:
+      INFO("failed to save log");
+    case 2:
+      INFO("failed to report abnormal events");
+    case 3:
+      INFO("failed to save log and report abnormal events");
+  }
+}  
 
 }  // namespace motion
 }  // namespace cyberdog

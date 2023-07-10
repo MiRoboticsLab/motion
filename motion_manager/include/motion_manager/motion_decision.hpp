@@ -29,7 +29,6 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
-#include "std_srvs/srv/trigger.hpp"
 
 namespace cyberdog
 {
@@ -262,6 +261,7 @@ private:
 private:
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   std::shared_ptr<MotionHandler> handler_ptr_ {nullptr};
+  std::shared_ptr<LcmEventUploader> log_ptr {nullptr};
   DecisionStatus motion_work_mode_ {DecisionStatus::kIdle};
   std::mutex status_mutex_;
   std::shared_ptr<MCode> code_ptr_;
@@ -274,10 +274,8 @@ private:
   // std::shared_ptr<LaserHelper> laser_helper_;
   std::map<int32_t, int32_t> priority_map_;
   bool estop_ {false};
-  rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr get_sn_client_ {nullptr};
   std::vector<int32_t> report_error_code_ {21,22,23,24,25,26,27,28,29,31,32,33,34,35};
   int32_t error_code_;
-  std::string sn_;
   bool is_error_ {false};
 };  // class MotionDecision
 }  // namespace motion
