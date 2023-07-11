@@ -17,6 +17,7 @@
   <depend>motion_action</depend>
   <depend>protocol</depend>
   <depend>cyberdog_machine</depend>
+  <depend>bes_transmit</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

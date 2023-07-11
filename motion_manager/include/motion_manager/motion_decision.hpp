@@ -29,6 +29,7 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "file_uploading/lcm_log_uploader.hpp"
 
 namespace cyberdog
 {
@@ -131,6 +132,15 @@ public:
   // {
   //   handler_ptr_->SetSequnceTotalDuration(sequence_total_duration);
   // }
+  void ReportErrorCode(int32_t & error_code, int32_t & motion_id);
+  inline bool IsErrorCode(int32_t & error_code) {
+    if (std::find(report_error_code_.begin(), report_error_code_.end(), error_code) == 
+    report_error_code_.end()) {
+      return false;
+    } else {
+      return true;
+    }
+  }
   inline bool SelfCheck()
   {
     return handler_ptr_->SelfCheck();
@@ -198,7 +208,6 @@ private:
   bool WaitHandlingResult(int32_t motion_id, int32_t duration, int32_t & code);
   void StopMotion();
   void ServoResponseThread();
-  void ReportErrorCode(int32 error_code);
   void WriteTomlFile();
   inline void SetWorkStatus(const DecisionStatus & status_code)
   {
@@ -261,7 +270,7 @@ private:
 private:
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   std::shared_ptr<MotionHandler> handler_ptr_ {nullptr};
-  std::shared_ptr<LcmEventUploader> log_ptr {nullptr};
+  std::shared_ptr<LcmEventUploader> log_ptr_ {nullptr};
   DecisionStatus motion_work_mode_ {DecisionStatus::kIdle};
   std::mutex status_mutex_;
   std::shared_ptr<MCode> code_ptr_;
@@ -275,8 +284,10 @@ private:
   std::map<int32_t, int32_t> priority_map_;
   bool estop_ {false};
   std::vector<int32_t> report_error_code_ {21,22,23,24,25,26,27,28,29,31,32,33,34,35};
-  int32_t error_code_;
   bool is_error_ {false};
+  int32_t last_error_code_ {0};
+  int32_t last_motion_id_ {0};
+  int64_t last_ms_ {0};
 };  // class MotionDecision
 }  // namespace motion
 }  // namespace cyberdog

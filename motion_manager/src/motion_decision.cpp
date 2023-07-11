@@ -105,7 +105,9 @@ void MotionDecision::ServoResponseThread()
         handler_ptr_->CheckMotionResult(code);
         servo_response_msg_.code = code;
         servo_response_pub_->publish(servo_response_msg_);
-        ReportErrorCode(code, servo_response_msg_.motion_id);
+        if (IsErrorCode(code)) {
+          ReportErrorCode(code, servo_response_msg_.motion_id);
+        }      
       } else {
         servo_response_msg_.motion_id = -1;
         servo_response_msg_.order_process_bar = -1;
@@ -210,15 +212,21 @@ void MotionDecision::DecideQueueCmd(
   }
 
 void MotionDecision::ReportErrorCode(int32_t & error_code, int32_t & motion_id) {
-  if (std::find(report_error_code_.begin(), report_error_code_.end(), error_code) == 
-  report_error_code_.end()) {
-   return;
-  }
+  //while (true) {
+    //msg_cond_.wait_for();
   int64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-    std::chrono::system_clock::now().time_since_epoch()).count();
+  std::chrono::system_clock::now().time_since_epoch()).count();
+  if(error_code == last_error_code_ && motion_id == last_motion_id_) {
+    if(now_ms -last_ms_ < 30000) {
+      return;
+    }
+  }
+  last_error_code_ = error_code;
+  last_motion_id_ = motion_id;
+  last_ms_ = now_ms;
   is_error_ = true;
   WriteTomlFile();
-  int report_response = log_ptr->recordEvent(motion_id, error_code, now_ms);
+  int report_response = log_ptr_->recordEvent(motion_id, error_code, now_ms);
   switch (report_response) {
     case 0:
       INFO("save logs and report abnormal events");
@@ -229,6 +237,8 @@ void MotionDecision::ReportErrorCode(int32_t & error_code, int32_t & motion_id) 
     case 3:
       INFO("failed to save log and report abnormal events");
   }
+  //std::this_thread::sleep_for(std::chrono::milliseconds(20));
+ // }
 }  
 
 }  // namespace motion

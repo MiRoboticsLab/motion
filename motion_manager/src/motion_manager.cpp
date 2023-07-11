@@ -109,6 +109,7 @@ bool MotionManager::Init()
   status_map_.emplace(MotionMgrState::kLowPower, "LowPower");
   status_map_.emplace(MotionMgrState::kOTA, "OTA");
   status_map_.emplace(MotionMgrState::kError, "Error");
+  thread_ = std::make_unique<std::thread>(&MotionManager::Report, this);
   return true;
 }
 
@@ -273,7 +274,16 @@ void MotionManager::MotionResultCmdCallback(
   }
 
   decision_ptr_->DecideResultCmd(request, response);
-  decision_ptr_->ReportErrorCode(response->code, response->motion_id);
+  if (decision_ptr_->IsErrorCode(response->code)) {
+    // std::thread thread(&MotionDecision::ReportErrorCode, this, response->code, response->motion_id);
+    // thread.detach();
+    //decision_ptr_->ReportErrorCode(response->code, response->motion_id);
+    std::unique_lock<std::mutex> lock(msg_mutex_);
+    code_ = response->code;
+    motion_id_ = response->motion_id;
+    ready_ = true;
+    msg_condition_.notify_one();
+  }
   INFO("Will return MotionResultCmdCallback");
 }
 
@@ -308,8 +318,8 @@ void MotionManager::MotionCustomCmdCallback(
   //   req->cmd_source = request->cmd_source;
   //   auto res = std::make_shared<MotionResultSrv::Response>();
   //   decision_ptr_->DecideResultCmd(req, res);
-  //   response->motion_id = res->motion_id;
-  //   response->result = res->result;
+  //   response->motion_id = res->motion_id;  // std::thread thread(&MotionDecision::ReportErrorCode, this, response->code, response->motion_id);
+    // thread.detach();
   //   response->code = res->code;
   //   // decision_ptr_->DecideCustomCmd(request, response);
   // }
@@ -334,7 +344,13 @@ void MotionManager::MotionSequenceShowCmdCallback(
   // }
   // decision_ptr_->SetSequnceTotalDuration(total_duration);
   decision_ptr_->DecideResultCmd(request, response);
-
+  if (decision_ptr_->IsErrorCode(response->code)) {
+      code_ = response->code;
+      motion_id_ = response->motion_id;
+      ready_ = true;
+      msg_condition_.notify_one();
+    //decision_ptr_->ReportErrorCode(response->code, response->motion_id);
+  }
   // if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {
   //   auto lcm = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
   //   std::ifstream custom_config(kMotionCustomCmdConfigPath);
@@ -381,6 +397,18 @@ void MotionManager::MotionQueueCmdCallback(
     return;
   }
   decision_ptr_->DecideQueueCmd(request, response);
+}
+
+void MotionManager::Report()
+{
+  while (true) {
+    std::unique_lock<std::mutex> lock(msg_mutex_);
+    msg_condition_.wait(lock, [this]{return ready_;});
+    decision_ptr_->ReportErrorCode(code_, motion_id_);
+    ready_ = false;
+
+    std::this_thread::sleep_for(std::chrono::microseconds(20));
+  }
 }
 
 }  // namespace motion
