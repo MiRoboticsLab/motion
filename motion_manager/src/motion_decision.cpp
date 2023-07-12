@@ -107,7 +107,7 @@ void MotionDecision::ServoResponseThread()
         servo_response_pub_->publish(servo_response_msg_);
         if (IsErrorCode(code)) {
           ReportErrorCode(code, servo_response_msg_.motion_id);
-        }      
+        }
       } else {
         servo_response_msg_.motion_id = -1;
         servo_response_msg_.order_process_bar = -1;
@@ -197,35 +197,19 @@ void MotionDecision::DecideQueueCmd(
   handler_ptr_->HandleQueueCmd(request, response);
 }
 
- void MotionDecision::WriteTomlFile()
-  {
-    std::string error_flag = ament_index_cpp::get_package_share_directory("motion_manager") +
-      "/config/" + "flag.toml";
-    toml::value temp;
-    if (!cyberdog::common::CyberdogToml::ParseFile(error_flag, temp)) {
-      FATAL("Cannot parse %s", error_flag.c_str());
-    }
-    cyberdog::common::CyberdogToml::Set(temp, "error_flag", is_error_);
-    if (!cyberdog::common::CyberdogToml::WriteFile(error_flag, temp)) {
-      ERROR("write toml file failed");
-    }
-  }
-
-void MotionDecision::ReportErrorCode(int32_t & error_code, int32_t & motion_id) {
-  //while (true) {
-    //msg_cond_.wait_for();
+void MotionDecision::ReportErrorCode(int32_t & error_code, int32_t & motion_id)
+{
   int64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-  std::chrono::system_clock::now().time_since_epoch()).count();
-  if(error_code == last_error_code_ && motion_id == last_motion_id_) {
-    if(now_ms -last_ms_ < 30000) {
+    std::chrono::system_clock::now().time_since_epoch()).count();
+  if (error_code == last_error_code_ && motion_id == last_motion_id_) {
+    if (now_ms - last_ms_ < 30000) {
       return;
     }
   }
   last_error_code_ = error_code;
   last_motion_id_ = motion_id;
   last_ms_ = now_ms;
-  is_error_ = true;
-  WriteTomlFile();
+  INFO("begin to report error code");
   int report_response = log_ptr_->recordEvent(motion_id, error_code, now_ms);
   switch (report_response) {
     case 0:
@@ -237,9 +221,7 @@ void MotionDecision::ReportErrorCode(int32_t & error_code, int32_t & motion_id) 
     case 3:
       INFO("failed to save log and report abnormal events");
   }
-  //std::this_thread::sleep_for(std::chrono::milliseconds(20));
- // }
-}  
+}
 
 }  // namespace motion
 }  // namespace cyberdog

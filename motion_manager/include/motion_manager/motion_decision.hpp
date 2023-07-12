@@ -133,11 +133,15 @@ public:
   //   handler_ptr_->SetSequnceTotalDuration(sequence_total_duration);
   // }
   void ReportErrorCode(int32_t & error_code, int32_t & motion_id);
-  inline bool IsErrorCode(int32_t & error_code) {
-    if (std::find(report_error_code_.begin(), report_error_code_.end(), error_code) == 
-    report_error_code_.end()) {
+  inline bool IsErrorCode(int32_t & error_code)
+  {
+    if (std::find(report_error_code_.begin(), report_error_code_.end(), error_code) ==
+      report_error_code_.end())
+    {
+      INFO("not error code");
       return false;
     } else {
+      INFO("error code");
       return true;
     }
   }
@@ -283,8 +287,8 @@ private:
   // std::shared_ptr<LaserHelper> laser_helper_;
   std::map<int32_t, int32_t> priority_map_;
   bool estop_ {false};
-  std::vector<int32_t> report_error_code_ {21,22,23,24,25,26,27,28,29,31,32,33,34,35};
-  bool is_error_ {false};
+  std::vector<int32_t> report_error_code_ {3021, 3022, 3023, 3024, 3025, 3026, 3027, 3028, 3029,
+    3031, 3032, 3033, 3034, 3035};
   int32_t last_error_code_ {0};
   int32_t last_motion_id_ {0};
   int64_t last_ms_ {0};

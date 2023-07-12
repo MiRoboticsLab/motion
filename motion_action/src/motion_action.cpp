@@ -319,7 +319,10 @@ bool MotionAction::Init(
     }}.detach();
 
   elec_skin_manager_ = std::make_shared<SkinManagerNode>("skin_manager");
-  //std::system("lcm-logger --channel=external_imu --invert-channels --rotate=5 --split-mb=5 /SDCARD/lcm_log/logfile");
+  std::thread{[]() {
+      std::system(
+        "lcm-logger --channel=external_imu --invert-channels --rotate=5 --split-mb=5 --quiet /SDCARD/lcm_log/logfile");
+    }}.detach();
   // ParseElecSkin();
   // leg_map.emplace(0, std::vector<PositionSkin>{PositionSkin::PS_RFLEG, PositionSkin::PS_FRONT});
   // leg_map.emplace(1, std::vector<PositionSkin>{PositionSkin::PS_LFLEG, PositionSkin::PS_BODYL});

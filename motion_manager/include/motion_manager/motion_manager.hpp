@@ -147,7 +147,6 @@ private:
   std::unique_ptr<std::thread> thread_{nullptr};
   std::condition_variable msg_condition_;
   std::mutex msg_mutex_;
-  bool ready_;
   int32_t code_;
   int32_t motion_id_;
 

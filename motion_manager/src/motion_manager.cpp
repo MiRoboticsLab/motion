@@ -110,6 +110,7 @@ bool MotionManager::Init()
   status_map_.emplace(MotionMgrState::kOTA, "OTA");
   status_map_.emplace(MotionMgrState::kError, "Error");
   thread_ = std::make_unique<std::thread>(&MotionManager::Report, this);
+  thread_->detach();
   return true;
 }
 
@@ -275,13 +276,9 @@ void MotionManager::MotionResultCmdCallback(
 
   decision_ptr_->DecideResultCmd(request, response);
   if (decision_ptr_->IsErrorCode(response->code)) {
-    // std::thread thread(&MotionDecision::ReportErrorCode, this, response->code, response->motion_id);
-    // thread.detach();
-    //decision_ptr_->ReportErrorCode(response->code, response->motion_id);
     std::unique_lock<std::mutex> lock(msg_mutex_);
     code_ = response->code;
     motion_id_ = response->motion_id;
-    ready_ = true;
     msg_condition_.notify_one();
   }
   INFO("Will return MotionResultCmdCallback");
@@ -319,7 +316,7 @@ void MotionManager::MotionCustomCmdCallback(
   //   auto res = std::make_shared<MotionResultSrv::Response>();
   //   decision_ptr_->DecideResultCmd(req, res);
   //   response->motion_id = res->motion_id;  // std::thread thread(&MotionDecision::ReportErrorCode, this, response->code, response->motion_id);
-    // thread.detach();
+  // thread.detach();
   //   response->code = res->code;
   //   // decision_ptr_->DecideCustomCmd(request, response);
   // }
@@ -345,10 +342,10 @@ void MotionManager::MotionSequenceShowCmdCallback(
   // decision_ptr_->SetSequnceTotalDuration(total_duration);
   decision_ptr_->DecideResultCmd(request, response);
   if (decision_ptr_->IsErrorCode(response->code)) {
-      code_ = response->code;
-      motion_id_ = response->motion_id;
-      ready_ = true;
-      msg_condition_.notify_one();
+    std::unique_lock<std::mutex> lock(msg_mutex_);
+    code_ = response->code;
+    motion_id_ = response->motion_id;
+    msg_condition_.notify_one();
     //decision_ptr_->ReportErrorCode(response->code, response->motion_id);
   }
   // if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {
@@ -403,9 +400,8 @@ void MotionManager::Report()
 {
   while (true) {
     std::unique_lock<std::mutex> lock(msg_mutex_);
-    msg_condition_.wait(lock, [this]{return ready_;});
+    msg_condition_.wait(lock);
     decision_ptr_->ReportErrorCode(code_, motion_id_);
-    ready_ = false;
 
     std::this_thread::sleep_for(std::chrono::microseconds(20));
   }
