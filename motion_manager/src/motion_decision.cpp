@@ -202,7 +202,7 @@ void MotionDecision::ReportErrorCode(int32_t & error_code, int32_t & motion_id)
   int64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
     std::chrono::system_clock::now().time_since_epoch()).count();
   if (error_code == last_error_code_ && motion_id == last_motion_id_) {
-    if (now_ms - last_ms_ < 30000) {
+    if (now_ms - last_ms_ < 180000) {
       return;
     }
   }

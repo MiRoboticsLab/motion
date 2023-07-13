@@ -212,7 +212,6 @@ private:
   bool WaitHandlingResult(int32_t motion_id, int32_t duration, int32_t & code);
   void StopMotion();
   void ServoResponseThread();
-  void WriteTomlFile();
   inline void SetWorkStatus(const DecisionStatus & status_code)
   {
     std::unique_lock<std::mutex> lk(status_mutex_);

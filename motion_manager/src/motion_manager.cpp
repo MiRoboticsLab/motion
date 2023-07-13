@@ -316,6 +316,7 @@ void MotionManager::MotionCustomCmdCallback(
   //   auto res = std::make_shared<MotionResultSrv::Response>();
   //   decision_ptr_->DecideResultCmd(req, res);
   //   response->motion_id = res->motion_id;
+  //   response->result = res->result;
   //   response->code = res->code;
   //   // decision_ptr_->DecideCustomCmd(request, response);
   // }
