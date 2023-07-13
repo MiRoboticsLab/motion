@@ -149,7 +149,6 @@ private:
   std::mutex msg_mutex_;
   int32_t code_;
   int32_t motion_id_;
-
 };  // class MotionManager
 }  // namespace motion
 }  // namespace cyberdog

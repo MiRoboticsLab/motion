@@ -315,8 +315,7 @@ void MotionManager::MotionCustomCmdCallback(
   //   req->cmd_source = request->cmd_source;
   //   auto res = std::make_shared<MotionResultSrv::Response>();
   //   decision_ptr_->DecideResultCmd(req, res);
-  //   response->motion_id = res->motion_id;  // std::thread thread(&MotionDecision::ReportErrorCode, this, response->code, response->motion_id);
-  // thread.detach();
+  //   response->motion_id = res->motion_id;
   //   response->code = res->code;
   //   // decision_ptr_->DecideCustomCmd(request, response);
   // }
@@ -346,7 +345,6 @@ void MotionManager::MotionSequenceShowCmdCallback(
     code_ = response->code;
     motion_id_ = response->motion_id;
     msg_condition_.notify_one();
-    //decision_ptr_->ReportErrorCode(response->code, response->motion_id);
   }
   // if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {
   //   auto lcm = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
