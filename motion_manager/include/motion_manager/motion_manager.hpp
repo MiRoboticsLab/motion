@@ -123,6 +123,7 @@ private:
     }
     return true;
   }
+  void Report();
 
 private:
   std::string name_;
@@ -143,6 +144,11 @@ private:
   MotionMgrState state_{MotionMgrState::kUninit};
   std::mutex status_mutex_;
   std::unordered_map<MotionMgrState, std::string> status_map_;
+  std::unique_ptr<std::thread> thread_{nullptr};
+  std::condition_variable msg_condition_;
+  std::mutex msg_mutex_;
+  int32_t code_;
+  int32_t motion_id_;
 };  // class MotionManager
 }  // namespace motion
 }  // namespace cyberdog

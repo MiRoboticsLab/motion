@@ -14,6 +14,7 @@ find_package(protocol REQUIRED)
 find_package(motion_action REQUIRED)
 find_package(cyberdog_debug REQUIRED)
 find_package(cyberdog_machine REQUIRED)
+find_package(bes_transmit REQUIRED)
 
 include_directories(include)
 
@@ -31,6 +32,7 @@ ament_target_dependencies(${PROJECT_NAME}
   cyberdog_common
   motion_action
   protocol
+  bes_transmit
 )
 
 install(TARGETS
