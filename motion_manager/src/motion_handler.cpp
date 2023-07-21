@@ -319,9 +319,9 @@ bool MotionHandler::CheckMotionResult(int32_t & code)
 
 bool MotionHandler::CheckMotionResult(int32_t motion_id, int32_t & code)
 {
-  if (motion_id == MotionIDMsg::ESTOP) {
-    return true;
-  }
+  // if (motion_id == MotionIDMsg::ESTOP) {
+  //   return true;
+  // }
   return CheckMotionResult(code);
 }
 
