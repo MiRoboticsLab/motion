@@ -232,6 +232,7 @@ private:
   bool exec_servo_pre_motion_failed_ {false};
   bool sing_{false};
   bool execute_dance_{false};
+  bool estop_{false};
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

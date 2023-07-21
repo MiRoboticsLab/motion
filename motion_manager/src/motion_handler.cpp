@@ -489,7 +489,7 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
     response->code = code_ptr_->GetCode(MotionCode::kMotionExecuteTimeout);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
-    ERROR("Motion execute timeout");
+    ERROR("Motion %d execute timeout", request->motion_id);
     return;
   }
   int32_t code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
@@ -497,7 +497,7 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
     response->code = code;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
-    ERROR("Motion execute error");
+    ERROR("Motion %d execute error", request->motion_id);
     return;
   }
   response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
@@ -521,6 +521,8 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
 {
   bool DanceInteruption = (GetWorkStatus() == HandlerStatus::kExecutingResultCmd &&
     GetMotionStatus()->motion_id == 140 && request->motion_id == MotionIDMsg::GETDOWN);
+  estop_ = request->motion_id == MotionIDMsg::ESTOP;
+  INFO("estop: %d", estop_);
   if (DanceInteruption && is_execute_wait_) {
     execute_cv_.notify_all();
   }
@@ -578,6 +580,15 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       ERROR("Get error when trying to be ready for ResultCmd");
       CloseTomlLog();
       SetWorkStatus(HandlerStatus::kIdle);
+      return;
+    }
+    if (estop_) {
+      WARN("Following motion will not impl when EStop");
+      CloseTomlLog();
+      SetWorkStatus(HandlerStatus::kIdle);
+      if (is_execute_wait_) {
+        execute_cv_.notify_all();
+      }
       return;
     }
   }
