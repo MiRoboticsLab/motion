@@ -538,7 +538,7 @@ min_exec_time = 15000
 # 舞蹈-1
 [[motion_ids]]
 motion_id = 176
-map = [62, 121]   
+map = [62, 111]   
 pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 120000
@@ -546,7 +546,7 @@ min_exec_time = 120000
 # 舞蹈-2
 [[motion_ids]]
 motion_id = 177
-map = [62, 122]   
+map = [62, 112]   
 pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 120000
@@ -554,7 +554,7 @@ min_exec_time = 120000
 # 舞蹈-3
 [[motion_ids]]
 motion_id = 178
-map = [62, 123]   
+map = [62, 113]   
 pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 120000
@@ -966,3 +966,107 @@ map = [11, 110]
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 23, 80, 81, 82]
 min_exec_time = 0
+
+# 跳跃抬手
+[[motion_ids]]
+motion_id = 500
+map = [16, 16]   
+pre_motion = []
+post_motion = [12, 7, 21, 6, 11, 62, 5, 64, 16, 17, 23, 9, 80, 82, 81]
+min_exec_time = 1000
+
+# 舞蹈-4
+[[motion_ids]]
+motion_id = 501
+map = [62, 114]   
+pre_motion = []
+post_motion = [0, 12, 7, 21]
+min_exec_time = 120000
+
+# 舞蹈-5
+[[motion_ids]]
+motion_id = 502
+map = [62, 115]   
+pre_motion = []
+post_motion = [0, 12, 7, 21]
+min_exec_time = 120000
+
+# 舞蹈-6
+[[motion_ids]]
+motion_id = 503
+map = [62, 116]   
+pre_motion = []
+post_motion = [0, 12, 7, 21]
+min_exec_time = 120000
+
+# 舞蹈-7
+[[motion_ids]]
+motion_id = 504
+map = [62, 117]   
+pre_motion = []
+post_motion = [0, 12, 7, 21]
+min_exec_time = 120000
+
+# 舞蹈-8
+[[motion_ids]]
+motion_id = 505
+map = [62, 118]   
+pre_motion = []
+post_motion = [0, 12, 7, 21]
+min_exec_time = 120000
+
+# 高台后空翻
+[[motion_ids]]
+motion_id = 506
+map = [17, 10]   
+pre_motion = []
+post_motion = [0, 7, 12, 21]
+min_exec_time = 1900
+
+# 高台前空翻
+[[motion_ids]]
+motion_id = 507
+map = [17, 8]   
+pre_motion = []
+post_motion = [0, 7, 12, 21]
+min_exec_time = 1800
+
+# 滑板后空翻
+[[motion_ids]]
+motion_id = 508
+map = [17, 12]   
+pre_motion = []
+post_motion = [0, 7, 12, 21]
+min_exec_time = 1900
+
+# 滑板前空翻
+[[motion_ids]]
+motion_id = 509
+map = [17, 11]   
+pre_motion = []
+post_motion = [0, 7, 12, 21]
+min_exec_time = 1800
+
+# 滑板站立平衡
+[[motion_ids]]
+motion_id = 510
+map = [5, 1]   
+pre_motion = []
+post_motion = [21, 12, 7, 3, 0, 17, 16]
+min_exec_time = 10000
+
+# 滑板蹬地
+[[motion_ids]]
+motion_id = 511
+map = [5, 101]   
+pre_motion = []
+post_motion = [21, 12, 7, 3, 0, 17, 16]
+min_exec_time = 10000
+
+# 强化直立行走
+[[motion_ids]]
+motion_id = 512
+map = [86, 0]   
+pre_motion = []
+post_motion = [0, 7, 12, 80]
+min_exec_time = 10000
