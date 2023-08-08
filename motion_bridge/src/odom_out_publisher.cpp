@@ -23,15 +23,23 @@ namespace motion
 OdomOutPublisher::OdomOutPublisher(const rclcpp::Node::SharedPtr node)
 {
   node_ = node;
+}
+
+bool OdomOutPublisher::Init()
+{
   odom_frame_ = node_->declare_parameter("odom_frame", std::string("odom"));
   base_frame_ = node_->declare_parameter("base_frame", std::string("base_link_leg"));
   map_frame_ = node_->declare_parameter("map_frame", std::string("map"));
-  tf_pub_ = node->declare_parameter("tf_pub", true);
+  tf_pub_ = node_->declare_parameter("tf_pub", true);
   leg_odom_publisher_ = node_->create_publisher<nav_msgs::msg::Odometry>(
     kBridgeOdomTopicName,
     rclcpp::SystemDefaultsQoS());
   tf2_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node_);
   lcm_ = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
+  if (!lcm_->good()) {
+    ERROR("LegOdom reading lcm initialized error");
+    return false;
+  }
   lcm_->subscribe(kLCMBridgeOdomChannel, &OdomOutPublisher::OdomLCMCabllback, this);
   std::thread{
     [this]() {
@@ -107,6 +115,7 @@ int main(int argc, char const * argv[])
   rclcpp::init(argc, argv);
   rclcpp::Node::SharedPtr node(new rclcpp::Node("leg_odom_publisher"));
   cyberdog::motion::OdomOutPublisher lop(node);
+  lop.Init();
   lop.Spin();
   return 0;
 }

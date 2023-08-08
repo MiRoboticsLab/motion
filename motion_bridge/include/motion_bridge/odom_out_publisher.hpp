@@ -41,6 +41,7 @@ class OdomOutPublisher
 public:
   explicit OdomOutPublisher(const rclcpp::Node::SharedPtr node);
   ~OdomOutPublisher() {}
+  bool Init();
   void Spin();
 
 private:
