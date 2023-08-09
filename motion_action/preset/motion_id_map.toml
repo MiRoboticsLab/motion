@@ -311,10 +311,10 @@ pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 预留6207
+# 跳下高台
 [[motion_ids]]
 motion_id = 147
-map = [62, 7]   
+map = [16, 13]   
 pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
