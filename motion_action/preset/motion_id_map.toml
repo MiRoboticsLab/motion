@@ -511,10 +511,10 @@ pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
-# 预留6232
+# 连续后空翻
 [[motion_ids]]
 motion_id = 172
-map = [62, 32]   
+map = [62, 35]   
 pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
@@ -567,12 +567,12 @@ pre_motion = []
 post_motion = [0, 12, 7, 21]
 min_exec_time = 120000
 
-# 预留2500
+# 前空翻拍手
 [[motion_ids]]
 motion_id = 179
-map = [25, 0]   
+map = [62, 36]   
 pre_motion = []
-post_motion = [0, 12, 7]
+post_motion = [0, 12, 7, 21]
 min_exec_time = 15000
 
 # 预制自定义0
@@ -1077,4 +1077,12 @@ motion_id = 512
 map = [86, 0]   
 pre_motion = []
 post_motion = [0, 7, 12, 80]
+min_exec_time = 10000
+
+# 倒立劈叉
+[[motion_ids]]
+motion_id = 513
+map = [65, 1]   
+pre_motion = []
+post_motion = [0, 3, 16, 6, 21, 11, 12, 80, 7]
 min_exec_time = 10000
