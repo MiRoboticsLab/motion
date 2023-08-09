@@ -520,7 +520,8 @@ template<typename CmdRequestT, typename CmdResponseT>
 void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT response)
 {
   bool DanceInteruption = (GetWorkStatus() == HandlerStatus::kExecutingResultCmd &&
-    GetMotionStatus()->motion_id == 140 && request->motion_id == MotionIDMsg::GETDOWN);
+    dance_map_.find(GetMotionStatus()->motion_id) != dance_map_.end() &&
+    request->motion_id == MotionIDMsg::GETDOWN);
   estop_ = request->motion_id == MotionIDMsg::ESTOP;
   INFO("estop: %d", estop_);
   if (DanceInteruption && is_execute_wait_) {
