@@ -197,7 +197,7 @@ motion_id = 132
 map = [16, 1]   
 pre_motion = []
 post_motion = [0, 12, 7, 21]
-min_exec_time = 1500
+min_exec_time = 2500
 
 # 3D跳跃前跳30cm, duration 不需要用户设置，必须为0
 [[motion_ids]]
