@@ -758,7 +758,9 @@ bool MotionHandler::CheckPostMotion(int32_t motion_id)
   if (motion_id == MotionIDMsg::RECOVERYSTAND || motion_id == MotionIDMsg::ESTOP) {
     return true;
   }
-  if (motion_status_ptr_->motion_id == -1) {
+  auto current_motion_id = motion_status_ptr_->motion_id;
+  INFO("Current motion id: %d", current_motion_id);
+  if (current_motion_id == -1) {
     return false;
   }
 
@@ -766,7 +768,7 @@ bool MotionHandler::CheckPostMotion(int32_t motion_id)
   int32_t request_mode = motion_id_map_.find(motion_id)->second.map.front();
   // 当前状态允许切换的post_motion
   std::vector<int32_t> post_motion =
-    motion_id_map_.find(motion_status_ptr_->motion_id)->second.post_motion;
+    motion_id_map_.find(current_motion_id)->second.post_motion;
 
   return std::find(post_motion.begin(), post_motion.end(), request_mode) != post_motion.end();
 }
