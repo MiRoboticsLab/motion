@@ -36,7 +36,7 @@ motion_id = 111
 map  = [12, 0]   
 pre_motion = []
 post_motion = [0, 12, 7, 21, 3, 6, 11, 62, 5, 64, 16, 17, 23, 9, 80, 81, 82]
-min_exec_time = 5000
+min_exec_time = 9000
 
 # 行走后站立， duration必须为0
 [[motion_ids]]
