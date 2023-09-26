@@ -138,10 +138,9 @@ public:
     if (std::find(report_error_code_.begin(), report_error_code_.end(), error_code) ==
       report_error_code_.end())
     {
-      INFO("not error code");
       return false;
     } else {
-      INFO("error code");
+      INFO("motion error code %d", error_code);
       return true;
     }
   }
