@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
+// Copyright (c) 2023 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,8 +58,9 @@ bool MotionDecision::Init(rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr s
   servo_response_pub_ = servo_response_pub;
   servo_response_thread_ = std::thread(std::bind(&MotionDecision::ServoResponseThread, this));
   servo_response_thread_.detach();
-  laser_helper_ = std::make_shared<LaserHelper>(node_ptr_);
+  // laser_helper_ = std::make_shared<LaserHelper>(node_ptr_);
   ResetServoResponseMsg();
+  log_ptr_ = std::make_shared<LcmEventUploader>(node_ptr_);
   return true;
 }
 
@@ -104,6 +105,9 @@ void MotionDecision::ServoResponseThread()
         handler_ptr_->CheckMotionResult(code);
         servo_response_msg_.code = code;
         servo_response_pub_->publish(servo_response_msg_);
+        if (IsErrorCode(code)) {
+          ReportErrorCode(code, servo_response_msg_.motion_id);
+        }
       } else {
         servo_response_msg_.motion_id = -1;
         servo_response_msg_.order_process_bar = -1;
@@ -191,6 +195,32 @@ void MotionDecision::DecideQueueCmd(
     return;
   }
   handler_ptr_->HandleQueueCmd(request, response);
+}
+
+void MotionDecision::ReportErrorCode(int32_t & error_code, int32_t & motion_id)
+{
+  int64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    std::chrono::system_clock::now().time_since_epoch()).count();
+  if (error_code == last_error_code_ && motion_id == last_motion_id_) {
+    if (now_ms - last_ms_ < 180000) {
+      return;
+    }
+  }
+  last_error_code_ = error_code;
+  last_motion_id_ = motion_id;
+  last_ms_ = now_ms;
+  INFO("begin to report error code");
+  int report_response = log_ptr_->recordEvent(motion_id, error_code, now_ms);
+  switch (report_response) {
+    case 0:
+      INFO("save logs and report abnormal events");
+    case 1:
+      INFO("failed to save log");
+    case 2:
+      INFO("failed to report abnormal events");
+    case 3:
+      INFO("failed to save log and report abnormal events");
+  }
 }
 
 }  // namespace motion

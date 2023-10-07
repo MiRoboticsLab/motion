@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
+// Copyright (c) 2023 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -109,6 +109,8 @@ bool MotionManager::Init()
   status_map_.emplace(MotionMgrState::kLowPower, "LowPower");
   status_map_.emplace(MotionMgrState::kOTA, "OTA");
   status_map_.emplace(MotionMgrState::kError, "Error");
+  thread_ = std::make_unique<std::thread>(&MotionManager::Report, this);
+  thread_->detach();
   return true;
 }
 
@@ -260,7 +262,8 @@ void MotionManager::MotionResultCmdCallback(
   bool protected_cmd =
     (request->motion_id != MotionIDMsg::RECOVERYSTAND &&
     request->motion_id != MotionIDMsg::GETDOWN &&
-    request->motion_id != MotionIDMsg::ESTOP);
+    request->motion_id != MotionIDMsg::ESTOP &&
+    request->motion_id != MotionIDMsg::POSECONTROL_RELATIVEYLY);
   if (!IsStateValid(code, protected_cmd)) {
     ERROR("FSM invalid with current state: %s", status_map_.at(state_).c_str());
     if (code == code_ptr_->GetKeyCode(system::KeyCode::kProtectedError)) {
@@ -272,6 +275,12 @@ void MotionManager::MotionResultCmdCallback(
   }
 
   decision_ptr_->DecideResultCmd(request, response);
+  if (decision_ptr_->IsErrorCode(response->code)) {
+    std::unique_lock<std::mutex> lock(msg_mutex_);
+    code_ = response->code;
+    motion_id_ = response->motion_id;
+    msg_condition_.notify_one();
+  }
   INFO("Will return MotionResultCmdCallback");
 }
 
@@ -332,7 +341,12 @@ void MotionManager::MotionSequenceShowCmdCallback(
   // }
   // decision_ptr_->SetSequnceTotalDuration(total_duration);
   decision_ptr_->DecideResultCmd(request, response);
-
+  if (decision_ptr_->IsErrorCode(response->code)) {
+    std::unique_lock<std::mutex> lock(msg_mutex_);
+    code_ = response->code;
+    motion_id_ = response->motion_id;
+    msg_condition_.notify_one();
+  }
   // if (request->cmd_type == MotionCustomSrv::Request::DEFINITION) {
   //   auto lcm = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
   //   std::ifstream custom_config(kMotionCustomCmdConfigPath);
@@ -379,6 +393,17 @@ void MotionManager::MotionQueueCmdCallback(
     return;
   }
   decision_ptr_->DecideQueueCmd(request, response);
+}
+
+void MotionManager::Report()
+{
+  while (true) {
+    std::unique_lock<std::mutex> lock(msg_mutex_);
+    msg_condition_.wait(lock);
+    decision_ptr_->ReportErrorCode(code_, motion_id_);
+
+    std::this_thread::sleep_for(std::chrono::microseconds(20));
+  }
 }
 
 }  // namespace motion

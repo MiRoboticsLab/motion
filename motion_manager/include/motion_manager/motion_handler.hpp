@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
+// Copyright (c) 2023 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/lcm/robot_control_cmd_lcmt.hpp"
 #include "protocol/lcm/robot_control_response_lcmt.hpp"
+#include "protocol/srv/audio_text_play.hpp"
+#include "protocol/msg/audio_play.hpp"
 
 namespace cyberdog
 {
@@ -69,7 +71,9 @@ public:
   bool CheckMotionResult(int32_t motion_id, int32_t & code);
   bool SelfCheck()
   {
-    return action_ptr_->SelfCheck();
+    int32_t code = 0;
+    CheckMotors(code);
+    return action_ptr_->SelfCheck() && code == 0;
   }
   void SetState(const MotionMgrState & state)
   {
@@ -85,6 +89,7 @@ private:
   void UpdateMotionStatus(const MotionStatusMsg::SharedPtr & motion_status_ptr);
   bool CheckMotionID(int32_t motion_id);
   void ServoDataCheck();
+  void SetDanceMap();
   void PoseControlDefinitively();
   void WalkStand(const MotionServoCmdMsg::SharedPtr & last_servo_cmd);
   void HandleServoStartFrame(const MotionServoCmdMsg::SharedPtr & msg);
@@ -175,10 +180,19 @@ private:
     toml_.close();
   }
 
+  inline void Sing(uint16_t sing)
+  {
+    auto request = std::make_shared<protocol::srv::AudioTextPlay_Request>();
+    request->is_online = false;
+    request->speech.play_id = sing;
+    audio_play_->async_send_request(request);
+  }
+
   /* ros members */
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   rclcpp::Publisher<MotionStatusMsg>::SharedPtr motion_status_pub_ {nullptr};
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr ad_srv_{nullptr};
+  rclcpp::Client<protocol::srv::AudioTextPlay>::SharedPtr audio_play_{nullptr};
   std::shared_ptr<MotionAction> action_ptr_ {nullptr};
   std::shared_ptr<LcmResponse> lcm_response_ {nullptr};
   std::thread servo_response_thread_;
@@ -196,6 +210,7 @@ private:
   std::condition_variable transitioning_cv_;
   std::condition_variable execute_cv_;
   std::map<int32_t, MotionIdMap> motion_id_map_;
+  std::map<int32_t, uint16_t> dance_map_;
   MotionServoCmdMsg::SharedPtr last_servo_cmd_ {nullptr};
   MotionStatusMsg::SharedPtr motion_status_ptr_ {nullptr};
   MotionMgrState fsm_state_;
@@ -208,12 +223,16 @@ private:
   int32_t wait_id_;
   uint8_t retry_ {0}, max_retry_{3};
   int8_t server_check_error_counter_ {0};
+  // int8_t elec_skin_id_{0};
   bool is_transitioning_wait_ {false};
   bool is_execute_wait_ {false};
   bool is_servo_need_check_ {false};
   bool premotion_executing_ {false};
   bool post_motion_checked_ {false};
   bool exec_servo_pre_motion_failed_ {false};
+  bool sing_{false};
+  bool execute_dance_{false};
+  bool estop_{false};
 };  // class MotionHandler
 }  // namespace motion
 }  // namespace cyberdog

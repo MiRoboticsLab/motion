@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
+// Copyright (c) 2023 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,6 +53,9 @@ bool MotionHandler::Init()
       this->action_ptr_->ShowDebugLog(request->data);
     }
   );
+  audio_play_ = node_ptr_->create_client<protocol::srv::AudioTextPlay>(
+    "speech_text_play",
+    rmw_qos_profile_services_default);
   servo_check_click_ = std::make_shared<ServoClick>();
   servo_data_check_thread_ = std::thread(std::bind(&MotionHandler::ServoDataCheck, this));
   servo_data_check_thread_.detach();
@@ -63,6 +66,7 @@ bool MotionHandler::Init()
     }
   }
   motion_id_map_ = action_ptr_->GetMotionIdMap();
+  SetDanceMap();
   std::thread{
     [this]() {
       while (rclcpp::ok()) {
@@ -183,11 +187,18 @@ void MotionHandler::HandleServoCmd(
   }
   SetWorkStatus(HandlerStatus::kExecutingServoCmd);
   if (msg->cmd_type != MotionServoCmdMsg::SERVO_END) {
+    INFO(
+      "Current Motion: %d, AllowServoCmd: %d, pmc: %d",
+      motion_status_ptr_->motion_id, AllowServoCmd(msg->motion_id), post_motion_checked_);
     if (!AllowServoCmd(msg->motion_id)) {
       SetServoNeedCheck(false);
       MotionResultSrv::Request::SharedPtr request(new MotionResultSrv::Request);
       MotionResultSrv::Response::SharedPtr response(new MotionResultSrv::Response);
-      request->motion_id = MotionIDMsg::RECOVERYSTAND;
+      if (msg->motion_id == 309) {
+        request->motion_id = 118;
+      } else {
+        request->motion_id = MotionIDMsg::RECOVERYSTAND;
+      }
       INFO("Trying to be ready for ServoCmd");
       ExecuteResultCmd(request, response);
       if (!response->result) {
@@ -205,7 +216,12 @@ void MotionHandler::HandleServoCmd(
     }
     exec_servo_pre_motion_failed_ = false;
     last_servo_cmd_ = msg;
+    // action_ptr_->SetAlignContact(true);
     action_ptr_->Execute(msg);
+    // if (!sing_) {
+    //   // Sing(true);
+    //   sing_ = true;
+    // }
     TickServoCmd();
     SetServoNeedCheck(true);
   } else {
@@ -303,9 +319,9 @@ bool MotionHandler::CheckMotionResult(int32_t & code)
 
 bool MotionHandler::CheckMotionResult(int32_t motion_id, int32_t & code)
 {
-  if (motion_id == MotionIDMsg::ESTOP) {
-    return true;
-  }
+  // if (motion_id == MotionIDMsg::ESTOP) {
+  //   return true;
+  // }
   return CheckMotionResult(code);
 }
 
@@ -344,7 +360,6 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   //   }
   // }
   action_ptr_->Execute(request);
-  INFO("Wait 15ms start");
   if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
     auto req = std::make_shared<MotionResultSrv::Request>();
     req->motion_id = request->motion_id;
@@ -360,7 +375,6 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   }
   auto past = std::chrono::system_clock::now() - start;
   std::this_thread::sleep_for(std::chrono::nanoseconds(15 * 1000 * 1000) - past);
-  INFO("Wait 15ms over");
   std::unique_lock<std::mutex> check_lk(execute_mutex_);
   wait_id_ = request->motion_id;
   switch (motion_status_ptr_->switch_status) {
@@ -475,7 +489,7 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
     response->code = code_ptr_->GetCode(MotionCode::kMotionExecuteTimeout);
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
-    ERROR("Motion execute timeout");
+    ERROR("Motion %d execute timeout", request->motion_id);
     return;
   }
   int32_t code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
@@ -483,7 +497,7 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
     response->code = code;
     response->result = false;
     response->motion_id = motion_status_ptr_->motion_id;
-    ERROR("Motion execute error");
+    ERROR("Motion %d execute error", request->motion_id);
     return;
   }
   response->code = code_ptr_->GetKeyCode(cyberdog::system::KeyCode::kOK);
@@ -505,7 +519,16 @@ void MotionHandler::HandleResultCmd<MotionSequenceShowSrv::Request::SharedPtr,
 template<typename CmdRequestT, typename CmdResponseT>
 void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT response)
 {
+  bool DanceInteruption = (GetWorkStatus() == HandlerStatus::kExecutingResultCmd &&
+    dance_map_.find(GetMotionStatus()->motion_id) != dance_map_.end() &&
+    request->motion_id == MotionIDMsg::GETDOWN);
+  estop_ = request->motion_id == MotionIDMsg::ESTOP;
+  INFO("estop: %d", estop_);
+  if (DanceInteruption && is_execute_wait_) {
+    execute_cv_.notify_all();
+  }
   if (GetWorkStatus() != HandlerStatus::kIdle &&
+    !DanceInteruption &&
     request->motion_id != MotionIDMsg::ESTOP &&
     request->cmd_source != MotionResultSrv::Request::FSM)
   {
@@ -560,6 +583,15 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       SetWorkStatus(HandlerStatus::kIdle);
       return;
     }
+    if (estop_) {
+      WARN("Following motion will not impl when EStop");
+      CloseTomlLog();
+      SetWorkStatus(HandlerStatus::kIdle);
+      if (is_execute_wait_) {
+        execute_cv_.notify_all();
+      }
+      return;
+    }
   }
   if (request->motion_id == MotionIDMsg::SEQUENCE_CUSTOM) {
     INFO("\n%s", request->gait_toml.c_str());
@@ -573,7 +605,56 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
       return;
     }
   }
+  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    action_ptr_->ShowBlackSkin();
+  }
+  // if (request->motion_id == MotionIDMsg::RECOVERYSTAND) {
+  //   if(elec_skin_id_ >= 3) {
+  //     elec_skin_id_ = 0;
+  //   }
+  //   switch (elec_skin_id_)
+  //   {
+  //     case 0:
+  //       action_ptr_->ShowStandElecSkin();
+  //       break;
+
+  //     case 1:
+  //       action_ptr_->ShowTwinkElecSkin();
+  //       break;
+
+  //     case 2:
+  //       action_ptr_->ShowRandomElecSkin();
+  //       break;
+
+  //     default:
+  //       break;
+  //   }
+  //   elec_skin_id_++;
+  // }
+  // if (request->motion_id == MotionIDMsg::GETDOWN ||
+  //   request->motion_id == 143) { // 坐下
+  //   elec_skin_id_ = 0;
+  //   action_ptr_->ShowStandElecSkin();
+  // }
+  if (dance_map_.find(request->motion_id) != dance_map_.end()) {
+    INFO("Will sing");
+    execute_dance_ = true;
+    Sing(dance_map_[request->motion_id]);
+  }
+
+  if (request->motion_id == MotionIDMsg::GETDOWN && execute_dance_ == true) {
+    INFO("Stop sing");
+    Sing(9999);
+  }
+
+  // if (request->motion_id == MotionIDMsg::BACK_FLIP) {
+  //   action_ptr_->ShowDefaultSkin(true, true);
+  // }
   ExecuteResultCmd(request, response);
+  execute_dance_ = false;
+  if (request->motion_id == MotionIDMsg::TWO_LEG_STAND) {
+    action_ptr_->ShowWhiteSkin();
+  }
   CloseTomlLog();
   SetWorkStatus(HandlerStatus::kIdle);
   INFO("Will return HandleResultCmd");
@@ -677,7 +758,9 @@ bool MotionHandler::CheckPostMotion(int32_t motion_id)
   if (motion_id == MotionIDMsg::RECOVERYSTAND || motion_id == MotionIDMsg::ESTOP) {
     return true;
   }
-  if (motion_status_ptr_->motion_id == -1) {
+  auto current_motion_id = motion_status_ptr_->motion_id;
+  INFO("Current motion id: %d", current_motion_id);
+  if (current_motion_id == -1) {
     return false;
   }
 
@@ -685,15 +768,15 @@ bool MotionHandler::CheckPostMotion(int32_t motion_id)
   int32_t request_mode = motion_id_map_.find(motion_id)->second.map.front();
   // 当前状态允许切换的post_motion
   std::vector<int32_t> post_motion =
-    motion_id_map_.find(motion_status_ptr_->motion_id)->second.post_motion;
+    motion_id_map_.find(current_motion_id)->second.post_motion;
 
   return std::find(post_motion.begin(), post_motion.end(), request_mode) != post_motion.end();
 }
 
 bool MotionHandler::AllowServoCmd(int32_t motion_id)
 {
-  // TODO(harvey): 判断当前状态是否能够行走
-  if (post_motion_checked_) {return true;}
+  // TODO(harvey): 判断当前状态是否能够行走，跟随时每一帧都做检查
+  if (post_motion_checked_ && motion_id != 309) {return true;}
   return CheckPostMotion(motion_id);
 }
 
@@ -783,6 +866,14 @@ bool MotionHandler::CheckMotors(int32_t & code)
     code = code_ptr_->GetCode(MotionCode::kHwMotorOverLoad);
   }
   return false;
+}
+
+void MotionHandler::SetDanceMap()
+{
+  dance_map_[140] = 60003;
+  dance_map_[176] = 60005;
+  dance_map_[177] = 60006;
+  dance_map_[178] = 60007;
 }
 }  // namespace motion
 }  // namespace cyberdog

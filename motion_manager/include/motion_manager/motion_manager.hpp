@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
+// Copyright (c) 2023 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -123,6 +123,7 @@ private:
     }
     return true;
   }
+  void Report();
 
 private:
   std::string name_;
@@ -143,6 +144,11 @@ private:
   MotionMgrState state_{MotionMgrState::kUninit};
   std::mutex status_mutex_;
   std::unordered_map<MotionMgrState, std::string> status_map_;
+  std::unique_ptr<std::thread> thread_{nullptr};
+  std::condition_variable msg_condition_;
+  std::mutex msg_mutex_;
+  int32_t code_;
+  int32_t motion_id_;
 };  // class MotionManager
 }  // namespace motion
 }  // namespace cyberdog

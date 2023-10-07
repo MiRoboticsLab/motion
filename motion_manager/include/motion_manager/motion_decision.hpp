@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
+// Copyright (c) 2023 Beijing Xiaomi Mobile Software Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
 #include "protocol/srv/motion_result_cmd.hpp"
 #include "protocol/msg/motion_status.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "file_uploading/lcm_log_uploader.hpp"
 
 namespace cyberdog
 {
@@ -131,6 +132,19 @@ public:
   // {
   //   handler_ptr_->SetSequnceTotalDuration(sequence_total_duration);
   // }
+  void ReportErrorCode(int32_t & error_code, int32_t & motion_id);
+  inline bool IsErrorCode(int32_t & error_code)
+  {
+    if (std::find(report_error_code_.begin(), report_error_code_.end(), error_code) ==
+      report_error_code_.end())
+    {
+      INFO("not error code");
+      return false;
+    } else {
+      INFO("error code");
+      return true;
+    }
+  }
   inline bool SelfCheck()
   {
     return handler_ptr_->SelfCheck();
@@ -154,11 +168,11 @@ private:
         return false;
       }
     }
-    if (motion_id == MotionIDMsg::RECOVERYSTAND && laser_helper_->IsStuck()) {
-      ERROR("Forbidden ResultCmd(%d) when stuck", motion_id);
-      error_code = code_ptr_->GetCode(MotionCode::kStuck);
-      return false;
-    }
+    // if (motion_id == MotionIDMsg::RECOVERYSTAND && laser_helper_->IsStuck()) {
+    //   ERROR("Forbidden ResultCmd(%d) when stuck", motion_id);
+    //   error_code = code_ptr_->GetCode(MotionCode::kStuck);
+    //   return false;
+    // }
     return true;
   }
   inline bool IsStateValid(int32_t motion_id)
@@ -259,6 +273,7 @@ private:
 private:
   rclcpp::Node::SharedPtr node_ptr_ {nullptr};
   std::shared_ptr<MotionHandler> handler_ptr_ {nullptr};
+  std::shared_ptr<LcmEventUploader> log_ptr_ {nullptr};
   DecisionStatus motion_work_mode_ {DecisionStatus::kIdle};
   std::mutex status_mutex_;
   std::shared_ptr<MCode> code_ptr_;
@@ -268,9 +283,14 @@ private:
   common::MsgQueue<int> servo_response_queue_;
   rclcpp::Publisher<MotionServoResponseMsg>::SharedPtr servo_response_pub_;
   MotionServoResponseMsg servo_response_msg_;
-  std::shared_ptr<LaserHelper> laser_helper_;
+  // std::shared_ptr<LaserHelper> laser_helper_;
   std::map<int32_t, int32_t> priority_map_;
   bool estop_ {false};
+  std::vector<int32_t> report_error_code_ {3021, 3022, 3023, 3024, 3025, 3026, 3027, 3028, 3029,
+    3031, 3032, 3033, 3034, 3035};
+  int32_t last_error_code_ {0};
+  int32_t last_motion_id_ {0};
+  int64_t last_ms_ {0};
 };  // class MotionDecision
 }  // namespace motion
 }  // namespace cyberdog
