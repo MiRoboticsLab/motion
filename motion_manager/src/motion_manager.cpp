@@ -154,7 +154,7 @@ int32_t MotionManager::OnTearDown()
   if (decision_ptr_->GetMotionID() != MotionIDMsg::ESTOP &&
     decision_ptr_->GetMotionID() != MotionIDMsg::GETDOWN)
   {
-    while (!TryGetDownOnFsm() && rclcpp::ok()) {
+    while (!TryGetDownOnFsm(true) && rclcpp::ok()) {
       INFO("Error when GetDown on TearDown, Will retry");
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }

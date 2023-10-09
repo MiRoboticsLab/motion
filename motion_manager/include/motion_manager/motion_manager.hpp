@@ -111,10 +111,10 @@ private:
       ERROR("Cannot get response from AudioPlay");
     }
   }
-  bool TryGetDownOnFsm()
+  bool TryGetDownOnFsm(bool passive_getdown = false)
   {
     auto request = std::make_shared<MotionResultSrv::Request>();
-    request->motion_id = MotionIDMsg::GETDOWN;
+    request->motion_id = passive_getdown ? 102 : MotionIDMsg::GETDOWN;
     request->cmd_source = MotionResultSrv::Request::FSM;
     auto response = std::make_shared<MotionResultSrv::Response>();
     decision_ptr_->DecideResultCmd(request, response);
