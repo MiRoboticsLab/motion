@@ -262,6 +262,7 @@ void MotionManager::MotionResultCmdCallback(
   bool protected_cmd =
     (request->motion_id != MotionIDMsg::RECOVERYSTAND &&
     request->motion_id != MotionIDMsg::GETDOWN &&
+    request->motion_id != 102 &&
     request->motion_id != MotionIDMsg::ESTOP &&
     request->motion_id != MotionIDMsg::POSECONTROL_RELATIVEYLY);
   if (!IsStateValid(code, protected_cmd)) {
