@@ -275,7 +275,7 @@ void MotionManager::MotionResultCmdCallback(
   }
 
   decision_ptr_->DecideResultCmd(request, response);
-  if (decision_ptr_->IsErrorCode(response->code)) {
+  if (decision_ptr_->IsErrorCode(response->code) && !isreporting_) {
     std::unique_lock<std::mutex> lock(msg_mutex_);
     code_ = response->code;
     motion_id_ = response->motion_id;
@@ -341,7 +341,7 @@ void MotionManager::MotionSequenceShowCmdCallback(
   // }
   // decision_ptr_->SetSequnceTotalDuration(total_duration);
   decision_ptr_->DecideResultCmd(request, response);
-  if (decision_ptr_->IsErrorCode(response->code)) {
+  if (decision_ptr_->IsErrorCode(response->code) && !isreporting_) {
     std::unique_lock<std::mutex> lock(msg_mutex_);
     code_ = response->code;
     motion_id_ = response->motion_id;
@@ -398,10 +398,11 @@ void MotionManager::MotionQueueCmdCallback(
 void MotionManager::Report()
 {
   while (true) {
+    isreporting_ = false;
     std::unique_lock<std::mutex> lock(msg_mutex_);
     msg_condition_.wait(lock);
+    isreporting_ = true;
     decision_ptr_->ReportErrorCode(code_, motion_id_);
-
     std::this_thread::sleep_for(std::chrono::microseconds(20));
   }
 }
