@@ -154,7 +154,7 @@ int32_t MotionManager::OnTearDown()
   if (decision_ptr_->GetMotionID() != MotionIDMsg::ESTOP &&
     decision_ptr_->GetMotionID() != MotionIDMsg::GETDOWN)
   {
-    while (!TryGetDownOnFsm() && rclcpp::ok()) {
+    while (!TryGetDownOnFsm(true) && rclcpp::ok()) {
       INFO("Error when GetDown on TearDown, Will retry");
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
@@ -262,6 +262,7 @@ void MotionManager::MotionResultCmdCallback(
   bool protected_cmd =
     (request->motion_id != MotionIDMsg::RECOVERYSTAND &&
     request->motion_id != MotionIDMsg::GETDOWN &&
+    request->motion_id != 102 &&
     request->motion_id != MotionIDMsg::ESTOP &&
     request->motion_id != MotionIDMsg::POSECONTROL_RELATIVEYLY);
   if (!IsStateValid(code, protected_cmd)) {
