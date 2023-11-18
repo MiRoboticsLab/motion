@@ -420,6 +420,55 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
       ERROR("Motion switch LOW_BAT");
       return;
 
+    case MotionStatusMsg::ORI_ERR:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchOriErr);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch ORI_ERR");
+      return;
+
+    case MotionStatusMsg::FOOTPOS_ERR:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchFootPosErr);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch FOOTPOS_ERR");
+      return;
+
+    case MotionStatusMsg::STAND_STUCK:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchStandStuck);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch STAND_STUCK");
+      return;
+
+    case MotionStatusMsg::MOTOR_OVER_HEAT:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchMotorOverHeat);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch MOTOR_OVER_HEAT");
+      return;
+
+    case MotionStatusMsg::MOTOR_OVER_CURR:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchMotorOverCurr);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch MOTOR_OVER_CURR");
+      return;
+
+    case MotionStatusMsg::MOTOR_ERR:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchMotorErr);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch MOTOR_ERR");
+      return;
+
+    case MotionStatusMsg::CHARGING:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchCharging);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch CHARGING");
+      return;
+
     case MotionStatusMsg::TRANSITIONING:
       is_transitioning_wait_ = true;
       WARN("Transitioning waiting");
