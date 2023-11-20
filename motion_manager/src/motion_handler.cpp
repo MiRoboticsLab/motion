@@ -304,15 +304,81 @@ bool MotionHandler::CheckMotionResult(int32_t & code)
   if (!CheckMotors(code)) {
     return false;
   }
-  if (motion_status_ptr_->ori_error != 0 ||
-    // TODO(harvey): footpos_error需要等到运控组确定策略后再加进来
-    //  motion_status_ptr_->footpos_error == 0 &&
-    (motion_status_ptr_->switch_status != MotionStatusMsg::NORMAL &&
-    motion_status_ptr_->switch_status != MotionStatusMsg::TRANSITIONING))
-  {
-    ERROR("Motion ori error or switch error");
-    code = code_ptr_->GetCode(MotionCode::kMotionExecuteError);
-    return false;
+  // if (motion_status_ptr_->ori_error != 0 ||
+  //   // TODO(harvey): footpos_error需要等到运控组确定策略后再加进来
+  //   //  motion_status_ptr_->footpos_error == 0 &&
+  //   (motion_status_ptr_->switch_status != MotionStatusMsg::NORMAL &&
+  //   motion_status_ptr_->switch_status != MotionStatusMsg::TRANSITIONING))
+  // {
+  //   ERROR("Motion ori error or switch error");
+  //   code = code_ptr_->GetCode(MotionCode::kMotionExecuteError);
+  //   return false;
+  // }
+  switch (motion_status_ptr_->switch_status) {
+    case MotionStatusMsg::BAN_TRANS:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchBantrans);
+      ERROR("Motion result BAN_TRANS");
+      return false;
+
+    case MotionStatusMsg::EDAMP:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchEdamp);
+      ERROR("Motion result EDAMP");
+      return false;
+
+    case MotionStatusMsg::ESTOP:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchEstop);
+      ERROR("Motion result ESTOP");
+      return false;
+
+    case MotionStatusMsg::LIFTED:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchLifted);
+      ERROR("Motion result LIFTED");
+      return false;
+
+    case MotionStatusMsg::OVER_HEAT:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchOverHeat);
+      ERROR("Motion result OVER_HEAT");
+      return false;
+
+    case MotionStatusMsg::LOW_BAT:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchLowBat);
+      ERROR("Motion result LOW_BAT");
+      return false;
+
+    case MotionStatusMsg::ORI_ERR:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchOriErr);
+      ERROR("Motion result ORI_ERR");
+      return false;
+
+    case MotionStatusMsg::FOOTPOS_ERR:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchFootPosErr);
+      ERROR("Motion result FOOTPOS_ERR");
+      return false;
+
+    case MotionStatusMsg::STAND_STUCK:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchStandStuck);
+      ERROR("Motion result STAND_STUCK");
+      return false;
+
+    case MotionStatusMsg::MOTOR_OVER_HEAT:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchMotorOverHeat);
+      ERROR("Motion result MOTOR_OVER_HEAT");
+      return false;
+
+    case MotionStatusMsg::MOTOR_OVER_CURR:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchMotorOverCurr);
+      ERROR("Motion result MOTOR_OVER_CURR");
+      return false;
+
+    case MotionStatusMsg::MOTOR_ERR:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchMotorErr);
+      ERROR("Motion result MOTOR_ERR");
+      return false;
+
+    case MotionStatusMsg::CHARGING:
+      code = code_ptr_->GetCode(MotionCode::kMotionSwitchCharging);
+      ERROR("Motion result CHARGING");
+      return false;
   }
   return true;
 }
@@ -418,6 +484,55 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
       response->result = false;
       response->motion_id = motion_status_ptr_->motion_id;
       ERROR("Motion switch LOW_BAT");
+      return;
+
+    case MotionStatusMsg::ORI_ERR:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchOriErr);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch ORI_ERR");
+      return;
+
+    case MotionStatusMsg::FOOTPOS_ERR:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchFootPosErr);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch FOOTPOS_ERR");
+      return;
+
+    case MotionStatusMsg::STAND_STUCK:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchStandStuck);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch STAND_STUCK");
+      return;
+
+    case MotionStatusMsg::MOTOR_OVER_HEAT:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchMotorOverHeat);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch MOTOR_OVER_HEAT");
+      return;
+
+    case MotionStatusMsg::MOTOR_OVER_CURR:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchMotorOverCurr);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch MOTOR_OVER_CURR");
+      return;
+
+    case MotionStatusMsg::MOTOR_ERR:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchMotorErr);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch MOTOR_ERR");
+      return;
+
+    case MotionStatusMsg::CHARGING:
+      response->code = code_ptr_->GetCode(MotionCode::kMotionSwitchCharging);
+      response->result = false;
+      response->motion_id = motion_status_ptr_->motion_id;
+      ERROR("Motion switch CHARGING");
       return;
 
     case MotionStatusMsg::TRANSITIONING:
