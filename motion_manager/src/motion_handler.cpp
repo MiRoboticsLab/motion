@@ -639,7 +639,7 @@ void MotionHandler::HandleResultCmd(const CmdRequestT request, CmdResponseT resp
     request->motion_id == MotionIDMsg::GETDOWN);
   estop_ = request->motion_id == MotionIDMsg::ESTOP;
   INFO("estop: %d", estop_);
-  if (DanceInteruption && is_execute_wait_) {
+  if ((DanceInteruption || estop_) && is_execute_wait_) {
     execute_cv_.notify_all();
   }
   if (GetWorkStatus() != HandlerStatus::kIdle &&
