@@ -282,6 +282,11 @@ void MotionManager::MotionResultCmdCallback(
     motion_id_ = response->motion_id;
     msg_condition_.notify_one();
   }
+  if (request->motion_id == MotionIDMsg::ESTOP) {
+    code_ = 3088;
+    motion_id_ = request->motion_id;
+    msg_condition_.notify_one();
+  }
   INFO("Will return MotionResultCmdCallback");
 }
 
