@@ -592,7 +592,7 @@ void MotionHandler::ExecuteResultCmd(const CmdRequestT request, CmdResponseT res
   if (min_exec_time > 0) {
     wait_timeout = min_exec_time;
   } else if (min_exec_time < 0) {  // 增量力控、增量位控、绝对位控、行走duration必须大于0
-    wait_timeout = request->duration;
+    wait_timeout = request->duration + 500;
   } else {                         // 自定义动作按照设定的参数计算
     wait_timeout = request->duration == 0 ? 500 : request->duration * 2;
   }
