@@ -205,9 +205,17 @@ int32_t MotionManager::OnLowPower()
   if (decision_ptr_->GetMotionID() != MotionIDMsg::ESTOP &&
     decision_ptr_->GetMotionID() != MotionIDMsg::GETDOWN)
   {
+    uint8_t retry_num = 3;
+    uint8_t retry_count = 0;
     while (!TryGetDownOnFsm() && rclcpp::ok()) {
-      INFO("Error when GetDown on LowPower, Will retry");
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      retry_count++;
+      if (retry_count < 3) {
+        INFO("Error when GetDown on LowPower, Will retry");
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      } else {
+        ERROR("Error 3 times when GetDown on LowPower, Will Abort");
+        return code_ptr_->GetKeyCode(system::KeyCode::kFailed);
+      }
     }
   } else {
     INFO("Estop or Getdown, will do nothing when into LowPower");
