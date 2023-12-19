@@ -58,6 +58,13 @@ enum class MotionCode : int32_t
   kEstop = 40,
   kStuck = 41,
   // kBusy = 42
+  kMotionSwitchOriErr = 50,
+  kMotionSwitchFootPosErr = 51,
+  kMotionSwitchStandStuck = 52,
+  kMotionSwitchMotorOverHeat = 53,
+  kMotionSwitchMotorOverCurr = 54,
+  kMotionSwitchMotorErr = 55,
+  kMotionSwitchCharging = 56,
 };  // enum class MotionCode
 
 using MotionServoCmdMsg = protocol::msg::MotionServoCmd;

@@ -214,12 +214,18 @@ void MotionDecision::ReportErrorCode(int32_t & error_code, int32_t & motion_id)
   switch (report_response) {
     case 0:
       INFO("save logs and report abnormal events");
+      break;
     case 1:
       INFO("failed to save log");
+      break;
     case 2:
       INFO("failed to report abnormal events");
+      break;
     case 3:
       INFO("failed to save log and report abnormal events");
+      break;
+    default:
+      break;
   }
 }
 
