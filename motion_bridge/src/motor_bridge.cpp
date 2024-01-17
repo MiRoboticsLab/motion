@@ -29,7 +29,7 @@ MotorBridge::MotorBridge(const rclcpp::Node::SharedPtr node)
     std::bind(
       &MotorBridge::HandleMotorTempCallback,
       this, std::placeholders::_1, std::placeholders::_2));
-  lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(kLCMActionSubscibeURL);
+  lcm_subscribe_instance_ = std::make_shared<lcm::LCM>(kLCMBirdgeSubscribeURL);
   lcm_subscribe_instance_->subscribe(kLCMBridgeMotorChannel, &MotorBridge::ReadLcm, this);
   lcm_handle_thread_ =
     std::thread(

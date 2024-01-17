@@ -154,7 +154,7 @@ int32_t MotionManager::OnTearDown()
   if (decision_ptr_->GetMotionID() != MotionIDMsg::ESTOP &&
     decision_ptr_->GetMotionID() != MotionIDMsg::GETDOWN)
   {
-    while (!TryGetDownOnFsm() && rclcpp::ok()) {
+    while (!TryGetDownOnFsm(true) && rclcpp::ok()) {
       INFO("Error when GetDown on TearDown, Will retry");
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
@@ -205,9 +205,17 @@ int32_t MotionManager::OnLowPower()
   if (decision_ptr_->GetMotionID() != MotionIDMsg::ESTOP &&
     decision_ptr_->GetMotionID() != MotionIDMsg::GETDOWN)
   {
+    uint8_t retry_num = 3;
+    uint8_t retry_count = 0;
     while (!TryGetDownOnFsm() && rclcpp::ok()) {
-      INFO("Error when GetDown on LowPower, Will retry");
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      retry_count++;
+      if (retry_count < retry_num) {
+        INFO("Error when GetDown on LowPower, Will retry");
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      } else {
+        ERROR("Error 3 times when GetDown on LowPower, Will Abort");
+        break;
+      }
     }
   } else {
     INFO("Estop or Getdown, will do nothing when into LowPower");
@@ -262,6 +270,7 @@ void MotionManager::MotionResultCmdCallback(
   bool protected_cmd =
     (request->motion_id != MotionIDMsg::RECOVERYSTAND &&
     request->motion_id != MotionIDMsg::GETDOWN &&
+    request->motion_id != 102 &&
     request->motion_id != MotionIDMsg::ESTOP &&
     request->motion_id != MotionIDMsg::POSECONTROL_RELATIVEYLY);
   if (!IsStateValid(code, protected_cmd)) {
@@ -275,10 +284,15 @@ void MotionManager::MotionResultCmdCallback(
   }
 
   decision_ptr_->DecideResultCmd(request, response);
-  if (decision_ptr_->IsErrorCode(response->code)) {
+  if (decision_ptr_->IsErrorCode(response->code) && !isreporting_) {
     std::unique_lock<std::mutex> lock(msg_mutex_);
     code_ = response->code;
     motion_id_ = response->motion_id;
+    msg_condition_.notify_one();
+  }
+  if (request->motion_id == MotionIDMsg::ESTOP) {
+    code_ = 3088;
+    motion_id_ = request->motion_id;
     msg_condition_.notify_one();
   }
   INFO("Will return MotionResultCmdCallback");
@@ -341,7 +355,7 @@ void MotionManager::MotionSequenceShowCmdCallback(
   // }
   // decision_ptr_->SetSequnceTotalDuration(total_duration);
   decision_ptr_->DecideResultCmd(request, response);
-  if (decision_ptr_->IsErrorCode(response->code)) {
+  if (decision_ptr_->IsErrorCode(response->code) && !isreporting_) {
     std::unique_lock<std::mutex> lock(msg_mutex_);
     code_ = response->code;
     motion_id_ = response->motion_id;
@@ -398,10 +412,11 @@ void MotionManager::MotionQueueCmdCallback(
 void MotionManager::Report()
 {
   while (true) {
+    isreporting_ = false;
     std::unique_lock<std::mutex> lock(msg_mutex_);
     msg_condition_.wait(lock);
+    isreporting_ = true;
     decision_ptr_->ReportErrorCode(code_, motion_id_);
-
     std::this_thread::sleep_for(std::chrono::microseconds(20));
   }
 }
